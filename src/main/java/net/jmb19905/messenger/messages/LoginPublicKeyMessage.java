@@ -14,13 +14,13 @@ public class LoginPublicKeyMessage extends EMMessage{
     @Override
     public void handleOnClient(Connection connection) {
         EMLogger.trace("MessagingClient", "received Server login response");
-        EncryptedMessenger.messagingClient.setPublicKey(this);
+        EncryptedMessenger.messagingClient.setPublicKey(encodedKey);
         EncryptedMessenger.messagingClient.login(connection);
     }
 
     @Override
     public void handleOnServer(Connection connection) {
         EMLogger.trace("MessagingServer", "Received PublicKey");
-        ServerMain.messagingServer.sendPublicKey(connection, this);
+        ServerMain.messagingServer.sendPublicKey(connection, encodedKey);
     }
 }

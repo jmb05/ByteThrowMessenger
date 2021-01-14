@@ -4,6 +4,7 @@ import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
@@ -28,7 +29,7 @@ public class RegisterMessage extends EMMessage {
             SQLiteManager.UserData user = SQLiteManager.getUserByName(username);
             if (user == null) {
                 //User does not exist create a new one
-                UUID uuid = ServerMain.messagingServer.createUser(username, password);
+                UUID uuid = SQLiteManager.createUser(username, password);
                 ServerMain.messagingServer.sendRegisterSuccess(connection, username, uuid);
                 ServerMain.messagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
             } else {

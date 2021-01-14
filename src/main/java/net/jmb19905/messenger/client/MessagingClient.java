@@ -157,16 +157,16 @@ public class MessagingClient extends Listener{
         }
     }
 
-    public void setPublicKey(LoginPublicKeyMessage o) {
-        PublicKey publicKey = Util.createPublicKeyFromData(o.encodedKey);
+    public void setPublicKey(byte[] encodedKey) {
+        PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
         EMLogger.trace("MessagingClient", "Received PublicKey");
         if(publicKey != null) {
             MessagingClient.thisDevice.setReceiverPublicKey(publicKey);
         }
     }
 
-    public void setPublicKey(ConnectWithOtherUserMessage o, Node node) {
-        PublicKey publicKey = Util.createPublicKeyFromData(thisDevice.decrypt(o.publicKeyEncodedEncrypted).getBytes());
+    public void setPublicKey(String encryptedEncodedKey, Node node) {
+        PublicKey publicKey = Util.createPublicKeyFromData(thisDevice.decrypt(encryptedEncodedKey).getBytes());
         EMLogger.trace("MessagingClient", "Received PublicKey");
         if(publicKey != null) {
             node.setReceiverPublicKey(publicKey);

@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.server.userdatabase;
 
 import net.jmb19905.messenger.util.EMLogger;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.UUID;
@@ -102,6 +103,20 @@ public class SQLiteManager {
         EMLogger.trace("SQLiteManager", "No UserData for User UUID: " + uuid + " found");
         EMLogger.trace("SQLiteManager", "Closed database successfully");
         return null;
+    }
+
+    public static UUID createUser(String username, String password) {
+        String salt = BCrypt.gensalt();
+        UUID uuid = UUID.randomUUID();
+
+        SQLiteManager.UserData userData = new SQLiteManager.UserData();
+        userData.username = username;
+        userData.salt = salt;
+        userData.password = BCrypt.hashpw(password, salt);
+        userData.uuid = uuid;
+
+        SQLiteManager.addUser(userData);
+        return uuid;
     }
 
     public static class UserData{

@@ -21,7 +21,7 @@ public class ConnectWithOtherUserMessage extends EMMessage{
             EMLogger.trace("MessagingClient", username + " is already connected");
         }else{
             Node node = new Node();
-            EncryptedMessenger.messagingClient.setPublicKey(this, node);
+            EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedEncrypted, node);
             MessagingClient.otherUsers.put(username, node);
             EMLogger.trace("MessagingClient", "Added " + username + " to connected users");
             if(MessagingClient.connectionRequested.contains(username)){

@@ -1,24 +1,20 @@
 package net.jmb19905.messenger.server;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.*;
-import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
+import net.jmb19905.messenger.messages.EMMessage;
+import net.jmb19905.messenger.messages.LoginPublicKeyMessage;
+import net.jmb19905.messenger.messages.RegisterSuccessfulMessage;
+import net.jmb19905.messenger.messages.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
 import java.net.BindException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -56,10 +52,6 @@ public class MessagingServer extends Listener{
         EMLogger.info("MessagingServer", "Started Server");
     }
 
-    public void stop(){
-        server.stop();
-    }
-
     @Override
     public void connected(Connection connection) {
         EMLogger.info("MessagingServer", "Connection established with: " + connection.getRemoteAddressTCP());
@@ -90,42 +82,20 @@ public class MessagingServer extends Listener{
         connection.sendTCP(message);
     }
 
-    public UUID createUser(String username, String password) {
-        String salt = BCrypt.gensalt();
-        UUID uuid = UUID.randomUUID();
-
-        SQLiteManager.UserData userData = new SQLiteManager.UserData();
-        userData.username = username;
-        userData.salt = salt;
-        userData.password = BCrypt.hashpw(password, salt);
-        userData.uuid = uuid;
-
-        SQLiteManager.addUser(userData);
-        return uuid;
-    }
-
-    public void sendPublicKey(Connection connection, LoginPublicKeyMessage o) {
-        Node clientConnection = initNode(connection, o);
+    public void sendPublicKey(Connection connection, byte[] encodedKey) {
+        Node clientConnection = initNode(connection, encodedKey);
         LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
         loginPublicKeyMessage.encodedKey = clientConnection.getPublicKey().getEncoded();
         connection.sendTCP(loginPublicKeyMessage);
         EMLogger.trace("MessagingServer", "Sent Public Key");
     }
 
-    private Node initNode(Connection connection, LoginPublicKeyMessage message) {
+    private Node initNode(Connection connection, byte[] encodedKey) {
         Node clientConnection = new Node();
-        try {
-            PublicKey publicKey = createPublicKeyFromData(message);
-            clientConnection.setReceiverPublicKey(publicKey);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            EMLogger.error("MessagingServer", "Error using PublicKey from: " + connection.getRemoteAddressTCP(), e);
-        }
+        PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
+        clientConnection.setReceiverPublicKey(publicKey);
         clientConnectionKeys.put(connection, new ClientConnection(clientConnection, false));
         return clientConnection;
     }
 
-    private PublicKey createPublicKeyFromData(LoginPublicKeyMessage message) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyFactory factory = KeyFactory.getInstance("EC");
-        return factory.generatePublic(new X509EncodedKeySpec(message.encodedKey));
-    }
 }
