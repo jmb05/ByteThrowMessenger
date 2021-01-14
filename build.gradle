@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+group 'net.jmb19905'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://clojars.org/repo/"
+    }
+}
+
+dependencies {
+    implementation('kryonet:kryonet:2.21-2')
+    implementation('com.esotericsoftware.kryo:kryo:2.24.0')
+    implementation('com.fasterxml.jackson.core:jackson-core:2.11.2')
+    implementation('com.fasterxml.jackson.core:jackson-annotations:2.11.2')
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.11.2')
+    implementation('org.xerial:sqlite-jdbc:3.32.3.2')
+    implementation('org.apache.poi:poi:4.1.2')
+    implementation('org.apache.poi:poi-ooxml:4.1.2')
+    implementation('org.mindrot:jbcrypt:0.4')
+    implementation('com.formdev:flatlaf:0.46')
+}
+
+test {
+    useJUnitPlatform()
+}
