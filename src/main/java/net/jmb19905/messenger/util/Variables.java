@@ -9,4 +9,6 @@ public class Variables {
     public static final String currentTime = new SimpleDateFormat("yyyy-MM.dd-HH-mm-ss").format(new Date());
     public static String currentSide = "";
 
+    public static final int DEFAULT_PORT = 10101;
+
 }

@@ -23,7 +23,7 @@ public class EncryptedMessenger {
         startUp();
         readUserData();
         window = new Window();
-        messagingClient = new MessagingClient("localhost", 10101);
+        messagingClient = new MessagingClient("localhost");
         messagingClient.start();
         window.setVisible(true);
     }
@@ -46,7 +46,12 @@ public class EncryptedMessenger {
 
     private static void readUserData(){
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("user.dat"));
+            File file = new File("user.dat");
+            if(!file.exists()){
+                file.createNewFile();
+            }
+
+            BufferedReader reader = new BufferedReader(new FileReader(file));
             try {
                 if (!reader.readLine().equals("UserData:")) {
                     return;

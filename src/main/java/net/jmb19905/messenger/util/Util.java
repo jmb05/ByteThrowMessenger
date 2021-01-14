@@ -1,6 +1,8 @@
 package net.jmb19905.messenger.util;
 
+import com.esotericsoftware.kryo.Kryo;
 import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.messages.*;
 
 import java.io.*;
 import java.security.KeyFactory;
@@ -81,6 +83,21 @@ public class Util {
         }catch (IOException e){
             EMLogger.error("MessagingClient", "Error writing Nodes to File", e);
         }
+    }
+
+    public static void registerMessages(Kryo kryo){
+        kryo.register(LoginPublicKeyMessage.class);
+        kryo.register(byte[].class);
+        kryo.register(LoginMessage.class);
+        kryo.register(RegisterMessage.class);
+        kryo.register(UsernameAlreadyExistMessage.class);
+        kryo.register(RegisterSuccessfulMessage.class);
+        kryo.register(NotRegisteredMessage.class);
+        kryo.register(LoginSuccessMessage.class);
+        kryo.register(ConnectWithOtherUserMessage.class);
+        kryo.register(DataMessage.class);
+        kryo.register(LoginFailedMessage.class);
+        kryo.register(ConnectionVerificationMessage.class);
     }
 
 }

@@ -2,6 +2,18 @@ plugins {
     id 'java'
 }
 
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'net.jmb19905.messenger.client.EncryptedMessenger'
+        )
+    }
+    from {
+        compileJava.classpath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
 group 'net.jmb19905'
 version '1.0-SNAPSHOT'
 

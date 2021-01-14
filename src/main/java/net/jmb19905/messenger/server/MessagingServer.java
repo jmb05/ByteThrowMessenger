@@ -8,6 +8,8 @@ import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.messages.*;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
+import net.jmb19905.messenger.util.Variables;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
@@ -25,25 +27,14 @@ public class MessagingServer extends Listener{
     private final int port;
     private final Server server;
 
-    private final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
+    public final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
 
-    public MessagingServer(int port) {
+    public MessagingServer() {
         EMLogger.trace("MessagingServer", "Initializing Server");
-        this.port = port;
+        this.port = Variables.DEFAULT_PORT;
         server = new Server();
 
-        Kryo kryo = server.getKryo();
-        kryo.register(LoginPublicKeyMessage.class);
-        kryo.register(byte[].class);
-        kryo.register(LoginMessage.class);
-        kryo.register(RegisterMessage.class);
-        kryo.register(UsernameAlreadyExistMessage.class);
-        kryo.register(RegisterSuccessfulMessage.class);
-        kryo.register(NotRegisteredMessage.class);
-        kryo.register(LoginSuccessMessage.class);
-        kryo.register(ConnectWithOtherUserMessage.class);
-        kryo.register(DataMessage.class);
-        kryo.register(LoginFailedMessage.class);
+        Util.registerMessages(server.getKryo());
         EMLogger.trace("MessagingServer", "Registered Messages");
 
         server.addListener(this);
@@ -83,123 +74,23 @@ public class MessagingServer extends Listener{
 
     @Override
     public void received(Connection connection, Object o) {
-        if(o instanceof LoginPublicKeyMessage){
-            onPublicKeyReceived(connection, (LoginPublicKeyMessage) o);
-        }else if(o instanceof LoginMessage){
-            onLoginReceived(connection, (LoginMessage) o);
-        }else if(o instanceof RegisterMessage){
-            onRegisterReceived(connection, (RegisterMessage) o);
-        }else if(o instanceof ConnectWithOtherUserMessage){
-            onReceivedUserConnectWithOther(connection, (ConnectWithOtherUserMessage) o);
-        }else if(o instanceof DataMessage){
-            onReceivedData(connection, (DataMessage) o);
-        }
-    }
-
-    private void onReceivedData(Connection connection, DataMessage o){
-        Node senderNode = clientConnectionKeys.get(connection).getNode();
-        if(clientConnectionKeys.get(connection).isLoggedIn()){
-            String sender = clientConnectionKeys.get(connection).getUsername();
-            String recipient = senderNode.decrypt(o.username);
-
-            for(Connection recipientConnection : clientConnectionKeys.keySet()){
-                if(clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                    if(clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
-                        o.username = sender;
-                        recipientConnection.sendTCP(o);
-                        EMLogger.trace("MessagingServer","Passed Data from " + sender + " to " + recipient);
-                        return;
-                    }
-                }
-            }
-            EMLogger.info("MessagingServer","Recipient: " + recipient + " for data from " + sender + " is offline cannot send data");
-            //TODO: add to a queue
-        }
-    }
-
-    private void onReceivedUserConnectWithOther(Connection connection, ConnectWithOtherUserMessage o){
-        Node senderNode = clientConnectionKeys.get(connection).getNode();
-        if(clientConnectionKeys.get(connection).isLoggedIn()){
-            String sender = clientConnectionKeys.get(connection).getUsername();
-            String recipient = senderNode.decrypt(o.userName);
-            String publicKeyEncoded = senderNode.decrypt(o.publicKeyEncodedEncrypted);
-            for(Connection recipientConnection : clientConnectionKeys.keySet()){
-                if(clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                    if(clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
-                        o.userName = clientConnectionKeys.get(recipientConnection).getNode().encrypt(sender);
-                        o.publicKeyEncodedEncrypted = clientConnectionKeys.get(recipientConnection).getNode().encrypt(publicKeyEncoded);
-                        recipientConnection.sendTCP(o);
-                        EMLogger.trace("MessagingServer","Passed Connection Request from " + sender + " to " + recipient);
-                        return;
-                    }
-                }
-            }
-            EMLogger.info("MessagingServer","Recipient: " + recipient + " for connection request from " + sender + " is offline cannot send request");
-            //TODO: add to a queue
-        }
-    }
-
-    private void onRegisterReceived(Connection connection, RegisterMessage o) {
-        if(!clientConnectionKeys.get(connection).isLoggedIn()) {
-            String username = clientConnectionKeys.get(connection).getNode().decrypt(o.username);
-            String password = clientConnectionKeys.get(connection).getNode().decrypt(o.password);
-            SQLiteManager.UserData user = SQLiteManager.getUserByName(username);
-            if (user == null) {
-                //User does not exist create a new one
-                UUID uuid = createUser(username, password);
-                sendRegisterSuccess(connection, username, uuid);
-                clientConnectionKeys.get(connection).setLoggedIn(true);
-            } else {
-                if (BCrypt.hashpw(password,user.salt).equals(user.password)) {
-                    EMLogger.trace("MessagingServer", "Client tried to register instead of login -> logging client in");
-                    clientConnectionKeys.get(connection).setUsername(user.username);
-                    clientConnectionKeys.get(connection).setLoggedIn(true);
-                    connection.sendTCP(new LoginSuccessMessage());
-                } else {
-                    connection.sendTCP(new UsernameAlreadyExistMessage());
-                }
-            }
-        }else{
-            EMLogger.warn("MessagingServer", "Already registered client tried to register");
-        }
-    }
-
-    private void onLoginReceived(Connection connection, LoginMessage o) {
-        Node clientConnection = clientConnectionKeys.get(connection).getNode();
-        String username = clientConnection.decrypt(o.username);
-        String password = clientConnection.decrypt(o.password);
-
-        SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
-        if(userData == null){
-            LoginFailedMessage fail = new LoginFailedMessage();
-            fail.cause = "name";
-            connection.sendTCP(fail);
-        }else{
-            if(BCrypt.hashpw(password,userData.salt).equals(userData.password)) {
-                clientConnectionKeys.get(connection).setUsername(userData.username);
-                clientConnectionKeys.get(connection).setLoggedIn(true);
-                connection.sendTCP(new LoginSuccessMessage());
-            }else{
-                LoginFailedMessage fail = new LoginFailedMessage();
-                fail.cause = "pw";
-                connection.sendTCP(fail);
+        if(o instanceof EMMessage){
+            try {
+                ((EMMessage) o).handleOnServer(connection);
+            } catch (UnsupportedSideException e) {
+                EMLogger.warn("MessagingServer", "Message received on wrong side", e);
             }
         }
     }
 
-    private void onPublicKeyReceived(Connection connection, LoginPublicKeyMessage o) {
-        EMLogger.trace("MessagingServer", "Received PublicKey");
-        sendPublicKey(connection, o);
-    }
-
-    private void sendRegisterSuccess(Connection connection, String username, UUID uuid) {
+    public void sendRegisterSuccess(Connection connection, String username, UUID uuid) {
         RegisterSuccessfulMessage message = new RegisterSuccessfulMessage();
         message.username = username;
         message.uuid = uuid.toString();
         connection.sendTCP(message);
     }
 
-    private UUID createUser(String username, String password) {
+    public UUID createUser(String username, String password) {
         String salt = BCrypt.gensalt();
         UUID uuid = UUID.randomUUID();
 
@@ -213,7 +104,7 @@ public class MessagingServer extends Listener{
         return uuid;
     }
 
-    private void sendPublicKey(Connection connection, LoginPublicKeyMessage o) {
+    public void sendPublicKey(Connection connection, LoginPublicKeyMessage o) {
         Node clientConnection = initNode(connection, o);
         LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
         loginPublicKeyMessage.encodedKey = clientConnection.getPublicKey().getEncoded();

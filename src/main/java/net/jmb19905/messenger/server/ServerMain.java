@@ -6,9 +6,11 @@ import net.jmb19905.messenger.util.Variables;
 
 public class ServerMain {
 
+    public static MessagingServer messagingServer;
+
     public static void main(String[] args) {
         startUp();
-        MessagingServer messagingServer = new MessagingServer(10101);
+        messagingServer = new MessagingServer();
         messagingServer.start();
     }
 
