@@ -1,12 +1,13 @@
 package net.jmb19905.messenger.client;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import net.jmb19905.messenger.client.ui.OptionPanes;
+import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.messages.*;
+import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
@@ -30,12 +31,30 @@ public class MessagingClient extends Listener{
 
     public static HashMap<String, Node> otherUsers;
     public static final List<String> connectionRequested = new ArrayList<>();
+    @Deprecated
+    public static final List<String> connectionToBeVerified = new ArrayList<>();
+
+    private final Thread reconnectionThread;
 
     public MessagingClient(String serverAddress){
         otherUsers = Util.loadNodes("other_users.dat");
         this.serverAddress = serverAddress;
         this.serverPort = Variables.DEFAULT_PORT;
 
+        reconnectionThread = new Thread(() -> {
+            while (true){
+                if(!client.isConnected() && !Window.closeRequested){
+                    try {
+                        client.reconnect();
+                    } catch (IOException e) {
+                        EMLogger.error("MessagingClient", "Can't reconnect");
+                        System.exit(-1);
+                    }
+                }else if(Window.closeRequested){
+                    break;
+                }
+            }
+        });
         init();
     }
 
@@ -58,8 +77,10 @@ public class MessagingClient extends Listener{
             client.connect(5000, serverAddress, serverPort, serverPort + 1);
         } catch (IOException e) {
             EMLogger.error("MessagingClient", "Error establishing connection", e);
+            JOptionPane.showMessageDialog(null, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         }
+        reconnectionThread.start();
         EMLogger.info("MessagingClient", "Started Client");
     }
 
@@ -85,8 +106,6 @@ public class MessagingClient extends Listener{
     public void disconnected(Connection connection) {
         EMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
-        client.stop();
-        start();
     }
 
     @Override
@@ -103,8 +122,8 @@ public class MessagingClient extends Listener{
     public void connectWithOtherUser(String username){
         Node node = new Node();
         ConnectWithOtherUserMessage message = new ConnectWithOtherUserMessage();
-        message.username = thisDevice.encrypt(username);
-        message.publicKeyEncodedEncrypted = thisDevice.encrypt(new String(node.getPublicKey().getEncoded()));
+        message.username = Util.encryptString(thisDevice, username);
+        message.publicKeyEncodedEncrypted = thisDevice.encrypt(node.getPublicKey().getEncoded());
         client.sendTCP(message);
         otherUsers.put(username, node);
         connectionRequested.add(username);
@@ -114,8 +133,8 @@ public class MessagingClient extends Listener{
         if(otherUsers.get(username) != null) {
             if(otherUsers.get(username).getSharedSecret() != null) {
                 DataMessage dataMessage = new DataMessage();
-                dataMessage.username = thisDevice.encrypt(username);
-                dataMessage.encryptedMessage = thisDevice.encrypt(otherUsers.get(username).encrypt(message));
+                dataMessage.username = Util.encryptString(thisDevice, username);
+                dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(otherUsers.get(username), message));
             }else{
                 EMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
@@ -127,8 +146,8 @@ public class MessagingClient extends Listener{
     public void login(Connection connection){
         if(!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")){
             LoginMessage loginMessage = new LoginMessage();
-            loginMessage.username = thisDevice.encrypt(EncryptedMessenger.getUsername());
-            loginMessage.password = thisDevice.encrypt(EncryptedMessenger.getPassword());
+            loginMessage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
+            loginMessage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
             connection.sendTCP(loginMessage);
         }else {
             OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register(connection));
@@ -136,8 +155,8 @@ public class MessagingClient extends Listener{
                 System.exit(0);
             } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
                 LoginMessage loginMessage = new LoginMessage();
-                loginMessage.username = thisDevice.encrypt(value.values[0]);
-                loginMessage.password = thisDevice.encrypt(value.values[1]);
+                loginMessage.username = Util.encryptString(thisDevice, value.values[0]);
+                loginMessage.password = Util.encryptString(thisDevice, value.values[1]);
                 connection.sendTCP(loginMessage);
                 EncryptedMessenger.setUserData(value.values[0], value.values[1]);
             }
@@ -150,8 +169,8 @@ public class MessagingClient extends Listener{
             System.exit(0);
         }else if(value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
             RegisterMessage registerMessage = new RegisterMessage();
-            registerMessage.username = thisDevice.encrypt(value.values[0]);
-            registerMessage.password = thisDevice.encrypt(value.values[1]);
+            registerMessage.username = Util.encryptString(thisDevice, value.values[0]);
+            registerMessage.password = Util.encryptString(thisDevice, value.values[1]);
             connection.sendTCP(registerMessage);
             EMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
         }
@@ -165,8 +184,8 @@ public class MessagingClient extends Listener{
         }
     }
 
-    public void setPublicKey(String encryptedEncodedKey, Node node) {
-        PublicKey publicKey = Util.createPublicKeyFromData(thisDevice.decrypt(encryptedEncodedKey).getBytes());
+    public void setPublicKey(byte[] decryptedEncodedKey, Node node) {
+        PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
         EMLogger.trace("MessagingClient", "Received PublicKey");
         if(publicKey != null) {
             node.setReceiverPublicKey(publicKey);

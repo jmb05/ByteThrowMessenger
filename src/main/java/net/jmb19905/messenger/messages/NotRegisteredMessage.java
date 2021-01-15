@@ -2,6 +2,7 @@ package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
@@ -22,7 +23,7 @@ public class NotRegisteredMessage extends EMMessage{
     }
 
     @Override
-    public void handleOnServer(Connection connection) throws UnsupportedSideException{
+    public void handleOnServer(Connection connection) throws UnsupportedSideException {
         throw new UnsupportedSideException("NotRegisteredMessage received on server");
     }
 }

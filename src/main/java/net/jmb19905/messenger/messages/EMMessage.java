@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
+import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 
 public abstract class EMMessage {
 

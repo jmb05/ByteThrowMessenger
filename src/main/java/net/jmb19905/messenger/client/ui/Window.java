@@ -16,10 +16,13 @@ public class Window extends JFrame {
     private final DefaultListModel<String> model;
     private final JTextField inputField;
 
+    public static boolean closeRequested = false;
+
     public Window(){
         setTitle("Encrypted Messenger");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1000, 750));
+        setIconImage(new ImageIcon("src/main/resources/icon.png").getImage());
 
         JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT){
             private final int location = 250;
@@ -123,6 +126,7 @@ public class Window extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                closeRequested = true;
                 EncryptedMessenger.messagingClient.stop();
             }
         });

@@ -5,6 +5,7 @@ import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.messages.*;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -12,6 +13,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
@@ -97,6 +99,14 @@ public class Util {
         kryo.register(DataMessage.class);
         kryo.register(LoginFailedMessage.class);
         kryo.register(ConnectionVerificationMessage.class);
+    }
+
+    public static String encryptString(Node node, String value){
+        return new String(node.encrypt(value.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    public static String decryptString(Node node, String value){
+        return new String(node.decrypt(value.getBytes(StandardCharsets.UTF_8)));
     }
 
 }

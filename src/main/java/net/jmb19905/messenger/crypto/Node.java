@@ -5,6 +5,7 @@ import net.jmb19905.messenger.util.Util;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
 
@@ -57,13 +58,13 @@ public class Node {
         }
     }
 
-    public String encrypt(String msg) {
+    public byte[] encrypt(byte[] msg) {
         try {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encVal = c.doFinal(msg.getBytes());
-            return new String(Base64.getEncoder().encode(encVal));
+            byte[] encVal = c.doFinal(msg);
+            return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             EMLogger.error("CryptoNode", "Error encrypting", e);
             System.exit(-1);
@@ -73,14 +74,13 @@ public class Node {
         return msg;
     }
 
-    public String decrypt(String encryptedData) {
+    public byte[] decrypt(byte[] encryptedData) {
         try {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.DECRYPT_MODE, key);
             byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
-            byte[] decValue = c.doFinal(decodedValue);
-            return new String(decValue);
+            return c.doFinal(decodedValue);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
             EMLogger.error("CryptoNode", "Error decrypting", e);
         }

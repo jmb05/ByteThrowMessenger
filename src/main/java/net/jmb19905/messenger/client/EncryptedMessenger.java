@@ -96,6 +96,21 @@ public class EncryptedMessenger {
         }
     }
 
+    public static void wipeUserData(){
+        System.out.println("Wiping data");
+        username = "";
+        password = "";
+        try {
+            File userDat = new File("user.dat");
+            if(userDat.exists()){
+                userDat.delete();
+                userDat.createNewFile();
+            }
+        } catch (IOException e) {
+            EMLogger.warn("MessagingClient", "Cannot wipe userdata (user.dat)");
+        }
+    }
+
     public static String getUsername(){
         return username;
     }

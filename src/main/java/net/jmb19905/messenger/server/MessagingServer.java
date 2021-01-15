@@ -7,7 +7,7 @@ import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.messages.EMMessage;
 import net.jmb19905.messenger.messages.LoginPublicKeyMessage;
 import net.jmb19905.messenger.messages.RegisterSuccessfulMessage;
-import net.jmb19905.messenger.messages.UnsupportedSideException;
+import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
@@ -23,7 +23,8 @@ public class MessagingServer extends Listener{
     private final int port;
     private final Server server;
 
-    public final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
+    public static final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
+    public static final HashMap<String, HashMap<EMMessage, Object[]>> messagesQueue = new HashMap<>();
 
     public MessagingServer() {
         EMLogger.trace("MessagingServer", "Initializing Server");

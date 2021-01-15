@@ -2,9 +2,13 @@ package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.server.ServerMain;
+import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
+import net.jmb19905.messenger.util.Util;
 import org.mindrot.jbcrypt.BCrypt;
+
+import java.util.HashMap;
 
 public class LoginMessage extends EMMessage{
 
@@ -14,15 +18,15 @@ public class LoginMessage extends EMMessage{
     public LoginMessage(){}
 
     @Override
-    public void handleOnClient(Connection connection) throws UnsupportedSideException{
+    public void handleOnClient(Connection connection) throws UnsupportedSideException {
         throw new UnsupportedSideException("LoginMessage received on client");
     }
 
     @Override
     public void handleOnServer(Connection connection) {
-        Node clientConnection = ServerMain.messagingServer.clientConnectionKeys.get(connection).getNode();
-        String username = clientConnection.decrypt(this.username);
-        String password = clientConnection.decrypt(this.password);
+        Node clientConnection = MessagingServer.clientConnectionKeys.get(connection).getNode();
+        String username = Util.decryptString(clientConnection, this.username);
+        String password = Util.decryptString(clientConnection, this.password);
 
         SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
         if(userData == null){
@@ -31,9 +35,17 @@ public class LoginMessage extends EMMessage{
             connection.sendTCP(fail);
         }else{
             if(BCrypt.hashpw(password,userData.salt).equals(userData.password)) {
-                ServerMain.messagingServer.clientConnectionKeys.get(connection).setUsername(userData.username);
-                ServerMain.messagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
+                MessagingServer.clientConnectionKeys.get(connection).setUsername(userData.username);
+                MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
                 connection.sendTCP(new LoginSuccessMessage());
+                HashMap<EMMessage, Object[]> messageQueue = MessagingServer.messagesQueue.get(userData.username);
+                if(messageQueue != null){
+                    for(EMMessage message : messageQueue.keySet()){
+                        if(message instanceof IQueueable){
+                            ((IQueueable) message).handleOnQueue(connection, messageQueue.get(message));
+                        }
+                    }
+                }
             }else{
                 LoginFailedMessage fail = new LoginFailedMessage();
                 fail.cause = "pw";

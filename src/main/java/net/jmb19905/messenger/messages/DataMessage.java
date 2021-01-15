@@ -1,11 +1,12 @@
 package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
-import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 
 public class DataMessage extends EMMessage{
 
@@ -17,9 +18,9 @@ public class DataMessage extends EMMessage{
 
     @Override
     public void handleOnClient(Connection connection) {
-        String sender = MessagingClient.thisDevice.decrypt(username);
+        String sender = Util.decryptString(MessagingClient.thisDevice, username);
         if(MessagingClient.otherUsers.get(sender).getSharedSecret() != null){
-            String message = MessagingClient.thisDevice.decrypt(MessagingClient.otherUsers.get(sender).decrypt(encryptedMessage));
+            String message = Util.decryptString(MessagingClient.thisDevice, Util.decryptString(MessagingClient.otherUsers.get(sender), encryptedMessage));
             System.out.println(sender + " : " + message);
         }else {
             EMLogger.warn("MessagingClient", "Received Message from unconnected client");
@@ -28,14 +29,14 @@ public class DataMessage extends EMMessage{
 
     @Override
     public void handleOnServer(Connection connection) {
-        Node senderNode = ServerMain.messagingServer.clientConnectionKeys.get(connection).getNode();
-        if(ServerMain.messagingServer.clientConnectionKeys.get(connection).isLoggedIn()){
-            String sender = ServerMain.messagingServer.clientConnectionKeys.get(connection).getUsername();
-            String recipient = senderNode.decrypt(username);
+        Node senderNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
+        if(MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()){
+            String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
+            String recipient = Util.decryptString(senderNode, username);
 
-            for(Connection recipientConnection : ServerMain.messagingServer.clientConnectionKeys.keySet()){
-                if(ServerMain.messagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                    if(ServerMain.messagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
+            for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
+                if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
+                    if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
                         username = sender;
                         recipientConnection.sendTCP(this);
                         EMLogger.trace("MessagingServer","Passed Data from " + sender + " to " + recipient);
