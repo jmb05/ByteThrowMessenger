@@ -2,7 +2,9 @@ package net.jmb19905.messenger.client;
 
 import com.esotericsoftware.minlog.Log;
 import com.formdev.flatlaf.FlatDarculaLaf;
+import net.jmb19905.messenger.client.ui.SettingsWindow;
 import net.jmb19905.messenger.client.ui.Window;
+import net.jmb19905.messenger.util.ConfigManager;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Variables;
 
@@ -19,9 +21,13 @@ public class EncryptedMessenger {
     public static MessagingClient messagingClient;
     public static Window window;
 
+    public static ConfigManager.Config clientConfig;
+
     public static void main(String[] args) {
         startUp();
-        readUserData();
+        if(clientConfig.autoLogin) {
+            readUserData();
+        }
         window = new Window();
         messagingClient = new MessagingClient("localhost");
         messagingClient.start();
@@ -33,15 +39,8 @@ public class EncryptedMessenger {
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
         Log.set(Log.LEVEL_DEBUG);
         EMLogger.init();
-        setLandF();
-    }
-
-    private static void setLandF(){
-        try {
-            UIManager.setLookAndFeel(new FlatDarculaLaf());
-        } catch (UnsupportedLookAndFeelException e) {
-            EMLogger.warn("MessagingClient", "Could not change look and feel. Skipping");
-        }
+        clientConfig = ConfigManager.loadConfigFile("client_config.json");
+        SettingsWindow.setLookAndFeel(clientConfig.theme);
     }
 
     private static void readUserData(){
@@ -97,7 +96,6 @@ public class EncryptedMessenger {
     }
 
     public static void wipeUserData(){
-        System.out.println("Wiping data");
         username = "";
         password = "";
         try {

@@ -3,14 +3,12 @@ package net.jmb19905.messenger.messages;
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.client.MessagingClient;
-import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable{
@@ -29,7 +27,6 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         }else{
             Node node = new Node();
             byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
-            System.out.println(new String(publicKeyEncodedDecrypted));
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
             MessagingClient.otherUsers.put(decryptedUsername, node);
             EMLogger.trace("MessagingClient", "Added " + decryptedUsername + " to connected users");
@@ -49,7 +46,6 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
     @Override
     public void handleOnServer(Connection connection) {
         Node senderNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
-        System.out.println(Arrays.toString(senderNode.getSharedSecret()));
         String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
         String recipient = Util.decryptString(senderNode, username);
         byte[] publicKeyEncoded = senderNode.decrypt(publicKeyEncodedEncrypted);

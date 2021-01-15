@@ -5,16 +5,16 @@ import net.jmb19905.messenger.client.EncryptedMessenger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 public class Window extends JFrame {
 
     private final JTextArea area;
     private final DefaultListModel<String> model;
     private final JTextField inputField;
+    private final JButton ellipsisButton;
+
+    public SettingsWindow settingsWindow;
 
     public static boolean closeRequested = false;
 
@@ -23,6 +23,9 @@ public class Window extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1000, 750));
         setIconImage(new ImageIcon("src/main/resources/icon.png").getImage());
+        setLayout(new BorderLayout());
+
+        settingsWindow = new SettingsWindow();
 
         JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT){
             private final int location = 250;
@@ -38,7 +41,7 @@ public class Window extends JFrame {
                 return location ;
             }
         };
-        add(pane);
+        add(pane, BorderLayout.CENTER);
 
         JPanel chatChooser = new JPanel(new GridBagLayout());
         pane.setLeftComponent(chatChooser);
@@ -86,7 +89,6 @@ public class Window extends JFrame {
         JButton startConversation = new JButton("Start Conversation");
         startConversation.addActionListener(e -> {
             String username = JOptionPane.showInputDialog(null, "Please input the username of the conversation partner: ", "Start Conversation", JOptionPane.PLAIN_MESSAGE);
-            System.out.println(username);
             if(username == null){
 
             }else if(username.length() < 3){
@@ -123,15 +125,29 @@ public class Window extends JFrame {
         constraints.weighty = 0;
         conversation.add(inputField, constraints);
 
+        JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
+
+        ellipsisButton = new JButton();
+        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (!SettingsWindow.isDark() ? "_dark" : "") + ".png"));
+        ellipsisButton.addActionListener((e) -> {
+            settingsWindow.setVisible(true);
+        });
+
+        toolBar.add(ellipsisButton);
+        toolBar.setFloatable(false);
+
+        add(toolBar, BorderLayout.EAST);
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 closeRequested = true;
-                EncryptedMessenger.messagingClient.stop();
+                EncryptedMessenger.messagingClient.stop(0);
             }
         });
 
         pack();
+
     }
 
     public void append(String s){
@@ -150,4 +166,9 @@ public class Window extends JFrame {
         model.removeElement(user);
     }
 
+    @Override
+    public void repaint() {
+        super.revalidate();
+        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (!SettingsWindow.isDark() ? "_dark" : "") + ".png"));
+    }
 }

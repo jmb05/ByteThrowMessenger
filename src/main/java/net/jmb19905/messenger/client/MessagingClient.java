@@ -47,8 +47,8 @@ public class MessagingClient extends Listener{
                     try {
                         client.reconnect();
                     } catch (IOException e) {
-                        EMLogger.error("MessagingClient", "Can't reconnect");
-                        System.exit(-1);
+                        EMLogger.error("MessagingClient", "Can't reconnect", e);
+                        stop(-1);
                     }
                 }else if(Window.closeRequested){
                     break;
@@ -78,19 +78,19 @@ public class MessagingClient extends Listener{
         } catch (IOException e) {
             EMLogger.error("MessagingClient", "Error establishing connection", e);
             JOptionPane.showMessageDialog(null, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
-            System.exit(-1);
+            stop(-1);
         }
         reconnectionThread.start();
         EMLogger.info("MessagingClient", "Started Client");
     }
 
-    public void stop(){
+    public void stop(int code){
         EMLogger.trace("MessagingClient", "Stopping Client");
         client.stop();
         EMLogger.info("MessagingClient", "Stopped Client");
         Util.saveNodes(otherUsers, "other_users.dat");
         EMLogger.close();
-        System.exit(0);
+        System.exit(code);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class MessagingClient extends Listener{
     public void register(Connection connection){
         OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login(connection));
         if(value.id == OptionPanes.OutputValue.CANCEL_OPTION){
-            System.exit(0);
+            stop(0);
         }else if(value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
             RegisterMessage registerMessage = new RegisterMessage();
             registerMessage.username = Util.encryptString(thisDevice, value.values[0]);

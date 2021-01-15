@@ -6,7 +6,7 @@ public class CommandParser {
         String[] parts = fullCommand.split(" ");
         switch (parts[0]) {
             case "close":
-                client.stop();
+                client.stop(0);
                 break;
             case "connect": {
                 String username = parts[1];

@@ -18,7 +18,7 @@ public class NotRegisteredMessage extends EMMessage{
         }else if(jop == JOptionPane.NO_OPTION){
             EncryptedMessenger.messagingClient.login(connection);
         }else{
-            System.exit(0);
+            EncryptedMessenger.messagingClient.stop(0);
         }
     }
 

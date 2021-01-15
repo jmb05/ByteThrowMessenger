@@ -1,5 +1,6 @@
 package net.jmb19905.messenger.crypto;
 
+import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
@@ -67,7 +68,11 @@ public class Node {
             return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             EMLogger.error("CryptoNode", "Error encrypting", e);
-            System.exit(-1);
+            if(EncryptedMessenger.messagingClient != null){
+                EncryptedMessenger.messagingClient.stop(-1);
+            }else {
+                System.exit(-1);
+            }
         } catch (IllegalArgumentException e){
             EMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
         }

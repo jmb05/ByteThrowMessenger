@@ -13,7 +13,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,19 +50,38 @@ public class Util {
                 lines.add(line);
                 line = reader.readLine();
             }
-            int lineCounter = 1;
-            for(String entry : lines){
-                String[] parts = entry.split("</>");
+            for(int i=0;i<lines.size();i++){
+                String[] parts = lines.get(i).split("] \\[");
                 try {
-                    output.put(parts[0], new Node(parts[1].getBytes(), parts[2].getBytes(), parts[3].substring(0, parts[3].length() - 1).getBytes()));
+                    String username = parts[0];
+                    byte[] publicKey = readByteArray(parts[1]);
+                    byte[] privateKey = readByteArray(parts[2]);
+                    byte[] sharedSecret = readByteArray(parts[3]);
+                    output.put(username, new Node(publicKey, privateKey, sharedSecret));
                 }catch (ArrayIndexOutOfBoundsException e){
-                    EMLogger.warn("Util", "Error loading Node in line " + lineCounter);
+                    EMLogger.warn("Util", "Error loading Node in line " + i);
                 }
-                lineCounter++;
             }
             reader.close();
         } catch (IOException e) {
             EMLogger.error("MessagingClient", "Error loading Nodes from File", e);
+        }
+        return output;
+    }
+
+    public static byte[] readByteArray(String arrayAsString){
+        if(!arrayAsString.startsWith("[") || !arrayAsString.endsWith("]")){
+            return new byte[0];
+        }
+        String[] parts = arrayAsString.replaceAll("\\[", "").replaceAll("]", "").split(", ");
+        byte[] output = new byte[parts.length];
+        for(int i=0;i<parts.length;i++){
+            try {
+                output[i] = (byte) Integer.parseInt(parts[i]);
+            }catch (NumberFormatException e){
+                EMLogger.warn("Util", "String array does not represent a byte array", e);
+                return new byte[0];
+            }
         }
         return output;
     }
@@ -76,7 +95,7 @@ public class Util {
                 if(nodes.get(key).getSharedSecret() != null){
                     sharedSecret = nodes.get(key).getSharedSecret();
                 }
-                String line = key + "</>" + new String(nodes.get(key).getPublicKey().getEncoded()) + "</>" + new String(nodes.get(key).getPrivateKey().getEncoded()) + "</>" + new String(sharedSecret) + ".</>";
+                String line = "[" + key + "] " + Arrays.toString(nodes.get(key).getPublicKey().getEncoded()) + " " + Arrays.toString(nodes.get(key).getPrivateKey().getEncoded()) + " " + Arrays.toString(sharedSecret) + "";
                 writer.write(line);
             }
             writer.flush();
@@ -98,7 +117,6 @@ public class Util {
         kryo.register(ConnectWithOtherUserMessage.class);
         kryo.register(DataMessage.class);
         kryo.register(LoginFailedMessage.class);
-        kryo.register(ConnectionVerificationMessage.class);
     }
 
     public static String encryptString(Node node, String value){

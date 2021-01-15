@@ -6,3 +6,5 @@
 /out/
 /logs/
 /user.dat
+/other_users.dat
+/client_config.json
