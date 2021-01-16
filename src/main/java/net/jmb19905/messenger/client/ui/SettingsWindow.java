@@ -65,7 +65,7 @@ public class SettingsWindow extends JDialog {
         autoLoginCheckBox.setSelected(EncryptedMessenger.clientConfig.autoLogin);
         autoLoginCheckBox.addActionListener((e) -> {
             EncryptedMessenger.clientConfig.autoLogin = autoLoginCheckBox.isSelected();
-            ConfigManager.saveConfig(EncryptedMessenger.clientConfig, "client_config.json");
+            ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
         });
 
         JButton resetSettings = new JButton("Reset Settings");
@@ -74,6 +74,14 @@ public class SettingsWindow extends JDialog {
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         contentPanel.add(resetSettings, constraints);
+
+        resetSettings.addActionListener(e -> {
+            EncryptedMessenger.clientConfig = new ConfigManager.ClientConfig();
+            ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
+            themeCombo.setSelectedItem(EncryptedMessenger.clientConfig.theme);
+            setLookAndFeel((String) themeCombo.getSelectedItem());
+            autoLoginCheckBox.setSelected(EncryptedMessenger.clientConfig.autoLogin);
+        });
 
         add(pane);
 
@@ -116,11 +124,11 @@ public class SettingsWindow extends JDialog {
             EncryptedMessenger.window.settingsWindow.pack();
             EncryptedMessenger.window.pack();
         }catch (NullPointerException ignored){}
-        ConfigManager.saveConfig(EncryptedMessenger.clientConfig, "client_config.json");
+        ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
     }
 
-    public static boolean isDark(){
-        return UIManager.getLookAndFeel() instanceof FlatDarculaLaf || UIManager.getLookAndFeel() instanceof FlatDarkLaf;
+    public static boolean isLight(){
+        return !(UIManager.getLookAndFeel() instanceof FlatDarculaLaf) && !(UIManager.getLookAndFeel() instanceof FlatDarkLaf);
     }
 
 }

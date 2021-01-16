@@ -3,6 +3,8 @@ package net.jmb19905.messenger.server.userdatabase;
 import net.jmb19905.messenger.util.EMLogger;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.UUID;
 
@@ -10,6 +12,11 @@ public class SQLiteManager {
 
     public static Connection connect(String fileName) {
         try {
+            File database = new File(fileName);
+            if(!database.exists()){
+                database.getParentFile().mkdirs();
+                database.createNewFile();
+            }
             Class.forName("org.sqlite.JDBC");
             Connection conn = DriverManager.getConnection("jdbc:sqlite:"+fileName);
             try(Statement stmt = conn.createStatement()){
@@ -24,14 +31,14 @@ public class SQLiteManager {
                 stmt.executeUpdate(sql);
                 return conn;
             }
-        } catch (ClassNotFoundException | SQLException ex) {
+        } catch (ClassNotFoundException | SQLException | IOException ex) {
             EMLogger.error("SQLiteManager", "Error opening/creating database/table", ex);
             return null;
         }
     }
 
     public static void addUser(UserData user){
-        Connection connection = connect("users.db");
+        Connection connection = connect("database/users.db");
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt,uuid) VALUES (?,?,?,?);");
@@ -48,7 +55,7 @@ public class SQLiteManager {
     }
 
     public static UserData getUserByName(String username){
-        Connection connection = connect("users.db");
+        Connection connection = connect("database/users.db");
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("SELECT password,salt,uuid FROM users WHERE username = ?");
@@ -78,7 +85,7 @@ public class SQLiteManager {
     }
 
     public static UserData getUserByID(UUID uuid){
-        Connection connection = connect("users.db");
+        Connection connection = connect("database/users.db");
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("SELECT username,password,salt FROM users WHERE uuid = ?");

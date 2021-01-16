@@ -2,6 +2,7 @@ package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 
@@ -19,6 +20,7 @@ public class RegisterSuccessfulMessage extends EMMessage{
         EncryptedMessenger.messagingClient.uuid = UUID.fromString(uuid);
         EncryptedMessenger.writeUserData();
         EncryptedMessenger.setLoggedIn(true);
+        MessagingClient.initOtherUsers();
         EMLogger.info("MessagingClient", "Registered Successful");
     }
 

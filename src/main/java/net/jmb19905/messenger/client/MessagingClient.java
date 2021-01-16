@@ -15,10 +15,8 @@ import net.jmb19905.messenger.util.Variables;
 import javax.swing.*;
 import java.io.IOException;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.security.spec.InvalidKeySpecException;
+import java.util.*;
 
 public class MessagingClient extends Listener{
 
@@ -37,7 +35,7 @@ public class MessagingClient extends Listener{
     private final Thread reconnectionThread;
 
     public MessagingClient(String serverAddress){
-        otherUsers = Util.loadNodes("other_users.dat");
+
         this.serverAddress = serverAddress;
         this.serverPort = Variables.DEFAULT_PORT;
 
@@ -88,7 +86,9 @@ public class MessagingClient extends Listener{
         EMLogger.trace("MessagingClient", "Stopping Client");
         client.stop();
         EMLogger.info("MessagingClient", "Stopped Client");
-        Util.saveNodes(otherUsers, "other_users.dat");
+        if(!EncryptedMessenger.getUsername().equals("") && EncryptedMessenger.getUsername() != null) {
+            Util.saveNodes(otherUsers, "userdata/" + EncryptedMessenger.getUsername() + "/other_users.dat");
+        }
         EMLogger.close();
         System.exit(code);
     }
@@ -99,7 +99,7 @@ public class MessagingClient extends Listener{
         LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
         loginPublicKeyMessage.encodedKey = thisDevice.getPublicKey().getEncoded();
         connection.sendTCP(loginPublicKeyMessage);
-        EMLogger.trace("MessagingClient", "Sent PublicKey");
+        EMLogger.trace("MessagingClient", "Sent PublicKey " + Arrays.toString(loginPublicKeyMessage.encodedKey));
     }
 
     @Override
@@ -130,11 +130,13 @@ public class MessagingClient extends Listener{
     }
 
     public void sendToOtherUser(String username, String message){
+        System.out.println("Trying to send Message to " + username);
         if(otherUsers.get(username) != null) {
             if(otherUsers.get(username).getSharedSecret() != null) {
                 DataMessage dataMessage = new DataMessage();
                 dataMessage.username = Util.encryptString(thisDevice, username);
                 dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(otherUsers.get(username), message));
+                client.sendTCP(dataMessage);
             }else{
                 EMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
@@ -176,19 +178,31 @@ public class MessagingClient extends Listener{
         }
     }
 
+    public static void initOtherUsers(){
+        otherUsers = Util.loadNodes("userdata/"+EncryptedMessenger.getUsername()+"/other_users.dat");
+    }
+
     public void setPublicKey(byte[] encodedKey) {
-        PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
-        EMLogger.trace("MessagingClient", "Received PublicKey");
-        if(publicKey != null) {
-            MessagingClient.thisDevice.setReceiverPublicKey(publicKey);
+        try {
+            PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
+            EMLogger.trace("MessagingClient", "Received PublicKey " + Arrays.toString(publicKey.getEncoded()));
+            if (publicKey != null) {
+                MessagingClient.thisDevice.setReceiverPublicKey(publicKey);
+            }
+        }catch (InvalidKeySpecException e){
+            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
         }
     }
 
     public void setPublicKey(byte[] decryptedEncodedKey, Node node) {
-        PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
-        EMLogger.trace("MessagingClient", "Received PublicKey");
-        if(publicKey != null) {
-            node.setReceiverPublicKey(publicKey);
+        try {
+            PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
+            EMLogger.trace("MessagingClient", "Received PublicKey");
+            if(publicKey != null) {
+                node.setReceiverPublicKey(publicKey);
+            }
+        }catch (InvalidKeySpecException e){
+            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
         }
     }
 

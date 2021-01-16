@@ -5,6 +5,8 @@ import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.util.EMLogger;
 
+import java.util.Arrays;
+
 public class LoginPublicKeyMessage extends EMMessage{
 
     public byte[] encodedKey;

@@ -21,7 +21,7 @@ public class EncryptedMessenger {
     public static MessagingClient messagingClient;
     public static Window window;
 
-    public static ConfigManager.Config clientConfig;
+    public static ConfigManager.ClientConfig clientConfig;
 
     public static void main(String[] args) {
         startUp();
@@ -39,13 +39,13 @@ public class EncryptedMessenger {
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
         Log.set(Log.LEVEL_DEBUG);
         EMLogger.init();
-        clientConfig = ConfigManager.loadConfigFile("client_config.json");
+        clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
         SettingsWindow.setLookAndFeel(clientConfig.theme);
     }
 
     private static void readUserData(){
         try {
-            File file = new File("user.dat");
+            File file = new File("userdata/user.dat");
             if(!file.exists()){
                 file.createNewFile();
             }
@@ -82,7 +82,7 @@ public class EncryptedMessenger {
     public static void writeUserData(){
         if(!username.equals("") && !password.equals("")){
             try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter("user.dat"));
+                BufferedWriter writer = new BufferedWriter(new FileWriter("userdata/user.dat"));
                 writer.write("UserData:\n");
                 writer.write(username + "\n");
                 writer.write(password + "\n");
@@ -99,7 +99,7 @@ public class EncryptedMessenger {
         username = "";
         password = "";
         try {
-            File userDat = new File("user.dat");
+            File userDat = new File("userdata/user.dat");
             if(userDat.exists()){
                 userDat.delete();
                 userDat.createNewFile();

@@ -2,15 +2,14 @@ package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.kryo.Kryo;
 import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
 import net.jmb19905.messenger.messages.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +18,11 @@ import java.util.List;
 
 public class Util {
 
-    public static PublicKey createPublicKeyFromData(byte[] encodedKey){
+    public static PublicKey createPublicKeyFromData(byte[] encodedKey) throws InvalidKeySpecException {
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             EMLogger.error("Util", "Error retrieving PublicKey", e);
             return null;
         }
@@ -32,7 +31,7 @@ public class Util {
     public static PrivateKey createPrivateKeyFromData(byte[] encodedKey){
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
-            return factory.generatePrivate(new X509EncodedKeySpec(encodedKey));
+            return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             EMLogger.error("Util", "Error retrieving PrivateKey", e);
             return null;
@@ -43,11 +42,18 @@ public class Util {
         HashMap<String, Node> output = new HashMap<>();
         File file = new File(filePath);
         try {
+            if(!file.exists()){
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
             BufferedReader reader = new BufferedReader(new FileReader(file));
             List<String> lines = new ArrayList<>();
             String line = reader.readLine();
             while(line != null){
-                lines.add(line);
+                System.out.println("Line: {" + line + "}");
+                if(!line.equals("") && line != null) {
+                    lines.add(line);
+                }
                 line = reader.readLine();
             }
             for(int i=0;i<lines.size();i++){
@@ -60,6 +66,9 @@ public class Util {
                     output.put(username, new Node(publicKey, privateKey, sharedSecret));
                 }catch (ArrayIndexOutOfBoundsException e){
                     EMLogger.warn("Util", "Error loading Node in line " + i);
+                }catch (InvalidNodeException e){
+                    lines.get(i);
+                    EMLogger.warn("Util", "Skipped loading invalid Node");
                 }
             }
             reader.close();
@@ -89,6 +98,10 @@ public class Util {
     public static void saveNodes(HashMap<String, Node> nodes, String filePath){
         File file = new File(filePath);
         try {
+            if(!file.exists()){
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             for(String key : nodes.keySet()){
                 byte[] sharedSecret = new byte[0];
@@ -101,7 +114,9 @@ public class Util {
             writer.flush();
             writer.close();
         }catch (IOException e){
-            EMLogger.error("MessagingClient", "Error writing Nodes to File", e);
+            EMLogger.error("Util", "Error writing Nodes to File", e);
+        }catch (NullPointerException e){
+            EMLogger.info("Util", "No other User Connections");
         }
     }
 

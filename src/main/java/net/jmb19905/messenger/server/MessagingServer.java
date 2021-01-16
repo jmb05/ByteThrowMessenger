@@ -10,11 +10,11 @@ import net.jmb19905.messenger.messages.RegisterSuccessfulMessage;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
-import net.jmb19905.messenger.util.Variables;
 
 import java.io.IOException;
 import java.net.BindException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class MessagingServer extends Listener{
 
     public MessagingServer() {
         EMLogger.trace("MessagingServer", "Initializing Server");
-        this.port = Variables.DEFAULT_PORT;
+        this.port = ServerMain.config.port;
         server = new Server();
 
         Util.registerMessages(server.getKryo());
@@ -92,11 +92,16 @@ public class MessagingServer extends Listener{
     }
 
     private Node initNode(Connection connection, byte[] encodedKey) {
-        Node clientConnection = new Node();
-        PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
-        clientConnection.setReceiverPublicKey(publicKey);
-        clientConnectionKeys.put(connection, new ClientConnection(clientConnection, false));
-        return clientConnection;
+        try {
+            Node clientConnection = new Node();
+            PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
+            clientConnection.setReceiverPublicKey(publicKey);
+            clientConnectionKeys.put(connection, new ClientConnection(clientConnection, false));
+            return clientConnection;
+        } catch (InvalidKeySpecException e) {
+            EMLogger.error("MessagingServer", "Error initializing Node. Key is invalid.");
+            return null;
+        }
     }
 
 }

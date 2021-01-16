@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.crypto;
 
 import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
@@ -8,6 +9,8 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Base64;
 
 public class Node {
@@ -19,15 +22,23 @@ public class Node {
 
     private static final String ALGO = "AES";
 
-    public Node(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret){
-        publickey = Util.createPublicKeyFromData(encodedPublicKey);
-        privateKey = Util.createPrivateKeyFromData(encodedPrivateKey);
-        this.sharedSecret = sharedSecret;
+    public Node(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret) throws InvalidNodeException {
         try {
-            keyAgreement = KeyAgreement.getInstance("ECDH");
-            keyAgreement.init(privateKey);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            EMLogger.error("Crypto", "Error initializing Node", e);
+            if (encodedPrivateKey != null && encodedPublicKey != null) {
+                publickey = Util.createPublicKeyFromData(encodedPublicKey);
+                privateKey = Util.createPrivateKeyFromData(encodedPrivateKey);
+                this.sharedSecret = sharedSecret;
+                try {
+                    keyAgreement = KeyAgreement.getInstance("ECDH");
+                    keyAgreement.init(privateKey);
+                } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+                    EMLogger.error("Crypto", "Error initializing Node", e);
+                }
+            } else {
+                throw new InvalidNodeException("The Public or Private key is null");
+            }
+        }catch (InvalidKeySpecException e){
+            throw new InvalidNodeException("The Public or Private key is invalid");
         }
     }
 
@@ -106,5 +117,15 @@ public class Node {
 
     public byte[] getSharedSecret(){
         return sharedSecret;
+    }
+
+    @Override
+    public String toString() {
+        return "Node{" +
+                "publickey=" + publickey +
+                ", privateKey=" + privateKey +
+                ", keyAgreement=" + keyAgreement +
+                ", sharedSecret=" + Arrays.toString(sharedSecret) +
+                '}';
     }
 }

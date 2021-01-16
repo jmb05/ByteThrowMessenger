@@ -38,4 +38,13 @@ public class ClientConnection {
     public Node getNode() {
         return node;
     }
+
+    @Override
+    public String toString() {
+        return "ClientConnection{" +
+                "username='" + username + '\'' +
+                ", isLoggedIn=" + isLoggedIn +
+                ", node=" + node +
+                '}';
+    }
 }

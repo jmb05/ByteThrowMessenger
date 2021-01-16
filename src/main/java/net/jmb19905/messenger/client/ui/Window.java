@@ -1,7 +1,11 @@
 package net.jmb19905.messenger.client.ui;
 
-import net.jmb19905.messenger.client.CommandParser;
 import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.MessagingClient;
+import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.messages.DataMessage;
+import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
@@ -89,10 +93,8 @@ public class Window extends JFrame {
         JButton startConversation = new JButton("Start Conversation");
         startConversation.addActionListener(e -> {
             String username = JOptionPane.showInputDialog(null, "Please input the username of the conversation partner: ", "Start Conversation", JOptionPane.PLAIN_MESSAGE);
-            if(username == null){
-
-            }else if(username.length() < 3){
-                JOptionPane.showMessageDialog(null, "Invalid Username (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
+            if(username.length() < 3 || username == null){
+                JOptionPane.showMessageDialog(null, "Invalid Username (" + username + ") (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
             }else{
                 EncryptedMessenger.messagingClient.connectWithOtherUser(username);
             }
@@ -111,9 +113,9 @@ public class Window extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
             if(e.getKeyCode() == KeyEvent.VK_ENTER){
-                String command = inputField.getText();
+                String message = inputField.getText();
+                EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message);
                 inputField.setText("");
-                CommandParser.parseCommand(command, EncryptedMessenger.messagingClient);
             }
             }
         });
@@ -128,10 +130,8 @@ public class Window extends JFrame {
         JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
 
         ellipsisButton = new JButton();
-        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (!SettingsWindow.isDark() ? "_dark" : "") + ".png"));
-        ellipsisButton.addActionListener((e) -> {
-            settingsWindow.setVisible(true);
-        });
+        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png"));
+        ellipsisButton.addActionListener((e) -> settingsWindow.setVisible(true));
 
         toolBar.add(ellipsisButton);
         toolBar.setFloatable(false);
@@ -169,6 +169,6 @@ public class Window extends JFrame {
     @Override
     public void repaint() {
         super.revalidate();
-        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (!SettingsWindow.isDark() ? "_dark" : "") + ".png"));
+        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png"));
     }
 }

@@ -9,6 +9,7 @@ import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable{
@@ -22,11 +23,13 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
     public void handleOnClient(Connection connection) {
         EMLogger.trace("MessagingClient", "Received ConnectWithOtherUserMessage");
         String decryptedUsername = Util.decryptString(MessagingClient.thisDevice, username);
+        byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
         if(MessagingClient.otherUsers.get(decryptedUsername) != null){
-            EMLogger.trace("MessagingClient", decryptedUsername + " is already connected");
+            EMLogger.trace("MessagingClient", "Changing/Adding key for" + decryptedUsername);
+            Node node = MessagingClient.otherUsers.get(decryptedUsername);
+            EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
         }else{
             Node node = new Node();
-            byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
             MessagingClient.otherUsers.put(decryptedUsername, node);
             EMLogger.trace("MessagingClient", "Added " + decryptedUsername + " to connected users");
@@ -34,13 +37,12 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
                 EMLogger.info("MessagingClient", decryptedUsername + " has responded");
                 MessagingClient.connectionRequested.remove(decryptedUsername);
             }else{
-                ConnectWithOtherUserMessage message = new ConnectWithOtherUserMessage();
                 username = Util.encryptString(MessagingClient.thisDevice, decryptedUsername);
-                message.publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.thisDevice.getPublicKey().getEncoded());
-                EncryptedMessenger.messagingClient.client.sendTCP(message);
+                publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getPublicKey().getEncoded());
+                EncryptedMessenger.messagingClient.client.sendTCP(this);
             }
-            EncryptedMessenger.window.addConnectedUser(decryptedUsername);
         }
+        EncryptedMessenger.window.addConnectedUser(decryptedUsername);
     }
 
     @Override
@@ -49,7 +51,6 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
         String recipient = Util.decryptString(senderNode, username);
         byte[] publicKeyEncoded = senderNode.decrypt(publicKeyEncodedEncrypted);
-
         if(sender.equals(recipient)){
             EMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with himself");
             return;

@@ -5,6 +5,8 @@
 /build/classes/java/test/
 /out/
 /logs/
-/user.dat
-/other_users.dat
-/client_config.json
+/userdata/user.dat
+/userdata/other_users.dat
+/config/
+/userdata/
+/database/

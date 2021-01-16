@@ -7,31 +7,68 @@ import java.io.IOException;
 
 public class ConfigManager {
 
-    public static Config loadConfigFile(String configFilePath){
+    public static ClientConfig loadClientConfigFile(String configFilePath){
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            return objectMapper.readValue(new File(configFilePath), Config.class);
+            return objectMapper.readValue(new File(configFilePath), ClientConfig.class);
         } catch (IOException e) {
             EMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
-            return new Config();
+            return new ClientConfig();
         }
     }
 
-    public static void saveConfig(Config config, String configFilePath){
+    public static void saveClientConfig(ClientConfig config, String configFilePath){
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configFilePath), config);
+            File file = new File(configFilePath);
+            if(!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
         } catch (IOException e) {
-            EMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
+            EMLogger.warn("ConfigMapper", "Error saving config file.", e);
         }
     }
 
-    public static class Config{
+    public static ServerConfig loadServerConfigFile(String configFilePath){
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(new File(configFilePath), ServerConfig.class);
+        } catch (IOException e) {
+            EMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
+            return new ServerConfig();
+        }
+    }
 
-        public Config(){}
+    public static void saveServerConfig(ServerConfig config, String configFilePath){
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            File file = new File(configFilePath);
+            if(!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
+        } catch (IOException e) {
+            EMLogger.warn("ConfigMapper", "Error saving config file.", e);
+        }
+    }
+
+    public static class ClientConfig{
+
+        public ClientConfig(){}
 
         public String theme = "Darcula";
         public boolean autoLogin = true;
+
+    }
+
+    public static class ServerConfig{
+
+        public ServerConfig(){}
+
+        public int port = 10101;
 
     }
 

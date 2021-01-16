@@ -20,7 +20,8 @@ public class DataMessage extends EMMessage{
     public void handleOnClient(Connection connection) {
         String sender = Util.decryptString(MessagingClient.thisDevice, username);
         if(MessagingClient.otherUsers.get(sender).getSharedSecret() != null){
-            String message = Util.decryptString(MessagingClient.thisDevice, Util.decryptString(MessagingClient.otherUsers.get(sender), encryptedMessage));
+            String partiallyDecryptedMessage = Util.decryptString(MessagingClient.thisDevice, encryptedMessage);
+            String message = Util.decryptString(MessagingClient.otherUsers.get(sender), partiallyDecryptedMessage);
             System.out.println(sender + " : " + message);
         }else {
             EMLogger.warn("MessagingClient", "Received Message from unconnected client");
@@ -33,14 +34,19 @@ public class DataMessage extends EMMessage{
         if(MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()){
             String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
             String recipient = Util.decryptString(senderNode, username);
+            String decryptedMessage = Util.decryptString(senderNode, encryptedMessage);
 
             for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
-                if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                    if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
-                        username = sender;
-                        recipientConnection.sendTCP(this);
-                        EMLogger.trace("MessagingServer","Passed Data from " + sender + " to " + recipient);
-                        return;
+                if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
+                    if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
+                        Node recipientNode = MessagingServer.clientConnectionKeys.get(recipientConnection).getNode();
+                        if(recipientNode != null) {
+                            username = Util.encryptString(recipientNode, sender);
+                            encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
+                            recipientConnection.sendTCP(this);
+                            EMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
+                            return;
+                        }
                     }
                 }
             }
