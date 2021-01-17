@@ -10,6 +10,7 @@ import net.jmb19905.messenger.util.Variables;
 
 import javax.swing.*;
 import java.io.*;
+import java.net.URISyntaxException;
 
 public class EncryptedMessenger {
 
@@ -23,7 +24,10 @@ public class EncryptedMessenger {
 
     public static ConfigManager.ClientConfig clientConfig;
 
+    public static String[] arguments;
+
     public static void main(String[] args) {
+        arguments = args;
         startUp();
         if(clientConfig.autoLogin) {
             readUserData();
@@ -37,7 +41,7 @@ public class EncryptedMessenger {
     private static void startUp(){
         Variables.currentSide = "client";
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
-        Log.set(Log.LEVEL_DEBUG);
+        Log.set(Log.LEVEL_INFO);
         EMLogger.init();
         clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
         SettingsWindow.setLookAndFeel(clientConfig.theme);

@@ -1,2 +1,5 @@
 rootProject.name = 'Encrypted Messenger'
+include 'src:updater'
+findProject(':src:updater')?.name = 'em-updater'
+include 'EM-Updater'
 

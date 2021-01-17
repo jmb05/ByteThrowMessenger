@@ -20,7 +20,7 @@ public class ServerMain {
     private static void startUp(){
         Variables.currentSide = "server";
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
-        Log.set(Log.LEVEL_DEBUG);
+        Log.set(Log.LEVEL_INFO);
         EMLogger.init();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
     }

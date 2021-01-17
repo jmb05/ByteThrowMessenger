@@ -10,7 +10,6 @@ import net.jmb19905.messenger.messages.*;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
-import net.jmb19905.messenger.util.Variables;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -32,27 +31,10 @@ public class MessagingClient extends Listener{
     @Deprecated
     public static final List<String> connectionToBeVerified = new ArrayList<>();
 
-    private final Thread reconnectionThread;
-
     public MessagingClient(String serverAddress, int port){
 
         this.serverAddress = serverAddress;
         this.serverPort = port;
-
-        reconnectionThread = new Thread(() -> {
-            while (true){
-                if(!client.isConnected() && !Window.closeRequested){
-                    try {
-                        client.reconnect();
-                    } catch (IOException e) {
-                        EMLogger.error("MessagingClient", "Can't reconnect", e);
-                        stop(-1);
-                    }
-                }else if(Window.closeRequested){
-                    break;
-                }
-            }
-        });
         init();
     }
 
@@ -78,7 +60,7 @@ public class MessagingClient extends Listener{
             JOptionPane.showMessageDialog(null, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
             stop(-1);
         }
-        reconnectionThread.start();
+
         EMLogger.info("MessagingClient", "Started Client");
     }
 
@@ -106,6 +88,11 @@ public class MessagingClient extends Listener{
     public void disconnected(Connection connection) {
         EMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
+        if(!Window.closeRequested) {
+            EncryptedMessenger.window.dispose();
+            Thread reconnectionThread = new Thread(() -> EncryptedMessenger.main(EncryptedMessenger.arguments));
+            reconnectionThread.start();
+        }
     }
 
     @Override

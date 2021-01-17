@@ -3,10 +3,15 @@ plugins {
     id 'edu.sc.seis.launch4j' version '2.4.9'
 }
 
+group 'net.jmb19905'
+version '1.0-SNAPSHOT-5'
+
 jar {
+    archiveName "EncryptedMessenger-${project.version}-Client.jar"
+    baseName "EncryptedMessenger-${project.version}-Client"
     manifest {
         attributes(
-            'Main-Class': 'net.jmb19905.messenger.server.ServerMain'
+            'Main-Class': 'net.jmb19905.messenger.client.EncryptedMessenger'
         )
     }
     from {
@@ -15,8 +20,6 @@ jar {
         }
     }
 }
-group 'net.jmb19905'
-version '1.0-SNAPSHOT-4'
 
 repositories {
     mavenCentral()
@@ -32,8 +35,6 @@ dependencies {
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.11.2')
     implementation('com.fasterxml.jackson.core:jackson-databind:2.11.2')
     implementation('org.xerial:sqlite-jdbc:3.32.3.2')
-    implementation('org.apache.poi:poi:4.1.2')
-    implementation('org.apache.poi:poi-ooxml:4.1.2')
     implementation('org.mindrot:jbcrypt:0.4')
     implementation('com.formdev:flatlaf:0.46')
 }
@@ -51,4 +52,21 @@ launch4j {
     textVersion = '1.0.SN3'
     internalName = 'EncryptedMessenger'
     productName = "${project.name}-${project.version}"
+}
+
+task createVersion(){
+    doLast {
+        new File("${projectDir}/src/main/resources/", "version.txt").text = "${project.version}"
+    }
+}
+
+task serverJar(type: Jar){
+    archiveName "EM-${project.version}.jar"
+    baseName "EM-${project.version}"
+    manifest {
+        attributes(
+            'Main-Class': 'net.jmb19905.messenger.server.ServerMain'
+        )
+    }
+    with jar
 }
