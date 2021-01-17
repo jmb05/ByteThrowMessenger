@@ -6,10 +6,13 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * EXPERIMENTAL: The Messages for the ConversationPane
+ */
 public class MessageFrame extends JInternalFrame {
 
     public static final int LEFT = -1;
-    public static final int RIGHT =  1;
+    public static final int RIGHT = 1;
 
     public String text;
     private int yPos;
@@ -19,7 +22,7 @@ public class MessageFrame extends JInternalFrame {
 
     private List<String> lines = new ArrayList<>();
 
-    public MessageFrame(String text, int yPos, int alignment, JComponent parent){
+    public MessageFrame(String text, int yPos, int alignment, JComponent parent) {
         parent.add(this);
         this.text = text;
         this.textArea = new JTextArea();
@@ -27,48 +30,47 @@ public class MessageFrame extends JInternalFrame {
         this.alignment = alignment;
 
 
-
         lines.add(text);
 
         textArea.setEditable(false);
 
-        if(alignment > 0){
+        if (alignment > 0) {
             setLocation(getRightSeparation() + 20, yPos);
-        }else{
+        } else {
             setLocation(20, yPos);
         }
     }
 
-    private int getLeftSeparation(){
+    private int getLeftSeparation() {
         return getParent().getWidth() / 14 * 5;
     }
 
-    private int getRightSeparation(){
+    private int getRightSeparation() {
         return getParent().getWidth() / 14 * 9;
     }
 
     @Override
     public void repaint() {
-        if(alignment > 0){
+        if (alignment > 0) {
             setLocation(getRightSeparation() + 20, yPos);
-        }else{
+        } else {
             //setLocation(20, yPos);
-            if(getWidth() + 20 > getLeftSeparation() - 20){
+            if (getWidth() + 20 > getLeftSeparation() - 20) {
                 List<String> newLines = new ArrayList<>();
                 for (String line : lines) {
                     int preciseMiddle = line.length() / 2;
                     int newMiddle;
                     char c;
                     int pointer = 0;
-                    while (true){
+                    while (true) {
                         newMiddle = preciseMiddle + pointer;
                         c = line.charAt(newMiddle);
-                        if(c == ' '){
+                        if (c == ' ') {
                             break;
                         }
                         newMiddle = preciseMiddle - pointer;
                         c = line.charAt(newMiddle);
-                        if(c == ' '){
+                        if (c == ' ') {
                             break;
                         }
                         pointer++;
@@ -79,7 +81,7 @@ public class MessageFrame extends JInternalFrame {
                 lines = newLines;
             }
         }
-        for(String line : lines){
+        for (String line : lines) {
             textArea.append(line + "\n");
         }
         super.repaint();

@@ -6,21 +6,19 @@ import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.server.MessagingServer;
-import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
-import javax.swing.*;
 import java.util.HashMap;
-import java.util.SplittableRandom;
 
-public class DataMessage extends EMMessage implements IQueueable{
+/**
+ * Transfers text between two users
+ */
+public class DataMessage extends EMMessage implements IQueueable {
 
     public String username;
 
     public String encryptedMessage;
-
-    public DataMessage(){}
 
     @Override
     public void handleOnClient(Connection connection) {
@@ -36,7 +34,7 @@ public class DataMessage extends EMMessage implements IQueueable{
             } else {
                 EMLogger.warn("MessagingClient", "Received Message from unconnected client");
             }
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             EMLogger.warn("MessagingClient", "Received invalid message", e);
         }
     }
@@ -44,14 +42,14 @@ public class DataMessage extends EMMessage implements IQueueable{
     @Override
     public void handleOnServer(Connection connection) {
         Node senderNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
-        if(MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()){
+        if (MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()) {
             String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
             String recipient = Util.decryptString(senderNode, username);
             String decryptedMessage = Util.decryptString(senderNode, encryptedMessage);
 
-            for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
-                if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
-                    if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
+            for (Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()) {
+                if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {
+                    if (MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()) {
                         handleOnQueue(recipientConnection, new Object[]{sender, decryptedMessage});
                         EMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
                         return;
@@ -60,15 +58,15 @@ public class DataMessage extends EMMessage implements IQueueable{
             }
 
             HashMap<EMMessage, Object[]> queueData;
-            if(!MessagingServer.messagesQueue.containsKey(recipient)){
+            if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
-            }else{
+            } else {
                 queueData = MessagingServer.messagesQueue.get(recipient);
             }
             queueData.put(this, new Object[]{sender, decryptedMessage});
             MessagingServer.messagesQueue.put(recipient, queueData);
 
-            EMLogger.info("MessagingServer","Recipient: " + recipient + " for message from " + sender + " is offline - added to Queue");
+            EMLogger.info("MessagingServer", "Recipient: " + recipient + " for message from " + sender + " is offline - added to Queue");
         }
     }
 
@@ -82,7 +80,7 @@ public class DataMessage extends EMMessage implements IQueueable{
             dataMessage.username = Util.encryptString(recipientNode, decryptedUserName);
             dataMessage.encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
             connection.sendTCP(dataMessage);
-        }catch (ArrayIndexOutOfBoundsException | NullPointerException e){
+        } catch (ArrayIndexOutOfBoundsException | NullPointerException e) {
             EMLogger.warn("DataMessage", "Error parsing data for Message: " + this + " from queue", e);
         }
     }

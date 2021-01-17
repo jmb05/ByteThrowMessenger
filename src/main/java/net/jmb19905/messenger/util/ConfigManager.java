@@ -7,7 +7,12 @@ import java.io.IOException;
 
 public class ConfigManager {
 
-    public static ClientConfig loadClientConfigFile(String configFilePath){
+    /**
+     * Loads the config for the Client
+     * @param configFilePath the path of the config file
+     * @return the ClientConfig
+     */
+    public static ClientConfig loadClientConfigFile(String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(new File(configFilePath), ClientConfig.class);
@@ -17,11 +22,16 @@ public class ConfigManager {
         }
     }
 
-    public static void saveClientConfig(ClientConfig config, String configFilePath){
+    /**
+     * Saves the config from the Client
+     * @param config the Config that will be saved
+     * @param configFilePath the path to the config file
+     */
+    public static void saveClientConfig(ClientConfig config, String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             File file = new File(configFilePath);
-            if(!file.exists()) {
+            if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
             }
@@ -31,7 +41,12 @@ public class ConfigManager {
         }
     }
 
-    public static ServerConfig loadServerConfigFile(String configFilePath){
+    /**
+     * Loads the config for the Server
+     * @param configFilePath the path of the config file
+     * @return the ServerConfig
+     */
+    public static ServerConfig loadServerConfigFile(String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(new File(configFilePath), ServerConfig.class);
@@ -41,11 +56,16 @@ public class ConfigManager {
         }
     }
 
-    public static void saveServerConfig(ServerConfig config, String configFilePath){
+    /**
+     * Saves the config from the Server
+     * @param config the Config that will be saved
+     * @param configFilePath the path to the config file
+     */
+    public static void saveServerConfig(ServerConfig config, String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             File file = new File(configFilePath);
-            if(!file.exists()) {
+            if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
             }
@@ -55,9 +75,10 @@ public class ConfigManager {
         }
     }
 
-    public static class ClientConfig{
+    public static class ClientConfig {
 
-        public ClientConfig(){}
+        public ClientConfig() {
+        }
 
         public String theme = "Darcula";
         public String server = "93.159.123.161";
@@ -66,9 +87,10 @@ public class ConfigManager {
 
     }
 
-    public static class ServerConfig{
+    public static class ServerConfig {
 
-        public ServerConfig(){}
+        public ServerConfig() {
+        }
 
         public int port = 10101;
 

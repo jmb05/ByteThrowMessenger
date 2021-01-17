@@ -1,12 +1,12 @@
 package net.jmb19905.messenger.messages.exception;
 
-public class UnsupportedSideException extends Exception{
+public class UnsupportedSideException extends Exception {
 
-    public UnsupportedSideException(){
+    public UnsupportedSideException() {
         super();
     }
 
-    public UnsupportedSideException(String message){
+    public UnsupportedSideException(String message) {
         super(message);
     }
 

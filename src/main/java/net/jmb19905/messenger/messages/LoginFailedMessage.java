@@ -6,17 +6,21 @@ import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
-public class LoginFailedMessage extends EMMessage{
+/**
+ * Tells the Client that the login failed
+ */
+public class LoginFailedMessage extends EMMessage {
 
     public String cause;
 
-    public LoginFailedMessage(){}
+    public LoginFailedMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) {
         JOptionPane.showMessageDialog(null, "Could not log in! " + (cause.equals("pw") ? "Password " : "Username ") + "was incorrect.", "Wrong credentials", JOptionPane.ERROR_MESSAGE);
         EncryptedMessenger.wipeUserData();
-        EncryptedMessenger.messagingClient.login(connection);
+        EncryptedMessenger.messagingClient.login();
     }
 
     @Override

@@ -17,7 +17,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
-public class MessagingClient extends Listener{
+public class MessagingClient extends Listener {
 
     private final String serverAddress;
     private final int serverPort;
@@ -31,14 +31,13 @@ public class MessagingClient extends Listener{
     @Deprecated
     public static final List<String> connectionToBeVerified = new ArrayList<>();
 
-    public MessagingClient(String serverAddress, int port){
-
+    public MessagingClient(String serverAddress, int port) {
         this.serverAddress = serverAddress;
         this.serverPort = port;
         init();
     }
 
-    private void init(){
+    private void init() {
         EMLogger.trace("MessagingClient", "Initializing Client");
         client = new Client();
 
@@ -50,7 +49,10 @@ public class MessagingClient extends Listener{
         EMLogger.info("MessagingClient", "Initialized Client");
     }
 
-    public void start(){
+    /**
+     * Starts the Client
+     */
+    public void start() {
         EMLogger.trace("MessagingClient", "Starting Client");
         new Thread(client).start();
         try {
@@ -64,17 +66,24 @@ public class MessagingClient extends Listener{
         EMLogger.info("MessagingClient", "Started Client");
     }
 
-    public void stop(int code){
+    /**
+     * Stops the client
+     * @param code the exit code
+     */
+    public void stop(int code) {
         EMLogger.trace("MessagingClient", "Stopping Client");
         client.stop();
         EMLogger.info("MessagingClient", "Stopped Client");
-        if(!EncryptedMessenger.getUsername().equals("") && EncryptedMessenger.getUsername() != null) {
-            Util.saveNodes(otherUsers);
+        if (!EncryptedMessenger.getUsername().equals("") && EncryptedMessenger.getUsername() != null) {
+            Util.saveChatHistories(otherUsers);
         }
         EMLogger.close();
         System.exit(code);
     }
 
+    /**
+     * What to do when the Client connects with the Server
+     */
     @Override
     public void connected(Connection connection) {
         EMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
@@ -84,20 +93,26 @@ public class MessagingClient extends Listener{
         EMLogger.trace("MessagingClient", "Sent PublicKey " + Arrays.toString(loginPublicKeyMessage.encodedKey));
     }
 
+    /**
+     * What to do when the Client disconnects from the Server
+     */
     @Override
     public void disconnected(Connection connection) {
         EMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
-        if(!Window.closeRequested) {
+        if (!Window.closeRequested) {
             EncryptedMessenger.window.dispose();
             Thread reconnectionThread = new Thread(() -> EncryptedMessenger.main(EncryptedMessenger.arguments));
             reconnectionThread.start();
         }
     }
 
+    /**
+     * What to do when the Client receives a Message from the Server
+     */
     @Override
     public void received(Connection connection, Object o) {
-        if(o instanceof EMMessage) {
+        if (o instanceof EMMessage) {
             try {
                 ((EMMessage) o).handleOnClient(connection);
             } catch (UnsupportedSideException e) {
@@ -106,7 +121,11 @@ public class MessagingClient extends Listener{
         }
     }
 
-    public void connectWithOtherUser(String username){
+    /**
+     * Connects the User with another user
+     * @param username the username of the other user
+     */
+    public void connectWithOtherUser(String username) {
         Node node = new Node();
         ConnectWithOtherUserMessage message = new ConnectWithOtherUserMessage();
         message.username = Util.encryptString(thisDevice, username);
@@ -117,101 +136,121 @@ public class MessagingClient extends Listener{
         connectionRequested.add(username);
     }
 
-    public boolean sendToOtherUser(String username, String message){
+    /**
+     * Send a Message to another user
+     * @param username the username of the user
+     * @param message the message that will be sent
+     * @return if sending succeeded
+     */
+    public boolean sendToOtherUser(String username, String message) {
         ChatHistory chatHistory = otherUsers.get(username);
-        if(chatHistory != null && chatHistory.getNode() != null) {
-            if(chatHistory.getNode().getSharedSecret() != null) {
+        if (chatHistory != null && chatHistory.getNode() != null) {
+            if (chatHistory.getNode().getSharedSecret() != null) {
                 DataMessage dataMessage = new DataMessage();
                 dataMessage.username = Util.encryptString(thisDevice, username);
                 dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(chatHistory.getNode(), message));
                 client.sendTCP(dataMessage);
                 chatHistory.addMessage(EncryptedMessenger.getUsername(), message);
                 return true;
-            }else{
+            } else {
                 EMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
-        }else{
+        } else {
             EMLogger.info("MessagingClient", "Your are not connected with this client - use connect");
         }
         return false;
     }
 
-    public void login(Connection connection){
-        if(!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")){
+    /**
+     * Logs the Client in
+     */
+    public void login() {
+        if (!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")) {
             LoginMessage loginMessage = new LoginMessage();
             loginMessage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
             loginMessage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
-            connection.sendTCP(loginMessage);
-        }else {
-            OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register(connection));
+            client.sendTCP(loginMessage);
+        } else {
+            OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register());
             if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
                 System.exit(0);
             } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
                 LoginMessage loginMessage = new LoginMessage();
                 loginMessage.username = Util.encryptString(thisDevice, value.values[0]);
                 loginMessage.password = Util.encryptString(thisDevice, value.values[1]);
-                connection.sendTCP(loginMessage);
+                client.sendTCP(loginMessage);
                 EncryptedMessenger.setUserData(value.values[0], value.values[1]);
             }
         }
     }
 
-    public void register(Connection connection){
-        OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login(connection));
-        if(value.id == OptionPanes.OutputValue.CANCEL_OPTION){
+    /**
+     * Registers a new account for the Client
+     */
+    public void register() {
+        OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login());
+        if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
             stop(0);
-        }else if(value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
+        } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
             RegisterMessage registerMessage = new RegisterMessage();
             registerMessage.username = Util.encryptString(thisDevice, value.values[0]);
             registerMessage.password = Util.encryptString(thisDevice, value.values[1]);
-            connection.sendTCP(registerMessage);
+            client.sendTCP(registerMessage);
             EMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
         }
     }
 
-    public static void initOtherUsers(){
-        otherUsers = Util.loadNodes();
-        for(String key : otherUsers.keySet()){
+    /**
+     * Loads the ChatHistory and Nodes of all connected users
+     */
+    public static void initOtherUsers() {
+        otherUsers = Util.loadChatHistories();
+        for (String key : otherUsers.keySet()) {
             ChatHistory chatHistory = otherUsers.get(key);
-            if(key.equals(chatHistory.getName())) {
+            if (key.equals(chatHistory.getName())) {
                 addChatHistory(chatHistory);
-            }else{
+            } else {
                 EMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
             }
         }
     }
 
+    /**
+     * Adds a ChatHistory to the Window
+     * @param chatHistory the ChatHistory
+     */
     private static void addChatHistory(ChatHistory chatHistory) {
-        for(String rawMessage : chatHistory.getMessages()){
+        for (String rawMessage : chatHistory.getMessages()) {
             String[] parts = rawMessage.split(":");
             StringBuilder stringBuilder = new StringBuilder();
-            for(int i=1;i<parts.length;i++){
+            for (int i = 1; i < parts.length; i++) {
                 stringBuilder.append(parts[i]);
             }
             EncryptedMessenger.window.appendLine("<" + parts[0] + "> " + stringBuilder.toString());
         }
     }
 
+    /**
+     * Sets the Public Key for the Client - Server connection
+     * @param encodedKey the PublicKey of the Server encoded as byte-array
+     */
     public void setPublicKey(byte[] encodedKey) {
-        try {
-            PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
-            EMLogger.trace("MessagingClient", "Received PublicKey " + Arrays.toString(publicKey.getEncoded()));
-            if (publicKey != null) {
-                MessagingClient.thisDevice.setReceiverPublicKey(publicKey);
-            }
-        }catch (InvalidKeySpecException | NullPointerException e){
-            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
-        }
+        setPublicKey(encodedKey, thisDevice);
     }
 
+    /**
+     * Sets the Public Key for a Node
+     * @param decryptedEncodedKey the PublicKey of encoded as byte-array
+     * @param node the Node that will receive and use the PublicKey
+     */
     public void setPublicKey(byte[] decryptedEncodedKey, Node node) {
         try {
             PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
             EMLogger.trace("MessagingClient", "Received PublicKey");
-            if(publicKey != null) {
+            if (publicKey != null) {
                 node.setReceiverPublicKey(publicKey);
             }
-        }catch (InvalidKeySpecException e){
+        } catch (InvalidKeySpecException e) {
             EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
         }
     }

@@ -9,9 +9,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 
-public class OptionPanes{
+public class OptionPanes {
 
-    public static OutputValue showLoginDialog(ActionListener registerEvent){
+    public static OutputValue showLoginDialog(ActionListener registerEvent) {
         final OutputValue[] value = new OutputValue[1];
         JDialog dialog = new JDialog(EncryptedMessenger.window);
         dialog.setModal(true);
@@ -33,7 +33,7 @@ public class OptionPanes{
         constraints.weightx = 1;
         constraints.weighty = 1;
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(5,5,5,5);
+        constraints.insets = new Insets(5, 5, 5, 5);
 
         JLabel usernameLabel = new JLabel("Username:");
         constraints.gridx = 0;
@@ -102,13 +102,13 @@ public class OptionPanes{
         dialog.setVisible(true);
 
         //Loop until event is triggered
-        while (dialog.isShowing()){
+        while (dialog.isShowing()) {
             dialog.validate();
         }
         return value[0];
     }
 
-    public static OutputValue showRegisterDialog(ActionListener loginListener){
+    public static OutputValue showRegisterDialog(ActionListener loginListener) {
         final OutputValue[] value = new OutputValue[1];
         JDialog dialog = new JDialog(EncryptedMessenger.window);
         dialog.setModal(true);
@@ -129,7 +129,7 @@ public class OptionPanes{
         constraints.weightx = 1;
         constraints.weighty = 1;
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(5,5,5,5);
+        constraints.insets = new Insets(5, 5, 5, 5);
 
         JLabel usernameLabel = new JLabel("Username:");
         constraints.gridx = 0;
@@ -177,11 +177,11 @@ public class OptionPanes{
         constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.CENTER;
         confirm.addActionListener(e -> {
-            if(usernameInputField.getText().length() < 4){
+            if (usernameInputField.getText().length() < 4) {
                 JOptionPane.showMessageDialog(null, "The Username is too short", "", JOptionPane.ERROR_MESSAGE);
-            }else if(passwordInputField1.getPassword().length < 5){
+            } else if (passwordInputField1.getPassword().length < 5) {
                 JOptionPane.showMessageDialog(null, "The Password is too short", "", JOptionPane.ERROR_MESSAGE);
-            }else {
+            } else {
                 if (!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())) {
                     JOptionPane.showMessageDialog(null, "The Passwords do not match", "", JOptionPane.ERROR_MESSAGE);
                 } else {
@@ -219,13 +219,13 @@ public class OptionPanes{
         dialog.setVisible(true);
 
         //Loop until event is triggered
-        while (dialog.isShowing()){
+        while (dialog.isShowing()) {
             dialog.validate();
         }
         return value[0];
     }
 
-    public static class OutputValue{
+    public static class OutputValue {
 
         public static final int CONFIRM_OPTION = 0;
         public static final int CANCEL_OPTION = 1;
@@ -234,7 +234,7 @@ public class OptionPanes{
         public int id;
         public String[] values;
 
-        public OutputValue(int id, String[] values){
+        public OutputValue(int id, String[] values) {
             this.id = id;
             this.values = values;
         }

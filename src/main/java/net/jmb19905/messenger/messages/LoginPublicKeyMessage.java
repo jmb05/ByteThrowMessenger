@@ -5,19 +5,21 @@ import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.util.EMLogger;
 
-import java.util.Arrays;
-
-public class LoginPublicKeyMessage extends EMMessage{
+/**
+ * Sent on started connection between Server and Client to ensure an encrypted connection
+ */
+public class LoginPublicKeyMessage extends EMMessage {
 
     public byte[] encodedKey;
 
-    public LoginPublicKeyMessage(){}
+    public LoginPublicKeyMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) {
         EMLogger.trace("MessagingClient", "received Server login response");
         EncryptedMessenger.messagingClient.setPublicKey(encodedKey);
-        EncryptedMessenger.messagingClient.login(connection);
+        EncryptedMessenger.messagingClient.login();
     }
 
     @Override

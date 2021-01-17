@@ -18,7 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MessagingServer extends Listener{
+public class MessagingServer extends Listener {
 
     private final int port;
     private final Server server;
@@ -39,12 +39,15 @@ public class MessagingServer extends Listener{
         EMLogger.info("MessagingServer", "Initialized Server");
     }
 
-    public void start(){
+    /**
+     * Starts the Server
+     */
+    public void start() {
         EMLogger.trace("MessagingServer", "Starting Server");
         new Thread(server).start();
         try {
             server.bind(port, port + 1);
-        }catch (BindException e){
+        } catch (BindException e) {
             EMLogger.error("MessagingServer", "Error Binding Server to port: " + port + "! Probably is a server already running!", e);
             System.exit(-1);
         } catch (IOException e) {
@@ -53,11 +56,17 @@ public class MessagingServer extends Listener{
         EMLogger.info("MessagingServer", "Started Server");
     }
 
+    /**
+     * What to do when a Client connects to the Server
+     */
     @Override
     public void connected(Connection connection) {
         EMLogger.info("MessagingServer", "Connection established with: " + connection.getRemoteAddressTCP());
     }
 
+    /**
+     * What to do when a Client disconnects from the Server
+     */
     @Override
     public void disconnected(Connection connection) {
         EMLogger.info("MessagingServer", "Lost Connection to a Client");
@@ -65,9 +74,12 @@ public class MessagingServer extends Listener{
         clientConnectionKeys.remove(connection);
     }
 
+    /**
+     * What to do when a Message from a Client is received
+     */
     @Override
     public void received(Connection connection, Object o) {
-        if(o instanceof EMMessage){
+        if (o instanceof EMMessage) {
             try {
                 ((EMMessage) o).handleOnServer(connection);
             } catch (UnsupportedSideException e) {
@@ -76,6 +88,12 @@ public class MessagingServer extends Listener{
         }
     }
 
+    /**
+     * Tells a Client that the registration succeeded
+     * @param connection the connection to the Client
+     * @param username the username of the Client
+     * @param uuid the UUID of the Client
+     */
     public void sendRegisterSuccess(Connection connection, String username, UUID uuid) {
         RegisterSuccessfulMessage message = new RegisterSuccessfulMessage();
         message.username = username;
@@ -83,6 +101,11 @@ public class MessagingServer extends Listener{
         connection.sendTCP(message);
     }
 
+    /**
+     * Sends the Client a PublicKey
+     * @param connection the connection to the Client
+     * @param encodedKey the PublicKey encoded as byte-array
+     */
     public void sendPublicKey(Connection connection, byte[] encodedKey) {
         Node clientConnection = initNode(connection, encodedKey);
         LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
@@ -91,6 +114,12 @@ public class MessagingServer extends Listener{
         EMLogger.trace("MessagingServer", "Sent Public Key");
     }
 
+    /**
+     * Initializes a Node when the PublicKey of a Client is received
+     * @param connection the connection to the Client
+     * @param encodedKey the PublicKey from the Client encoded as byte-array
+     * @return the Node
+     */
     private Node initNode(Connection connection, byte[] encodedKey) {
         try {
             Node clientConnection = new Node();

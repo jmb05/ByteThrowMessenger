@@ -6,9 +6,13 @@ import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 
-public class LoginSuccessMessage extends EMMessage{
+/**
+ * Tells the Client that the login attempt was successful
+ */
+public class LoginSuccessMessage extends EMMessage {
 
-    public LoginSuccessMessage(){}
+    public LoginSuccessMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) {

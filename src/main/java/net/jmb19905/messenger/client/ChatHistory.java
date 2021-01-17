@@ -5,13 +5,16 @@ import net.jmb19905.messenger.crypto.Node;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The ChatHistory of a Chat between two Users - used to save/load the ChatHistory
+ */
 public class ChatHistory {
 
     private final String name;
     private Node node;
     private final List<String> messages;
 
-    public ChatHistory(){
+    public ChatHistory() {
         this("", null);
     }
 
@@ -33,7 +36,7 @@ public class ChatHistory {
         return messages;
     }
 
-    public void addMessage(String senderName, String message){
+    public void addMessage(String senderName, String message) {
         messages.add(senderName + ":" + message);
     }
 

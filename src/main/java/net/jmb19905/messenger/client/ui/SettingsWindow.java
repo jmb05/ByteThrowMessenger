@@ -14,9 +14,12 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 
+/**
+ * The Settings Window of the Client - used to change config
+ */
 public class SettingsWindow extends JDialog {
 
-    public SettingsWindow(){
+    public SettingsWindow() {
         setTitle("Settings");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setPreferredSize(new Dimension(450, 600));
@@ -29,7 +32,7 @@ public class SettingsWindow extends JDialog {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weightx = 1;
         constraints.weighty = 1;
-        constraints.insets = new Insets(10,10,10,10);
+        constraints.insets = new Insets(10, 10, 10, 10);
 
         JLabel themeLabel = new JLabel("Theme: ");
         constraints.gridx = 0;
@@ -89,7 +92,11 @@ public class SettingsWindow extends JDialog {
         pack();
     }
 
-    public static void setLookAndFeel(String lookAndFeelName){
+    /**
+     * Modifies the LookAndFeel of all Swing Object and repaints all Swing Objects
+     * @param lookAndFeelName the Name of the LookAndFeel
+     */
+    public static void setLookAndFeel(String lookAndFeelName) {
         try {
             switch (lookAndFeelName) {
                 case "Metal":
@@ -124,11 +131,16 @@ public class SettingsWindow extends JDialog {
             EncryptedMessenger.window.repaint();
             EncryptedMessenger.window.settingsWindow.pack();
             EncryptedMessenger.window.pack();
-        }catch (NullPointerException ignored){}
+        } catch (NullPointerException ignored) {
+        }
         ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
     }
 
-    public static boolean isLight(){
+    /**
+     * Checks if the LookAndFeel is Bright - is used for Widgets that have to change color depending on the brightness of the LookAndFeel
+     * @return if the LookAndFeel is Bright
+     */
+    public static boolean isLight() {
         return !(UIManager.getLookAndFeel() instanceof FlatDarculaLaf) && !(UIManager.getLookAndFeel() instanceof FlatDarkLaf);
     }
 

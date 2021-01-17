@@ -10,12 +10,16 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.HashMap;
 
-public class LoginMessage extends EMMessage{
+/**
+ * Sent to the server when a User wants to login
+ */
+public class LoginMessage extends EMMessage {
 
     public String username;
     public String password;
 
-    public LoginMessage(){}
+    public LoginMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) throws UnsupportedSideException {
@@ -29,24 +33,24 @@ public class LoginMessage extends EMMessage{
         String password = Util.decryptString(clientConnection, this.password);
 
         SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
-        if(userData == null){
+        if (userData == null) {
             LoginFailedMessage fail = new LoginFailedMessage();
             fail.cause = "name";
             connection.sendTCP(fail);
-        }else{
-            if(BCrypt.hashpw(password,userData.salt).equals(userData.password)) {
+        } else {
+            if (BCrypt.hashpw(password, userData.salt).equals(userData.password)) {
                 MessagingServer.clientConnectionKeys.get(connection).setUsername(userData.username);
                 MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
                 connection.sendTCP(new LoginSuccessMessage());
                 HashMap<EMMessage, Object[]> messageQueue = MessagingServer.messagesQueue.get(userData.username);
-                if(messageQueue != null){
-                    for(EMMessage message : messageQueue.keySet()){
-                        if(message instanceof IQueueable){
+                if (messageQueue != null) {
+                    for (EMMessage message : messageQueue.keySet()) {
+                        if (message instanceof IQueueable) {
                             ((IQueueable) message).handleOnQueue(connection, messageQueue.get(message));
                         }
                     }
                 }
-            }else{
+            } else {
                 LoginFailedMessage fail = new LoginFailedMessage();
                 fail.cause = "pw";
                 connection.sendTCP(fail);

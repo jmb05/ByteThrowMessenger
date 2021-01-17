@@ -2,6 +2,9 @@ package net.jmb19905.messenger.server;
 
 import net.jmb19905.messenger.crypto.Node;
 
+/**
+ * Represents the Connection to a Client with the username the Node and a boolean that represents if the Client is logged in
+ */
 public class ClientConnection {
 
     private String username = null;

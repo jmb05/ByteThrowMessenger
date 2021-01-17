@@ -10,18 +10,23 @@ import java.util.UUID;
 
 public class SQLiteManager {
 
+    /**
+     * Opens a SQLite Database
+     * @param fileName the filename of the Database
+     * @return the Connection to the database
+     */
     public static Connection connect(String fileName) {
         try {
             File database = new File(fileName);
-            if(!database.exists()){
+            if (!database.exists()) {
                 database.getParentFile().mkdirs();
                 database.createNewFile();
             }
             Class.forName("org.sqlite.JDBC");
-            Connection conn = DriverManager.getConnection("jdbc:sqlite:"+fileName);
-            try(Statement stmt = conn.createStatement()){
+            Connection conn = DriverManager.getConnection("jdbc:sqlite:" + fileName);
+            try (Statement stmt = conn.createStatement()) {
                 EMLogger.trace("SQLiteManager", "Opened database successfully");
-                String sql =  "CREATE TABLE IF NOT EXISTS users("
+                String sql = "CREATE TABLE IF NOT EXISTS users("
                         + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                         + "username VARCHAR(20) NOT NULL, "
                         + "password VARCHAR(1024) NOT NULL, "
@@ -37,7 +42,12 @@ public class SQLiteManager {
         }
     }
 
-    public static boolean addUser(UserData user){
+    /**
+     * Adds a user to the users database
+     * @param user the userdata of the newly registered user
+     * @return if the registration succeeded
+     */
+    public static boolean addUser(UserData user) {
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
@@ -56,14 +66,19 @@ public class SQLiteManager {
         return true;
     }
 
-    public static UserData getUserByName(String username){
+    /**
+     * Gets the data of a user by using the username
+     * @param username the username
+     * @return the UserData
+     */
+    public static UserData getUserByName(String username) {
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("SELECT password,salt,uuid FROM users WHERE username = ?");
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
-            if(resultSet.next()){
+            if (resultSet.next()) {
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
                 String uuidAsString = resultSet.getString("uuid");
@@ -75,7 +90,7 @@ public class SQLiteManager {
                 connection.close();
                 EMLogger.trace("SQLiteManager", "Closed database successfully");
                 return user;
-            }else{
+            } else {
                 connection.close();
             }
         } catch (SQLException | NullPointerException e) {
@@ -86,14 +101,20 @@ public class SQLiteManager {
         return null;
     }
 
-    public static UserData getUserByID(UUID uuid){
+    /**
+     * Gets the data of a user by using the User uuid
+     * @param uuid the User UUID
+     * @return the UserData
+     */
+    @Deprecated
+    public static UserData getUserByID(UUID uuid) {
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("SELECT username,password,salt FROM users WHERE uuid = ?");
             statement.setString(1, uuid.toString());
             ResultSet resultSet = statement.executeQuery();
-            if(resultSet.next()){
+            if (resultSet.next()) {
                 String username = resultSet.getString("username");
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
@@ -114,6 +135,12 @@ public class SQLiteManager {
         return null;
     }
 
+    /**
+     * Creates a new User and saves his data in the user Database
+     * @param username the username of the user
+     * @param password the password of the user
+     * @return the UUID of the User
+     */
     public static UUID createUser(String username, String password) {
         String salt = BCrypt.gensalt();
         UUID uuid = UUID.randomUUID();
@@ -124,13 +151,13 @@ public class SQLiteManager {
         userData.password = BCrypt.hashpw(password, salt);
         userData.uuid = uuid;
 
-        if(SQLiteManager.addUser(userData)){
+        if (SQLiteManager.addUser(userData)) {
             return uuid;
         }
         return null;
     }
 
-    public static class UserData{
+    public static class UserData {
         public String username;
         public String password;
         public String salt;

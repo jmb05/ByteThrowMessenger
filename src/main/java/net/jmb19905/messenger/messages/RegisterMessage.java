@@ -12,12 +12,16 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
 
+/**
+ * Sent to the server when a Client wants to register a new account
+ */
 public class RegisterMessage extends EMMessage {
 
     public String username;
     public String password;
 
-    public RegisterMessage(){}
+    public RegisterMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) throws UnsupportedSideException {
@@ -50,7 +54,7 @@ public class RegisterMessage extends EMMessage {
             } else {
                 EMLogger.warn("MessagingServer", "Already registered client tried to register");
             }
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             EMLogger.warn("MessagingServer", "Error adding user");
             RegisterFailedMessage registerFailedMessage = new RegisterFailedMessage();
             registerFailedMessage.cause = "There was an internal database error";

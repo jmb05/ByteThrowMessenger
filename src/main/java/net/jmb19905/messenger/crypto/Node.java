@@ -2,9 +2,7 @@ package net.jmb19905.messenger.crypto;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,12 +17,15 @@ import net.jmb19905.messenger.util.Util;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
 
+/**
+ * a Node holds the Public and Private keys for a certain Connection (Server - Client | Client - Client)
+ * Each side of the interaction has a separate Node that will take the PublicKey of the other side to generate the Shared Key
+ */
 @JsonSerialize(using = Node.JsonSerializer.class)
 @JsonDeserialize(using = Node.JsonDeserializer.class)
 public class Node {
@@ -36,6 +37,13 @@ public class Node {
 
     private static final String ALGO = "AES";
 
+    /**
+     * This Constructor is for loading from a file
+     * @param encodedPublicKey the PublicKey encoded in a byte-array
+     * @param encodedPrivateKey the PrivateKey encoded in a byte-array
+     * @param sharedSecret  the Shared Key encoded in a byte-array
+     * @throws InvalidNodeException if the public or private key is invalid
+     */
     public Node(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret) throws InvalidNodeException {
         try {
             if (encodedPrivateKey != null && encodedPublicKey != null) {
@@ -51,16 +59,15 @@ public class Node {
             } else {
                 throw new InvalidNodeException("The Public or Private key is null");
             }
-        }catch (InvalidKeySpecException | NullPointerException e){
+        } catch (InvalidKeySpecException | NullPointerException e) {
             throw new InvalidNodeException("The Public or Private key is invalid");
         }
     }
 
+    /**
+     * Creates a new Node with unique Private and Public Keys
+     */
     public Node() {
-        makeKeyExchangeParams();
-    }
-
-    private void makeKeyExchangeParams() {
         KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("EC");
@@ -75,7 +82,11 @@ public class Node {
         }
     }
 
-    public void setReceiverPublicKey(PublicKey publickey) {
+    /**
+     * Generates the Shared Key from the other side's PublicKey
+     * @param publicKey the PublicKey of the other side
+     */
+    public void setReceiverPublicKey(PublicKey publicKey) {
         try {
             keyAgreement.doPhase(publickey, true);
             sharedSecret = keyAgreement.generateSecret();
@@ -84,26 +95,36 @@ public class Node {
         }
     }
 
-    public byte[] encrypt(byte[] msg) {
+    /**
+     * Encrypts a byte-array using the Shared Key
+     * @param in the byte-array that will be encrypted
+     * @return the encrypted byte-array
+     */
+    public byte[] encrypt(byte[] in) {
         try {
             Key key = generateKey();
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encVal = c.doFinal(msg);
+            byte[] encVal = c.doFinal(in);
             return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             EMLogger.error("CryptoNode", "Error encrypting", e);
-            if(EncryptedMessenger.messagingClient != null){
+            if (EncryptedMessenger.messagingClient != null) {
                 EncryptedMessenger.messagingClient.stop(-1);
-            }else {
+            } else {
                 System.exit(-1);
             }
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             EMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
         }
-        return msg;
+        return in;
     }
 
+    /**
+     * Decrypts a byte-array using the Shared Key
+     * @param encryptedData the encrypted byte-array that will be decrypted
+     * @return the decrypted byte-array
+     */
     public byte[] decrypt(byte[] encryptedData) {
         try {
             Key key = generateKey();
@@ -117,19 +138,31 @@ public class Node {
         return encryptedData;
     }
 
+    /**
+     * @return the PublicKey
+     */
     public PublicKey getPublicKey() {
         return publickey;
     }
 
+    /**
+     * THIS KEY SHOULD NEVER BE USED OUTSIDE OF THIS DEVICE
+     * @return the PrivateKey
+     */
     public PrivateKey getPrivateKey() {
         return privateKey;
     }
+
 
     protected Key generateKey() {
         return new SecretKeySpec(sharedSecret, ALGO);
     }
 
-    public byte[] getSharedSecret(){
+    /**
+     * THIS KEY SHOULD NEVER BE USED OUTSIDE OF THIS DEVICE
+     * @return the Shared Key
+     */
+    public byte[] getSharedSecret() {
         return sharedSecret;
     }
 
@@ -143,9 +176,12 @@ public class Node {
                 '}';
     }
 
-    public static class JsonSerializer extends StdSerializer<Node>{
+    /**
+     * The Serializer that converts Nodes into JSON
+     */
+    public static class JsonSerializer extends StdSerializer<Node> {
 
-        public JsonSerializer(){
+        public JsonSerializer() {
             this(null);
         }
 
@@ -158,18 +194,21 @@ public class Node {
             gen.writeStartObject();
             gen.writeBinaryField("public", value.publickey.getEncoded());
             gen.writeBinaryField("private", value.privateKey.getEncoded());
-            if(value.sharedSecret != null) {
+            if (value.sharedSecret != null) {
                 gen.writeBinaryField("shared", value.sharedSecret);
-            }else{
+            } else {
                 gen.writeBinaryField("shared", new byte[0]);
             }
             gen.writeEndObject();
         }
     }
 
-    public static class JsonDeserializer extends StdDeserializer<Node>{
+    /**
+     * The Deserializer that retrieves Nodes from JSON
+     */
+    public static class JsonDeserializer extends StdDeserializer<Node> {
 
-        public JsonDeserializer(){
+        public JsonDeserializer() {
             this(null);
         }
 

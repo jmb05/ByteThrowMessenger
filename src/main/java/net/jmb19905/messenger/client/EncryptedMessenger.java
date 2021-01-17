@@ -1,16 +1,14 @@
 package net.jmb19905.messenger.client;
 
 import com.esotericsoftware.minlog.Log;
-import com.formdev.flatlaf.FlatDarculaLaf;
 import net.jmb19905.messenger.client.ui.SettingsWindow;
 import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.util.ConfigManager;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
 
-import javax.swing.*;
 import java.io.*;
-import java.net.URISyntaxException;
 
 public class EncryptedMessenger {
 
@@ -26,10 +24,14 @@ public class EncryptedMessenger {
 
     public static String[] arguments;
 
+    /**
+     * Starts the Client
+     * @param args the program arguments
+     */
     public static void main(String[] args) {
         arguments = args;
         startUp();
-        if(clientConfig.autoLogin) {
+        if (clientConfig.autoLogin) {
             readUserData();
         }
         window = new Window();
@@ -38,7 +40,10 @@ public class EncryptedMessenger {
         window.setVisible(true);
     }
 
-    private static void startUp(){
+    /**
+     * Initializes Variable, EMLogger, Log, ClientConfig, LookAndFeel
+     */
+    private static void startUp() {
         Variables.currentSide = "client";
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
         Log.set(Log.LEVEL_INFO);
@@ -47,36 +52,38 @@ public class EncryptedMessenger {
         SettingsWindow.setLookAndFeel(clientConfig.theme);
     }
 
-    private static void readUserData(){
+    /**
+     * Reads the user data from "/userdata/user.dat"
+     */
+    private static void readUserData() {
         try {
             File file = new File("userdata/user.dat");
-            if(!file.exists()){
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            try {
-                if (!reader.readLine().equals("UserData:")) {
-                    return;
+            if (Util.createFile(file)) {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                try {
+                    if (!reader.readLine().equals("UserData:")) {
+                        return;
+                    }
+                    username = reader.readLine();
+                    password = reader.readLine();
+                    reader.close();
+                } catch (NullPointerException e) {
+                    EMLogger.warn("MessagingClient", "No UserData found in file user.dat - login required");
                 }
-                username = reader.readLine();
-                password = reader.readLine();
-                reader.close();
-            }catch (NullPointerException e){
-                EMLogger.info("MessagingClient", "No UserData found in file user.dat - login required");
+            }else {
+                EMLogger.warn("MessagingClient", "Error creating userdata file");
             }
         } catch (IOException e) {
-            EMLogger.info("MessagingClient", "Error reading userdata", e);
+            EMLogger.warn("MessagingClient", "Error reading userdata", e);
         }
     }
 
-    public static void setUserData(String username, String password){
+    public static void setUserData(String username, String password) {
         EncryptedMessenger.username = username;
         EncryptedMessenger.password = password;
     }
 
-    public static void setLoggedIn(boolean loggedIn){
+    public static void setLoggedIn(boolean loggedIn) {
         EncryptedMessenger.loggedIn = loggedIn;
     }
 
@@ -84,28 +91,39 @@ public class EncryptedMessenger {
         return loggedIn;
     }
 
-    public static void writeUserData(){
-        if(!username.equals("") && !password.equals("")){
+    /**
+     * Writes the userdata to "/userdata/user.dat"
+     */
+    public static void writeUserData() {
+        if (!username.equals("") && !password.equals("")) {
             try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter("userdata/user.dat"));
-                writer.write("UserData:\n");
-                writer.write(username + "\n");
-                writer.write(password + "\n");
-                writer.close();
+                File file = new File("userdata/user.dat");
+                if(Util.createFile(file)) {
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                    writer.write("UserData:\n");
+                    writer.write(username + "\n");
+                    writer.write(password + "\n");
+                    writer.close();
+                }else{
+                    EMLogger.warn("MessagingClient", "Error creating userdata file");
+                }
             } catch (IOException e) {
                 EMLogger.info("MessagingClient", "Error writing userdata", e);
             }
-        }else{
+        } else {
             EMLogger.warn("MessagingClient", "Can't write UserData to file 'user.dat'! Incomplete data");
         }
     }
 
-    public static void wipeUserData(){
+    /**
+     * Deletes the userdata
+     */
+    public static void wipeUserData() {
         username = "";
         password = "";
         try {
             File userDat = new File("userdata/user.dat");
-            if(userDat.exists()){
+            if (userDat.exists()) {
                 userDat.delete();
                 userDat.createNewFile();
             }
@@ -114,7 +132,7 @@ public class EncryptedMessenger {
         }
     }
 
-    public static String getUsername(){
+    public static String getUsername() {
         return username;
     }
 

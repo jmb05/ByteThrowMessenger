@@ -11,13 +11,20 @@ public class ServerMain {
 
     public static MessagingServer messagingServer;
 
+    /**
+     * Starts the Server
+     * @param args the Program arguments
+     */
     public static void main(String[] args) {
         startUp();
         messagingServer = new MessagingServer();
         messagingServer.start();
     }
 
-    private static void startUp(){
+    /**
+     * Initializes Variable, EMLogger, Log, ServerConfig
+     */
+    private static void startUp() {
         Variables.currentSide = "server";
         EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
         Log.set(Log.LEVEL_INFO);

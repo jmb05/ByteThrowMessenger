@@ -26,14 +26,21 @@ public class Util {
 
     private static final SystemTray systemTray;
 
+    //only create SystemTray if on client - server is not needed and if it has no gui it will likely crash
     static {
-        if(Variables.currentSide.equals("client")) {
+        if (Variables.currentSide.equals("client")) {
             systemTray = SystemTray.getSystemTray();
-        }else {
+        } else {
             systemTray = null;
         }
     }
 
+    /**
+     * Decodes a PublicKey from a byte-array
+     * @param encodedKey the key encoded as byte-array
+     * @return the decoded PublicKey
+     * @throws InvalidKeySpecException when the encoded key parameter is invalid
+     */
     public static PublicKey createPublicKeyFromData(byte[] encodedKey) throws InvalidKeySpecException {
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
@@ -44,7 +51,13 @@ public class Util {
         }
     }
 
-    public static PrivateKey createPrivateKeyFromData(byte[] encodedKey){
+    /**
+     * Decodes a PrivateKey from a byte-array
+     * @param encodedKey the key encoded as byte-array
+     * @return the decoded PublicKey
+     * @throws InvalidKeySpecException when the encoded key parameter is invalid
+     */
+    public static PrivateKey createPrivateKeyFromData(byte[] encodedKey) throws InvalidKeySpecException{
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
@@ -54,29 +67,42 @@ public class Util {
         }
     }
 
-    public static HashMap<String, ChatHistory> loadNodes(){
+    /**
+     * Loads the saved ChatHistories for the current user
+     * @return a HashMap with the username of the history as key and the ChatHistory object as value
+     */
+    public static HashMap<String, ChatHistory> loadChatHistories() {
         HashMap<String, ChatHistory> map = new HashMap<>();
         File parentDirectory = new File("userdata/" + EncryptedMessenger.getUsername() + "/");
-        if(!parentDirectory.exists() || !parentDirectory.isDirectory()) {
+        if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
             parentDirectory.mkdirs();
         }
-        for(File file : parentDirectory.listFiles()){
+        for (File file : parentDirectory.listFiles()) {
             String username = file.getName().split("\\.")[0];
-            map.put(username, readNode(username));
+            map.put(username, loadChatHistory(username));
             EncryptedMessenger.window.addConnectedUser(username);
         }
         return map;
     }
 
-    public static void saveNodes(HashMap<String, ChatHistory> nodes){
-        for(String name : nodes.keySet()){
-            saveNode(name, nodes.get(name));
+    /**
+     * Saves the ChatHistories for the current user
+     * @param nodes a HashMap with the username of the history as key and the ChatHistory object as value
+     */
+    public static void saveChatHistories(HashMap<String, ChatHistory> nodes) {
+        for (String name : nodes.keySet()) {
+            saveChatHistory(name, nodes.get(name));
         }
     }
 
-    public static void saveNode(String username, ChatHistory chat){
+    /**
+     * Saves a single ChatHistory for the current user
+     * @param username the username of the history
+     * @param chat the ChatHistory
+     */
+    public static void saveChatHistory(String username, ChatHistory chat) {
         File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
-        if(!file.exists()){
+        if (!file.exists()) {
             file.getParentFile().mkdirs();
         }
         ObjectMapper mapper = new ObjectMapper();
@@ -87,22 +113,31 @@ public class Util {
         }
     }
 
-    public static ChatHistory readNode(String username){
+    /**
+     * Loads a single ChatHistory for the current user
+     * @param username the username of the history
+     * @return the loaded ChatHistory
+     */
+    public static ChatHistory loadChatHistory(String username) {
         File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
-        if(file.exists()){
+        if (file.exists()) {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 return mapper.readValue(file, ChatHistory.class);
             } catch (IOException e) {
                 EMLogger.error("Util", "Error reading ChatHistory from File", e);
             }
-        }else{
+        } else {
             EMLogger.warn("Util", "Cannot read ChatHistory from File - ChatHistory does not exist");
         }
         return null;
     }
 
-    public static void registerMessages(Kryo kryo){
+    /**
+     * Registers the ALL the Messages
+     * @param kryo the Kryo that the messages will be registered to
+     */
+    public static void registerMessages(Kryo kryo) {
         kryo.register(LoginPublicKeyMessage.class);
         kryo.register(byte[].class);
         kryo.register(LoginMessage.class);
@@ -117,15 +152,32 @@ public class Util {
         kryo.register(RegisterFailedMessage.class);
     }
 
-    public static String encryptString(Node node, String value){
+    /**
+     * Encrypts a String in the UTF-8 encoding
+     * @param node the Node that will encrypt the String
+     * @param value the String to be encrypted
+     * @return the encrypted String
+     */
+    public static String encryptString(Node node, String value) {
         return new String(node.encrypt(value.getBytes(StandardCharsets.UTF_8)));
     }
 
-    public static String decryptString(Node node, String value){
+    /**
+     * Decrypts a String in the UTF-8 encoding
+     * @param node the Node that will decrypt the String
+     * @param value the String to be decrypted
+     * @return the decrypted String
+     */
+    public static String decryptString(Node node, String value) {
         return new String(node.decrypt(value.getBytes(StandardCharsets.UTF_8)));
     }
 
-    public static Image getImageResource(String s){
+    /**
+     * Loads an image from the classpath
+     * @param s the path of the image
+     * @return the loaded image
+     */
+    public static Image getImageResource(String s) {
         try {
             InputStream stream = getResource(s);
             return ImageIO.read(stream);
@@ -134,11 +186,23 @@ public class Util {
             return null;
         }
     }
-    public static InputStream getResource(String s){
+
+    /**
+     * Gets a Resource as Stream
+     * @param s path for the resource
+     * @return the stream
+     */
+    public static InputStream getResource(String s) {
         return Util.class.getClassLoader().getResourceAsStream(s);
     }
 
-    public static void displayNotification(String title, String text, Image icon){
+    /**
+     * Displays a System Notification
+     * @param title the title of the Notification
+     * @param text the content of the Notification
+     * @param icon the icon of the Notification
+     */
+    public static void displayNotification(String title, String text, Image icon) {
         TrayIcon trayIcon = new TrayIcon(icon, "EM Notification");
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("EM Notification");
@@ -151,6 +215,34 @@ public class Util {
 
         trayIcon.displayMessage(title, text, TrayIcon.MessageType.NONE);
 
+    }
+
+    /**
+     * Creates a file
+     * @param fileName the path of the File that will be created
+     * @return if the file was created or already existed
+     */
+    public static boolean createFile(String fileName){
+        return createFile(new File(fileName));
+    }
+
+    /**
+     * Creates a  file
+     * @param file the File that will be created
+     * @return if the file was created or already existed
+     */
+    public static boolean createFile(File file){
+        try {
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                return file.createNewFile();
+            }else{
+                return true;
+            }
+        } catch (IOException e) {
+            EMLogger.warn("Util", "Error creating file: " + file.getAbsolutePath());
+        }
+        return false;
     }
 
 }

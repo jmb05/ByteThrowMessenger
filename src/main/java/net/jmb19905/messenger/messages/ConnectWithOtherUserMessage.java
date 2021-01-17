@@ -11,22 +11,25 @@ import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
-public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable{
+/**
+ * Used when two Users want to connect
+ */
+public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable {
 
     public String username;
     public byte[] publicKeyEncodedEncrypted;
 
-    public ConnectWithOtherUserMessage(){}
+    public ConnectWithOtherUserMessage() {
+    }
 
     @Override
     public void handleOnClient(Connection connection) {
         EMLogger.trace("MessagingClient", "Received ConnectWithOtherUserMessage");
         String decryptedUsername = Util.decryptString(MessagingClient.thisDevice, username);
         byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
-        if(MessagingClient.otherUsers.get(decryptedUsername) != null){
+        if (MessagingClient.otherUsers.get(decryptedUsername) != null) {
             EMLogger.trace("MessagingClient", "Changing/Adding key for" + decryptedUsername);
             Node oldNode = MessagingClient.otherUsers.get(decryptedUsername).getNode();
             byte[] publicKeyEncoded = oldNode.getPublicKey().getEncoded();
@@ -39,16 +42,16 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
                 EMLogger.warn("MessagingClient", "Error changing key", e);
             }
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
-        }else{
+        } else {
             Node node = new Node();
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
             ChatHistory chatHistory = new ChatHistory(decryptedUsername, node);
             MessagingClient.otherUsers.put(decryptedUsername, chatHistory);
             EMLogger.trace("MessagingClient", "Added " + decryptedUsername + " to connected users");
-            if(MessagingClient.connectionRequested.contains(decryptedUsername)){
+            if (MessagingClient.connectionRequested.contains(decryptedUsername)) {
                 EMLogger.info("MessagingClient", decryptedUsername + " has responded");
                 MessagingClient.connectionRequested.remove(decryptedUsername);
-            }else{
+            } else {
                 username = Util.encryptString(MessagingClient.thisDevice, decryptedUsername);
                 publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getNode().getPublicKey().getEncoded());
                 EncryptedMessenger.messagingClient.client.sendTCP(this);
@@ -72,9 +75,9 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
                 return;
             }
 
-            for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
-                if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                    if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
+            for (Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()) {
+                if (MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()) {
+                    if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {
                         Object[] data = new Object[]{sender, publicKeyEncoded};
                         handleOnQueue(recipientConnection, data);
                         return;
@@ -83,16 +86,16 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
             }
 
             HashMap<EMMessage, Object[]> queueData;
-            if(!MessagingServer.messagesQueue.containsKey(recipient)){
+            if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
-            }else{
+            } else {
                 queueData = MessagingServer.messagesQueue.get(recipient);
             }
             queueData.put(this, new Object[]{sender, publicKeyEncoded});
             MessagingServer.messagesQueue.put(recipient, queueData);
 
-            EMLogger.info("MessagingServer","Recipient: " + recipient + " for connection request from " + sender + " is offline - added to Queue");
-        }catch (NullPointerException e){
+            EMLogger.info("MessagingServer", "Recipient: " + recipient + " for connection request from " + sender + " is offline - added to Queue");
+        } catch (NullPointerException e) {
             EMLogger.warn("MessagingServer", "Error connecting users");
         }
     }
@@ -103,6 +106,6 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         username = Util.encryptString(recipientNode, (String) data[0]);
         publicKeyEncodedEncrypted = recipientNode.encrypt((byte[]) data[1]);
         connection.sendTCP(this);
-        EMLogger.trace("MessagingServer","Passed Connection Request from " + data[0] + " to " + MessagingServer.clientConnectionKeys.get(connection).getUsername());
+        EMLogger.trace("MessagingServer", "Passed Connection Request from " + data[0] + " to " + MessagingServer.clientConnectionKeys.get(connection).getUsername());
     }
 }

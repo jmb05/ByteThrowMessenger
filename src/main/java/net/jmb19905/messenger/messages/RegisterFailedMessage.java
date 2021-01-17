@@ -6,18 +6,22 @@ import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
-public class RegisterFailedMessage extends EMMessage{
+/**
+ * Tells the Client that the register attempt failed
+ */
+public class RegisterFailedMessage extends EMMessage {
 
     public String cause;
 
-    public RegisterFailedMessage(){}
+    public RegisterFailedMessage() {
+    }
 
 
     @Override
-    public void handleOnClient(Connection connection){
+    public void handleOnClient(Connection connection) {
         JOptionPane.showMessageDialog(null, "Server Error registering user. " + cause + ". Please again try later.", "Error registering", JOptionPane.ERROR_MESSAGE);
         EncryptedMessenger.wipeUserData();
-        EncryptedMessenger.messagingClient.login(connection);
+        EncryptedMessenger.messagingClient.login();
     }
 
     @Override

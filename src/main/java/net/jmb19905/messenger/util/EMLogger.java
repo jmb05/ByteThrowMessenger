@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.minlog.Log;
+import com.sun.istack.internal.Nullable;
 
 import java.io.*;
 import java.util.Date;
@@ -26,28 +27,30 @@ public class EMLogger extends Log.Logger {
     public static boolean DEBUG = true;
     public static boolean TRACE = false;
 
-    public static void init(){
+    /**
+     * Initializes the Logger
+     *  -> creates Log file
+     *  -> initializes the File Writer (BufferedWriter)
+     */
+    public static void init() {
         logFile = new File("logs/" + Variables.currentTime + "_" + Variables.currentSide + ".log");
-        logFile.getParentFile().mkdirs();
-        try {
-            if(!logFile.createNewFile()){
-                Log.error("EMLogger", "Error creating log file");
-            }
-        } catch (IOException e) {
-            Log.error("EMLogger", "Error creating log file", e);
+        if (!Util.createFile(logFile)) {
+            Log.error("EMLogger", "Error creating log file");
+            return;
         }
-        if(logFile.exists()){
-            try {
-                writer = new BufferedWriter(new FileWriter(logFile));
-            } catch (IOException e) {
-                Log.error("EMLogger", "Error creating File Writer", e);
-            }
+        try {
+            writer = new BufferedWriter(new FileWriter(logFile));
+        } catch (IOException e) {
+            Log.error("EMLogger", "Error creating File Writer for the Log File", e);
         }
         instance = new EMLogger();
     }
 
-    public static void close(){
-        if(writer != null){
+    /**
+     * Closes the File Writer (BufferedWriter) for the Log File
+     */
+    public static void close() {
+        if (writer != null) {
             try {
                 writer.close();
             } catch (IOException e) {
@@ -56,8 +59,15 @@ public class EMLogger extends Log.Logger {
         }
     }
 
+    /**
+     * Logs a message to the console and the Log File
+     * @param level the level of the Log Message
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
     @Override
-    public void log(int level, String category, String message, Throwable ex) {
+    public void log(int level, String category, String message, @Nullable Throwable ex) {
         //Basically copied code from the original method
         StringBuilder builder = new StringBuilder(256);
 
@@ -104,7 +114,7 @@ public class EMLogger extends Log.Logger {
         }
 
         print(builder.toString());
-        if(logFile.exists() && writer != null){
+        if (logFile.exists() && writer != null) {
             try {
                 writer.write(builder.toString() + "\n");
                 writer.flush();
@@ -114,7 +124,12 @@ public class EMLogger extends Log.Logger {
         }
     }
 
-    public static void setLevel(int level){
+    /**
+     * Sets the level for the custom Logger
+     * if the level of a message is lower than the level of the Logger the message will not be logged
+     * @param level the level of the Logger
+     */
+    public static void setLevel(int level) {
         EMLogger.ERROR = level <= LEVEL_ERROR;
         EMLogger.WARN = level <= LEVEL_WARN;
         EMLogger.INFO = level <= LEVEL_INFO;
@@ -122,53 +137,108 @@ public class EMLogger extends Log.Logger {
         EMLogger.TRACE = level <= LEVEL_TRACE;
     }
 
-    public static void trace(String category, String message){
-        if(TRACE)
+    /**
+     * Logs a Message with the level TRACE
+     * @param category the category of the Log message
+     * @param message the message
+     */
+    public static void trace(String category, String message) {
+        if (TRACE)
             instance.log(Log.LEVEL_TRACE, category, message, null);
     }
 
-    public static void trace(String category, String message, Throwable ex){
-        if(TRACE)
+    /**
+     * Logs a Message with the level TRACE
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
+    public static void trace(String category, String message, Throwable ex) {
+        if (TRACE)
             instance.log(Log.LEVEL_TRACE, category, message, ex);
     }
 
-    public static void debug(String category, String message){
-        if(DEBUG)
+    /**
+     * Logs a Message with the level DEBUG
+     * @param category the category of the Log message
+     * @param message the message
+     */
+    public static void debug(String category, String message) {
+        if (DEBUG)
             instance.log(Log.LEVEL_DEBUG, category, message, null);
     }
 
-    public static void debug(String category, String message, Throwable ex){
-        if(DEBUG)
+    /**
+     * Logs a Message with the level DEBUG
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
+    public static void debug(String category, String message, Throwable ex) {
+        if (DEBUG)
             instance.log(Log.LEVEL_DEBUG, category, message, ex);
     }
 
-    public static void info(String category, String message){
-        if(INFO)
+    /**
+     * Logs a Message with the level INFO
+     * @param category the category of the Log message
+     * @param message the message
+     */
+    public static void info(String category, String message) {
+        if (INFO)
             instance.log(Log.LEVEL_INFO, category, message, null);
     }
 
-    public static void info(String category, String message, Throwable ex){
-        if(INFO)
+    /**
+     * Logs a Message with the level INFO
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
+    public static void info(String category, String message, Throwable ex) {
+        if (INFO)
             instance.log(Log.LEVEL_INFO, category, message, ex);
     }
 
-    public static void warn(String category, String message){
-        if(WARN)
+    /**
+     * Logs a Message with the level WARN
+     * @param category the category of the Log message
+     * @param message the message
+     */
+    public static void warn(String category, String message) {
+        if (WARN)
             instance.log(Log.LEVEL_WARN, category, message, null);
     }
 
-    public static void warn(String category, String message, Throwable ex){
-        if(WARN)
+    /**
+     * Logs a Message with the level WARN
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
+    public static void warn(String category, String message, Throwable ex) {
+        if (WARN)
             instance.log(Log.LEVEL_WARN, category, message, ex);
     }
 
-    public static void error(String category, String message){
-        if(ERROR)
+    /**
+     * Logs a Message with the level ERROR
+     * @param category the category of the Log message
+     * @param message the message
+     */
+    public static void error(String category, String message) {
+        if (ERROR)
             instance.log(Log.LEVEL_ERROR, category, message, null);
     }
 
-    public static void error(String category, String message, Throwable ex){
-        if(ERROR)
+    /**
+     * Logs a Message with the level ERROR
+     * @param category the category of the Log message
+     * @param message the message
+     * @param ex an optional Exception
+     */
+    public static void error(String category, String message, Throwable ex) {
+        if (ERROR)
             instance.log(Log.LEVEL_ERROR, category, message, ex);
     }
 

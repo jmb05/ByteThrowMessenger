@@ -1,17 +1,18 @@
 package net.jmb19905.messenger.client.ui;
 
 import net.jmb19905.messenger.client.EncryptedMessenger;
-import net.jmb19905.messenger.client.MessagingClient;
-import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.DataMessage;
-import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
+/**
+ * The Main Window of the Client
+ */
 public class Window extends JFrame {
 
     private final JTextArea area;
@@ -23,7 +24,7 @@ public class Window extends JFrame {
 
     public static boolean closeRequested = false;
 
-    public Window(){
+    public Window() {
         setTitle("Encrypted Messenger");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1000, 750));
@@ -32,18 +33,21 @@ public class Window extends JFrame {
 
         settingsWindow = new SettingsWindow();
 
-        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT){
+        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) {
             private final int location = 250;
+
             {
-                setDividerLocation( location );
+                setDividerLocation(location);
             }
+
             @Override
             public int getDividerLocation() {
-                return location ;
+                return location;
             }
+
             @Override
             public int getLastDividerLocation() {
-                return location ;
+                return location;
             }
         };
         add(pane, BorderLayout.CENTER);
@@ -94,9 +98,9 @@ public class Window extends JFrame {
         JButton startConversation = new JButton("Start Conversation");
         startConversation.addActionListener(e -> {
             String username = JOptionPane.showInputDialog(null, "Please input the username of the conversation partner: ", "Start Conversation", JOptionPane.PLAIN_MESSAGE);
-            if(username.length() < 3 || username == null){
+            if (username.length() < 3 || username == null) {
                 JOptionPane.showMessageDialog(null, "Invalid Username (" + username + ") (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
-            }else{
+            } else {
                 EncryptedMessenger.messagingClient.connectWithOtherUser(username);
             }
         });
@@ -113,15 +117,15 @@ public class Window extends JFrame {
         inputField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-            if(e.getKeyCode() == KeyEvent.VK_ENTER){
-                String message = inputField.getText();
-                if(EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
-                    appendLine("<" + EncryptedMessenger.getUsername() + "> " + message);
-                }else{
-                    JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String message = inputField.getText();
+                    if (EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
+                        appendLine("<" + EncryptedMessenger.getUsername() + "> " + message);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
+                    }
+                    inputField.setText("");
                 }
-                inputField.setText("");
-            }
             }
         });
         constraints.gridx = 0;
@@ -155,19 +159,35 @@ public class Window extends JFrame {
 
     }
 
-    public void append(String s){
+    /**
+     * Append a String to the JTextArea
+     * @param s the String
+     */
+    public void append(String s) {
         area.append(s);
     }
 
-    public void appendLine(String s){
-        area.append(s + "\n");
+    /**
+     * Append a Line to the JTextArea
+     * @param s the Line (without \n)
+     */
+    public void appendLine(String s) {
+        append(s + "\n");
     }
 
-    public void addConnectedUser(String user){
+    /**
+     * Adds a Username to the Connected Users JList
+     * @param user the username
+     */
+    public void addConnectedUser(String user) {
         model.addElement(user);
     }
 
-    public void removeConnectedUser(String user){
+    /**
+     * Removes a Username from the Connected Users JList
+     * @param user the username
+     */
+    public void removeConnectedUser(String user) {
         model.removeElement(user);
     }
 
