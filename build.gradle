@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'edu.sc.seis.launch4j' version '2.4.9'
 }
 
 jar {
@@ -15,7 +16,7 @@ jar {
     }
 }
 group 'net.jmb19905'
-version '1.0-SNAPSHOT-2'
+version '1.0-SNAPSHOT-4'
 
 repositories {
     mavenCentral()
@@ -39,4 +40,15 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+launch4j {
+    outfile = "${project.name}-${project.version}.exe"
+    mainClassName = 'net.jmb19905.messenger.client.EncryptedMessenger'
+    icon = "${projectDir}/build/libs/icon.ico"
+    copyright = 'Copyright © Jared Bennett, 2021'
+    fileDescription = 'A Simple Messenger'
+    textVersion = '1.0.SN3'
+    internalName = 'EncryptedMessenger'
+    productName = "${project.name}-${project.version}"
 }

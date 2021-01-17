@@ -47,6 +47,7 @@ public class EncryptedMessenger {
         try {
             File file = new File("userdata/user.dat");
             if(!file.exists()){
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             }
 

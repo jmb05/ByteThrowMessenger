@@ -37,7 +37,7 @@ public class SQLiteManager {
         }
     }
 
-    public static void addUser(UserData user){
+    public static boolean addUser(UserData user){
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
@@ -48,10 +48,12 @@ public class SQLiteManager {
             statement.setString(4, user.uuid.toString());
             statement.execute();
             connection.close();
-        } catch (SQLException e) {
-            EMLogger.error("SQLiteManager", "Error adding user to database", e);
+        } catch (SQLException | NullPointerException e) {
+            EMLogger.warn("SQLiteManager", "Error adding user to database", e);
+            return false;
         }
         EMLogger.trace("SQLiteManager", "Closed database successfully");
+        return true;
     }
 
     public static UserData getUserByName(String username){
@@ -76,7 +78,7 @@ public class SQLiteManager {
             }else{
                 connection.close();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | NullPointerException e) {
             EMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
         EMLogger.trace("SQLiteManager", "No UserData for Username: " + username + " found");
@@ -104,7 +106,7 @@ public class SQLiteManager {
                 EMLogger.trace("SQLiteManager", "Closed database successfully");
                 return user;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | NullPointerException e) {
             EMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
         EMLogger.trace("SQLiteManager", "No UserData for User UUID: " + uuid + " found");
@@ -122,8 +124,10 @@ public class SQLiteManager {
         userData.password = BCrypt.hashpw(password, salt);
         userData.uuid = uuid;
 
-        SQLiteManager.addUser(userData);
-        return uuid;
+        if(SQLiteManager.addUser(userData)){
+            return uuid;
+        }
+        return null;
     }
 
     public static class UserData{

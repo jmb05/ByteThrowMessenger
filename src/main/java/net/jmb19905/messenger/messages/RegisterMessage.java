@@ -26,28 +26,35 @@ public class RegisterMessage extends EMMessage {
 
     @Override
     public void handleOnServer(Connection connection) {
-        Node node =  MessagingServer.clientConnectionKeys.get(connection).getNode();
-        if(!MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()) {
-            String username = Util.decryptString(node, this.username);
-            String password = Util.decryptString(node, this.password);
-            SQLiteManager.UserData user = SQLiteManager.getUserByName(username);
-            if (user == null) {
-                //User does not exist create a new one
-                UUID uuid = SQLiteManager.createUser(username, password);
-                ServerMain.messagingServer.sendRegisterSuccess(connection, username, uuid);
-                MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
-            } else {
-                if (BCrypt.hashpw(password,user.salt).equals(user.password)) {
-                    EMLogger.trace("MessagingServer", "Client tried to register instead of login -> logging client in");
-                    MessagingServer.clientConnectionKeys.get(connection).setUsername(user.username);
+        try {
+            Node node = MessagingServer.clientConnectionKeys.get(connection).getNode();
+            if (!MessagingServer.clientConnectionKeys.get(connection).isLoggedIn()) {
+                String username = Util.decryptString(node, this.username);
+                String password = Util.decryptString(node, this.password);
+                SQLiteManager.UserData user = SQLiteManager.getUserByName(username);
+                if (user == null) {
+                    //User does not exist create a new one
+                    UUID uuid = SQLiteManager.createUser(username, password);
+                    ServerMain.messagingServer.sendRegisterSuccess(connection, username, uuid);
                     MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
-                    connection.sendTCP(new LoginSuccessMessage());
                 } else {
-                    connection.sendTCP(new UsernameAlreadyExistMessage());
+                    if (BCrypt.hashpw(password, user.salt).equals(user.password)) {
+                        EMLogger.trace("MessagingServer", "Client tried to register instead of login -> logging client in");
+                        MessagingServer.clientConnectionKeys.get(connection).setUsername(user.username);
+                        MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
+                        connection.sendTCP(new LoginSuccessMessage());
+                    } else {
+                        connection.sendTCP(new UsernameAlreadyExistMessage());
+                    }
                 }
+            } else {
+                EMLogger.warn("MessagingServer", "Already registered client tried to register");
             }
-        }else{
-            EMLogger.warn("MessagingServer", "Already registered client tried to register");
+        }catch (NullPointerException e){
+            EMLogger.warn("MessagingServer", "Error adding user");
+            RegisterFailedMessage registerFailedMessage = new RegisterFailedMessage();
+            registerFailedMessage.cause = "There was an internal database error";
+            connection.sendTCP(registerFailedMessage);
         }
     }
 }

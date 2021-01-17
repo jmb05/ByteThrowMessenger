@@ -1,10 +1,7 @@
 package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import net.jmb19905.messenger.client.ChatHistory;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.Node;
@@ -12,8 +9,9 @@ import net.jmb19905.messenger.messages.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.*;
-import java.lang.reflect.Type;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -26,14 +24,22 @@ import java.util.HashMap;
 
 public class Util {
 
-    private static final SystemTray systemTray = SystemTray.getSystemTray();
+    private static final SystemTray systemTray;
+
+    static {
+        if(Variables.currentSide.equals("client")) {
+            systemTray = SystemTray.getSystemTray();
+        }else {
+            systemTray = null;
+        }
+    }
 
     public static PublicKey createPublicKeyFromData(byte[] encodedKey) throws InvalidKeySpecException {
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
         } catch (NoSuchAlgorithmException e) {
-            EMLogger.error("Util", "Error retrieving PublicKey", e);
+            EMLogger.warn("Util", "Error retrieving PublicKey", e);
             return null;
         }
     }
@@ -43,7 +49,7 @@ public class Util {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            EMLogger.error("Util", "Error retrieving PrivateKey", e);
+            EMLogger.warn("Util", "Error retrieving PrivateKey", e);
             return null;
         }
     }
@@ -51,12 +57,13 @@ public class Util {
     public static HashMap<String, ChatHistory> loadNodes(){
         HashMap<String, ChatHistory> map = new HashMap<>();
         File parentDirectory = new File("userdata/" + EncryptedMessenger.getUsername() + "/");
-        if(parentDirectory.exists() && parentDirectory.isDirectory()){
-            for(File file : parentDirectory.listFiles()){
-                String username = file.getName().split("\\.")[0];
-                map.put(username, readNode(username));
-                EncryptedMessenger.window.addConnectedUser(username);
-            }
+        if(!parentDirectory.exists() || !parentDirectory.isDirectory()) {
+            parentDirectory.mkdirs();
+        }
+        for(File file : parentDirectory.listFiles()){
+            String username = file.getName().split("\\.")[0];
+            map.put(username, readNode(username));
+            EncryptedMessenger.window.addConnectedUser(username);
         }
         return map;
     }
@@ -69,6 +76,9 @@ public class Util {
 
     public static void saveNode(String username, ChatHistory chat){
         File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
+        if(!file.exists()){
+            file.getParentFile().mkdirs();
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, chat);
@@ -104,6 +114,7 @@ public class Util {
         kryo.register(ConnectWithOtherUserMessage.class);
         kryo.register(DataMessage.class);
         kryo.register(LoginFailedMessage.class);
+        kryo.register(RegisterFailedMessage.class);
     }
 
     public static String encryptString(Node node, String value){
@@ -117,7 +128,6 @@ public class Util {
     public static Image getImageResource(String s){
         try {
             InputStream stream = getResource(s);
-            System.out.println(stream);
             return ImageIO.read(stream);
         } catch (IOException e) {
             EMLogger.warn("Util", "Error loading image");

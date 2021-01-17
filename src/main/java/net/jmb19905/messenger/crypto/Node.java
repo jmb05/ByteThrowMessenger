@@ -51,7 +51,7 @@ public class Node {
             } else {
                 throw new InvalidNodeException("The Public or Private key is null");
             }
-        }catch (InvalidKeySpecException e){
+        }catch (InvalidKeySpecException | NullPointerException e){
             throw new InvalidNodeException("The Public or Private key is invalid");
         }
     }

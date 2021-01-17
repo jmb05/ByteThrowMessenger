@@ -131,7 +131,6 @@ public class MessagingClient extends Listener{
     }
 
     public boolean sendToOtherUser(String username, String message){
-        System.out.println("Trying to send Message to " + username);
         ChatHistory chatHistory = otherUsers.get(username);
         if(chatHistory != null && chatHistory.getNode() != null) {
             if(chatHistory.getNode().getSharedSecret() != null) {
@@ -187,7 +186,11 @@ public class MessagingClient extends Listener{
         otherUsers = Util.loadNodes();
         for(String key : otherUsers.keySet()){
             ChatHistory chatHistory = otherUsers.get(key);
-            addChatHistory(chatHistory);
+            if(key.equals(chatHistory.getName())) {
+                addChatHistory(chatHistory);
+            }else{
+                EMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
+            }
         }
     }
 
@@ -209,7 +212,7 @@ public class MessagingClient extends Listener{
             if (publicKey != null) {
                 MessagingClient.thisDevice.setReceiverPublicKey(publicKey);
             }
-        }catch (InvalidKeySpecException e){
+        }catch (InvalidKeySpecException | NullPointerException e){
             EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
         }
     }

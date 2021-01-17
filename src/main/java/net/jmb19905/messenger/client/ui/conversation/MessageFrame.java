@@ -19,11 +19,14 @@ public class MessageFrame extends JInternalFrame {
 
     private List<String> lines = new ArrayList<>();
 
-    public MessageFrame(String text, int yPos, int alignment){
+    public MessageFrame(String text, int yPos, int alignment, JComponent parent){
+        parent.add(this);
         this.text = text;
         this.textArea = new JTextArea();
         this.yPos = yPos;
         this.alignment = alignment;
+
+
 
         lines.add(text);
 
@@ -49,7 +52,7 @@ public class MessageFrame extends JInternalFrame {
         if(alignment > 0){
             setLocation(getRightSeparation() + 20, yPos);
         }else{
-            setLocation(20, yPos);
+            //setLocation(20, yPos);
             if(getWidth() + 20 > getLeftSeparation() - 20){
                 List<String> newLines = new ArrayList<>();
                 for (String line : lines) {
@@ -75,6 +78,9 @@ public class MessageFrame extends JInternalFrame {
                 }
                 lines = newLines;
             }
+        }
+        for(String line : lines){
+            textArea.append(line + "\n");
         }
         super.repaint();
     }

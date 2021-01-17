@@ -11,8 +11,10 @@ import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
+import java.util.HashMap;
+import java.util.SplittableRandom;
 
-public class DataMessage extends EMMessage{
+public class DataMessage extends EMMessage implements IQueueable{
 
     public String username;
 
@@ -22,16 +24,20 @@ public class DataMessage extends EMMessage{
 
     @Override
     public void handleOnClient(Connection connection) {
-        String sender = Util.decryptString(MessagingClient.thisDevice, username);
-        ChatHistory chatHistory = MessagingClient.otherUsers.get(sender);
-        if(chatHistory.getNode().getSharedSecret() != null){
-            String partiallyDecryptedMessage = Util.decryptString(MessagingClient.thisDevice, encryptedMessage);
-            String message = Util.decryptString(chatHistory.getNode(), partiallyDecryptedMessage);
-            EncryptedMessenger.window.appendLine("<" + sender + "> " + message);
-            Util.displayNotification("Message from " + sender, message, Util.getImageResource("icon.png"));
-            chatHistory.addMessage(sender, message);
-        }else {
-            EMLogger.warn("MessagingClient", "Received Message from unconnected client");
+        try {
+            String sender = Util.decryptString(MessagingClient.thisDevice, username);
+            ChatHistory chatHistory = MessagingClient.otherUsers.get(sender);
+            if (chatHistory.getNode().getSharedSecret() != null) {
+                String partiallyDecryptedMessage = Util.decryptString(MessagingClient.thisDevice, encryptedMessage);
+                String message = Util.decryptString(chatHistory.getNode(), partiallyDecryptedMessage);
+                EncryptedMessenger.window.appendLine("<" + sender + "> " + message);
+                Util.displayNotification("Message from " + sender, message, Util.getImageResource("icon.png"));
+                chatHistory.addMessage(sender, message);
+            } else {
+                EMLogger.warn("MessagingClient", "Received Message from unconnected client");
+            }
+        }catch (NullPointerException e){
+            EMLogger.warn("MessagingClient", "Received invalid message", e);
         }
     }
 
@@ -46,19 +52,38 @@ public class DataMessage extends EMMessage{
             for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
                 if(MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)){
                     if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
-                        Node recipientNode = MessagingServer.clientConnectionKeys.get(recipientConnection).getNode();
-                        if(recipientNode != null) {
-                            username = Util.encryptString(recipientNode, sender);
-                            encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
-                            recipientConnection.sendTCP(this);
-                            EMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
-                            return;
-                        }
+                        handleOnQueue(recipientConnection, new Object[]{sender, decryptedMessage});
+                        EMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
+                        return;
                     }
                 }
             }
-            EMLogger.info("MessagingServer","Recipient: " + recipient + " for data from " + sender + " is offline cannot send data");
-            //TODO: add to a queue
+
+            HashMap<EMMessage, Object[]> queueData;
+            if(!MessagingServer.messagesQueue.containsKey(recipient)){
+                queueData = new HashMap<>();
+            }else{
+                queueData = MessagingServer.messagesQueue.get(recipient);
+            }
+            queueData.put(this, new Object[]{sender, decryptedMessage});
+            MessagingServer.messagesQueue.put(recipient, queueData);
+
+            EMLogger.info("MessagingServer","Recipient: " + recipient + " for message from " + sender + " is offline - added to Queue");
+        }
+    }
+
+    @Override
+    public void handleOnQueue(Connection connection, Object[] extraData) {
+        try {
+            Node recipientNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
+            String decryptedUserName = (String) extraData[0];
+            String decryptedMessage = (String) extraData[1];
+            DataMessage dataMessage = new DataMessage();
+            dataMessage.username = Util.encryptString(recipientNode, decryptedUserName);
+            dataMessage.encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
+            connection.sendTCP(dataMessage);
+        }catch (ArrayIndexOutOfBoundsException | NullPointerException e){
+            EMLogger.warn("DataMessage", "Error parsing data for Message: " + this + " from queue", e);
         }
     }
 }
