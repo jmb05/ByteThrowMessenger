@@ -29,7 +29,7 @@ public class EncryptedMessenger {
             readUserData();
         }
         window = new Window();
-        messagingClient = new MessagingClient("localhost");
+        messagingClient = new MessagingClient(clientConfig.server, clientConfig.port);
         messagingClient.start();
         window.setVisible(true);
     }

@@ -7,6 +7,7 @@ import net.jmb19905.messenger.messages.DataMessage;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -26,7 +27,7 @@ public class Window extends JFrame {
         setTitle("Encrypted Messenger");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1000, 750));
-        setIconImage(new ImageIcon("src/main/resources/icon.png").getImage());
+        setIconImage(Util.getImageResource("icon.png"));
         setLayout(new BorderLayout());
 
         settingsWindow = new SettingsWindow();
@@ -114,7 +115,11 @@ public class Window extends JFrame {
             public void keyPressed(KeyEvent e) {
             if(e.getKeyCode() == KeyEvent.VK_ENTER){
                 String message = inputField.getText();
-                EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message);
+                if(EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
+                    appendLine("<" + EncryptedMessenger.getUsername() + "> " + message);
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
+                }
                 inputField.setText("");
             }
             }
@@ -130,7 +135,7 @@ public class Window extends JFrame {
         JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
 
         ellipsisButton = new JButton();
-        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png"));
+        ellipsisButton.setIcon(new ImageIcon(Util.getImageResource("ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png")));
         ellipsisButton.addActionListener((e) -> settingsWindow.setVisible(true));
 
         toolBar.add(ellipsisButton);
@@ -169,6 +174,6 @@ public class Window extends JFrame {
     @Override
     public void repaint() {
         super.revalidate();
-        ellipsisButton.setIcon(new ImageIcon("src/main/resources/ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png"));
+        ellipsisButton.setIcon(new ImageIcon(Util.getImageResource("ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png")));
     }
 }

@@ -1,17 +1,25 @@
 package net.jmb19905.test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.formdev.flatlaf.FlatDarculaLaf;
+import net.jmb19905.messenger.client.ChatHistory;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
+import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.util.ConfigManager;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Test {
 
     public static void main(String[] args) {
-        try {
+        /*try {
             UIManager.setLookAndFeel(new FlatDarculaLaf());
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
@@ -32,6 +40,6 @@ public class Test {
             public void componentResized(ComponentEvent e) {
 
             }
-        });
+        });*/
     }
 }

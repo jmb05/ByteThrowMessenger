@@ -27,17 +27,17 @@ public class MessagingClient extends Listener{
     public Client client;
     public static final Node thisDevice = new Node();
 
-    public static HashMap<String, Node> otherUsers;
+    public static HashMap<String, ChatHistory> otherUsers;
     public static final List<String> connectionRequested = new ArrayList<>();
     @Deprecated
     public static final List<String> connectionToBeVerified = new ArrayList<>();
 
     private final Thread reconnectionThread;
 
-    public MessagingClient(String serverAddress){
+    public MessagingClient(String serverAddress, int port){
 
         this.serverAddress = serverAddress;
-        this.serverPort = Variables.DEFAULT_PORT;
+        this.serverPort = port;
 
         reconnectionThread = new Thread(() -> {
             while (true){
@@ -87,7 +87,7 @@ public class MessagingClient extends Listener{
         client.stop();
         EMLogger.info("MessagingClient", "Stopped Client");
         if(!EncryptedMessenger.getUsername().equals("") && EncryptedMessenger.getUsername() != null) {
-            Util.saveNodes(otherUsers, "userdata/" + EncryptedMessenger.getUsername() + "/other_users.dat");
+            Util.saveNodes(otherUsers);
         }
         EMLogger.close();
         System.exit(code);
@@ -125,24 +125,29 @@ public class MessagingClient extends Listener{
         message.username = Util.encryptString(thisDevice, username);
         message.publicKeyEncodedEncrypted = thisDevice.encrypt(node.getPublicKey().getEncoded());
         client.sendTCP(message);
-        otherUsers.put(username, node);
+        ChatHistory chatHistory = new ChatHistory(username, node);
+        otherUsers.put(username, chatHistory);
         connectionRequested.add(username);
     }
 
-    public void sendToOtherUser(String username, String message){
+    public boolean sendToOtherUser(String username, String message){
         System.out.println("Trying to send Message to " + username);
-        if(otherUsers.get(username) != null) {
-            if(otherUsers.get(username).getSharedSecret() != null) {
+        ChatHistory chatHistory = otherUsers.get(username);
+        if(chatHistory != null && chatHistory.getNode() != null) {
+            if(chatHistory.getNode().getSharedSecret() != null) {
                 DataMessage dataMessage = new DataMessage();
                 dataMessage.username = Util.encryptString(thisDevice, username);
-                dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(otherUsers.get(username), message));
+                dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(chatHistory.getNode(), message));
                 client.sendTCP(dataMessage);
+                chatHistory.addMessage(EncryptedMessenger.getUsername(), message);
+                return true;
             }else{
                 EMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
         }else{
             EMLogger.info("MessagingClient", "Your are not connected with this client - use connect");
         }
+        return false;
     }
 
     public void login(Connection connection){
@@ -179,7 +184,22 @@ public class MessagingClient extends Listener{
     }
 
     public static void initOtherUsers(){
-        otherUsers = Util.loadNodes("userdata/"+EncryptedMessenger.getUsername()+"/other_users.dat");
+        otherUsers = Util.loadNodes();
+        for(String key : otherUsers.keySet()){
+            ChatHistory chatHistory = otherUsers.get(key);
+            addChatHistory(chatHistory);
+        }
+    }
+
+    private static void addChatHistory(ChatHistory chatHistory) {
+        for(String rawMessage : chatHistory.getMessages()){
+            String[] parts = rawMessage.split(":");
+            StringBuilder stringBuilder = new StringBuilder();
+            for(int i=1;i<parts.length;i++){
+                stringBuilder.append(parts[i]);
+            }
+            EncryptedMessenger.window.appendLine("<" + parts[0] + "> " + stringBuilder.toString());
+        }
     }
 
     public void setPublicKey(byte[] encodedKey) {

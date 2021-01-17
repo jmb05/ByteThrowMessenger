@@ -60,6 +60,8 @@ public class ConfigManager {
         public ClientConfig(){}
 
         public String theme = "Darcula";
+        public String server = "93.159.123.161";
+        public int port = 10101;
         public boolean autoLogin = true;
 
     }

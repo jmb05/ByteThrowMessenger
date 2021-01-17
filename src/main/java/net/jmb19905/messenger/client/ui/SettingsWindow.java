@@ -7,6 +7,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.util.ConfigManager;
 import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
@@ -19,7 +20,7 @@ public class SettingsWindow extends JDialog {
         setTitle("Settings");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setPreferredSize(new Dimension(450, 600));
-        setIconImage(new ImageIcon("src/main/resources/icon.png").getImage());
+        setIconImage(Util.getImageResource("icon.png"));
 
         JPanel contentPanel = new JPanel(new GridBagLayout());
 

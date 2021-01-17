@@ -1,12 +1,16 @@
 package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
+import net.jmb19905.messenger.client.ChatHistory;
+import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
+
+import javax.swing.*;
 
 public class DataMessage extends EMMessage{
 
@@ -19,10 +23,13 @@ public class DataMessage extends EMMessage{
     @Override
     public void handleOnClient(Connection connection) {
         String sender = Util.decryptString(MessagingClient.thisDevice, username);
-        if(MessagingClient.otherUsers.get(sender).getSharedSecret() != null){
+        ChatHistory chatHistory = MessagingClient.otherUsers.get(sender);
+        if(chatHistory.getNode().getSharedSecret() != null){
             String partiallyDecryptedMessage = Util.decryptString(MessagingClient.thisDevice, encryptedMessage);
-            String message = Util.decryptString(MessagingClient.otherUsers.get(sender), partiallyDecryptedMessage);
-            System.out.println(sender + " : " + message);
+            String message = Util.decryptString(chatHistory.getNode(), partiallyDecryptedMessage);
+            EncryptedMessenger.window.appendLine("<" + sender + "> " + message);
+            Util.displayNotification("Message from " + sender, message, Util.getImageResource("icon.png"));
+            chatHistory.addMessage(sender, message);
         }else {
             EMLogger.warn("MessagingClient", "Received Message from unconnected client");
         }

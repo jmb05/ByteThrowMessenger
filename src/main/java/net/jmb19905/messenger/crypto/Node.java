@@ -1,5 +1,16 @@
 package net.jmb19905.messenger.crypto;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
 import net.jmb19905.messenger.util.EMLogger;
@@ -7,12 +18,15 @@ import net.jmb19905.messenger.util.Util;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
 
+@JsonSerialize(using = Node.JsonSerializer.class)
+@JsonDeserialize(using = Node.JsonDeserializer.class)
 public class Node {
 
     private PublicKey publickey;
@@ -127,5 +141,54 @@ public class Node {
                 ", keyAgreement=" + keyAgreement +
                 ", sharedSecret=" + Arrays.toString(sharedSecret) +
                 '}';
+    }
+
+    public static class JsonSerializer extends StdSerializer<Node>{
+
+        public JsonSerializer(){
+            this(null);
+        }
+
+        public JsonSerializer(Class<Node> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(Node value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeStartObject();
+            gen.writeBinaryField("public", value.publickey.getEncoded());
+            gen.writeBinaryField("private", value.privateKey.getEncoded());
+            if(value.sharedSecret != null) {
+                gen.writeBinaryField("shared", value.sharedSecret);
+            }else{
+                gen.writeBinaryField("shared", new byte[0]);
+            }
+            gen.writeEndObject();
+        }
+    }
+
+    public static class JsonDeserializer extends StdDeserializer<Node>{
+
+        public JsonDeserializer(){
+            this(null);
+        }
+
+        public JsonDeserializer(Class<?> vc) {
+            super(vc);
+        }
+
+        @Override
+        public Node deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            JsonNode node = p.getCodec().readTree(p);
+            byte[] publicKey = node.get("public").binaryValue();
+            byte[] privateKey = node.get("private").binaryValue();
+            byte[] sharedKey = node.get("shared").binaryValue();
+            try {
+                return new Node(publicKey, privateKey, sharedKey);
+            } catch (InvalidNodeException e) {
+                EMLogger.error("MessagingClient", "Error deserializing Nodes from JSON", e);
+                return null;
+            }
+        }
     }
 }

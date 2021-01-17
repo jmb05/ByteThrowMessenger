@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.messages;
 
 import com.esotericsoftware.kryonet.Connection;
+import net.jmb19905.messenger.client.ChatHistory;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.crypto.Node;
@@ -26,19 +27,20 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
         if(MessagingClient.otherUsers.get(decryptedUsername) != null){
             EMLogger.trace("MessagingClient", "Changing/Adding key for" + decryptedUsername);
-            Node node = MessagingClient.otherUsers.get(decryptedUsername);
+            Node node = MessagingClient.otherUsers.get(decryptedUsername).getNode();
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
         }else{
             Node node = new Node();
             EncryptedMessenger.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
-            MessagingClient.otherUsers.put(decryptedUsername, node);
+            ChatHistory chatHistory = new ChatHistory(decryptedUsername, node);
+            MessagingClient.otherUsers.put(decryptedUsername, chatHistory);
             EMLogger.trace("MessagingClient", "Added " + decryptedUsername + " to connected users");
             if(MessagingClient.connectionRequested.contains(decryptedUsername)){
                 EMLogger.info("MessagingClient", decryptedUsername + " has responded");
                 MessagingClient.connectionRequested.remove(decryptedUsername);
             }else{
                 username = Util.encryptString(MessagingClient.thisDevice, decryptedUsername);
-                publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getPublicKey().getEncoded());
+                publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getNode().getPublicKey().getEncoded());
                 EncryptedMessenger.messagingClient.client.sendTCP(this);
             }
         }
@@ -51,13 +53,16 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
         String recipient = Util.decryptString(senderNode, username);
         byte[] publicKeyEncoded = senderNode.decrypt(publicKeyEncodedEncrypted);
-        if(sender.equals(recipient)){
-            EMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with himself");
-            return;
-        }else if(SQLiteManager.getUserByName(recipient) == null){
-            EMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with nonexistent user " + recipient);
-            return;
-        }
+        try {
+            System.out.println(sender);
+            System.out.println(recipient);
+            if (sender.equals(recipient)) {
+                EMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with himself");
+                return;
+            } else if (SQLiteManager.getUserByName(recipient) == null) {
+                EMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with nonexistent user " + recipient);
+                return;
+            }
 
         for(Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()){
             if(MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()){
@@ -79,6 +84,9 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
         MessagingServer.messagesQueue.put(recipient, queueData);
 
         EMLogger.info("MessagingServer","Recipient: " + recipient + " for connection request from " + sender + " is offline - added to Queue");
+        }catch (NullPointerException e){
+            EMLogger.warn("MessagingServer", "Error connecting users");
+        }
     }
 
     @Override

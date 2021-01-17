@@ -1,22 +1,32 @@
 package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import net.jmb19905.messenger.client.ChatHistory;
+import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
 import net.jmb19905.messenger.messages.*;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class Util {
+
+    private static final SystemTray systemTray = SystemTray.getSystemTray();
 
     public static PublicKey createPublicKeyFromData(byte[] encodedKey) throws InvalidKeySpecException {
         try {
@@ -38,86 +48,48 @@ public class Util {
         }
     }
 
-    public static HashMap<String, Node> loadNodes(String filePath){
-        HashMap<String, Node> output = new HashMap<>();
-        File file = new File(filePath);
+    public static HashMap<String, ChatHistory> loadNodes(){
+        HashMap<String, ChatHistory> map = new HashMap<>();
+        File parentDirectory = new File("userdata/" + EncryptedMessenger.getUsername() + "/");
+        if(parentDirectory.exists() && parentDirectory.isDirectory()){
+            for(File file : parentDirectory.listFiles()){
+                String username = file.getName().split("\\.")[0];
+                map.put(username, readNode(username));
+                EncryptedMessenger.window.addConnectedUser(username);
+            }
+        }
+        return map;
+    }
+
+    public static void saveNodes(HashMap<String, ChatHistory> nodes){
+        for(String name : nodes.keySet()){
+            saveNode(name, nodes.get(name));
+        }
+    }
+
+    public static void saveNode(String username, ChatHistory chat){
+        File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            if(!file.exists()){
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            List<String> lines = new ArrayList<>();
-            String line = reader.readLine();
-            while(line != null){
-                System.out.println("Line: {" + line + "}");
-                if(!line.equals("") && line != null) {
-                    lines.add(line);
-                }
-                line = reader.readLine();
-            }
-            for(int i=0;i<lines.size();i++){
-                String[] parts = lines.get(i).split("] \\[");
-                try {
-                    String username = parts[0];
-                    byte[] publicKey = readByteArray(parts[1]);
-                    byte[] privateKey = readByteArray(parts[2]);
-                    byte[] sharedSecret = readByteArray(parts[3]);
-                    output.put(username, new Node(publicKey, privateKey, sharedSecret));
-                }catch (ArrayIndexOutOfBoundsException e){
-                    EMLogger.warn("Util", "Error loading Node in line " + i);
-                }catch (InvalidNodeException e){
-                    lines.get(i);
-                    EMLogger.warn("Util", "Skipped loading invalid Node");
-                }
-            }
-            reader.close();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, chat);
         } catch (IOException e) {
-            EMLogger.error("MessagingClient", "Error loading Nodes from File", e);
+            EMLogger.error("Util", "Error writing ChatHistory to File", e);
         }
-        return output;
     }
 
-    public static byte[] readByteArray(String arrayAsString){
-        if(!arrayAsString.startsWith("[") || !arrayAsString.endsWith("]")){
-            return new byte[0];
-        }
-        String[] parts = arrayAsString.replaceAll("\\[", "").replaceAll("]", "").split(", ");
-        byte[] output = new byte[parts.length];
-        for(int i=0;i<parts.length;i++){
+    public static ChatHistory readNode(String username){
+        File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
+        if(file.exists()){
+            ObjectMapper mapper = new ObjectMapper();
             try {
-                output[i] = (byte) Integer.parseInt(parts[i]);
-            }catch (NumberFormatException e){
-                EMLogger.warn("Util", "String array does not represent a byte array", e);
-                return new byte[0];
+                return mapper.readValue(file, ChatHistory.class);
+            } catch (IOException e) {
+                EMLogger.error("Util", "Error reading ChatHistory from File", e);
             }
+        }else{
+            EMLogger.warn("Util", "Cannot read ChatHistory from File - ChatHistory does not exist");
         }
-        return output;
-    }
-
-    public static void saveNodes(HashMap<String, Node> nodes, String filePath){
-        File file = new File(filePath);
-        try {
-            if(!file.exists()){
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            for(String key : nodes.keySet()){
-                byte[] sharedSecret = new byte[0];
-                if(nodes.get(key).getSharedSecret() != null){
-                    sharedSecret = nodes.get(key).getSharedSecret();
-                }
-                String line = "[" + key + "] " + Arrays.toString(nodes.get(key).getPublicKey().getEncoded()) + " " + Arrays.toString(nodes.get(key).getPrivateKey().getEncoded()) + " " + Arrays.toString(sharedSecret) + "";
-                writer.write(line);
-            }
-            writer.flush();
-            writer.close();
-        }catch (IOException e){
-            EMLogger.error("Util", "Error writing Nodes to File", e);
-        }catch (NullPointerException e){
-            EMLogger.info("Util", "No other User Connections");
-        }
+        return null;
     }
 
     public static void registerMessages(Kryo kryo){
@@ -140,6 +112,35 @@ public class Util {
 
     public static String decryptString(Node node, String value){
         return new String(node.decrypt(value.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    public static Image getImageResource(String s){
+        try {
+            InputStream stream = getResource(s);
+            System.out.println(stream);
+            return ImageIO.read(stream);
+        } catch (IOException e) {
+            EMLogger.warn("Util", "Error loading image");
+            return null;
+        }
+    }
+    public static InputStream getResource(String s){
+        return Util.class.getClassLoader().getResourceAsStream(s);
+    }
+
+    public static void displayNotification(String title, String text, Image icon){
+        TrayIcon trayIcon = new TrayIcon(icon, "EM Notification");
+        trayIcon.setImageAutoSize(true);
+        trayIcon.setToolTip("EM Notification");
+
+        try {
+            systemTray.add(trayIcon);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+
+        trayIcon.displayMessage(title, text, TrayIcon.MessageType.NONE);
+
     }
 
 }
