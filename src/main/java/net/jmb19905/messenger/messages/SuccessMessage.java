@@ -6,20 +6,23 @@ import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 
-/**
- * Tells the Client that the login attempt was successful
- */
-public class LoginSuccessMessage extends EMMessage {
+public class SuccessMessage extends EMMessage{
 
-    public LoginSuccessMessage() {
-    }
+    public String type;
 
     @Override
     public void handleOnClient(Connection connection) {
-        EMLogger.info("MessagingClient", "Logged in successfully");
-        EncryptedMessenger.writeUserData();
-        EncryptedMessenger.setLoggedIn(true);
-        MessagingClient.initOtherUsers();
+        if(type.equals("login")){
+            EMLogger.info("MessagingClient", "Logged in successfully");
+            EncryptedMessenger.writeUserData();
+            EncryptedMessenger.setLoggedIn(true);
+            MessagingClient.initOtherUsers();
+        }else if(type.equals("register")){
+            EncryptedMessenger.writeUserData();
+            EncryptedMessenger.setLoggedIn(true);
+            MessagingClient.initOtherUsers();
+            EMLogger.info("MessagingClient", "Registered Successful");
+        }
     }
 
     @Override

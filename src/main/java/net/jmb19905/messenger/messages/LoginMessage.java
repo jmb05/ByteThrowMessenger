@@ -34,14 +34,17 @@ public class LoginMessage extends EMMessage {
 
         SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
         if (userData == null) {
-            LoginFailedMessage fail = new LoginFailedMessage();
+            FailMessage fail = new FailMessage();
+            fail.type = "loginFail";
             fail.cause = "name";
             connection.sendTCP(fail);
         } else {
             if (BCrypt.hashpw(password, userData.salt).equals(userData.password)) {
                 MessagingServer.clientConnectionKeys.get(connection).setUsername(userData.username);
                 MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
-                connection.sendTCP(new LoginSuccessMessage());
+                SuccessMessage successMessage = new SuccessMessage();
+                successMessage.type = "login";
+                connection.sendTCP(successMessage);
                 HashMap<EMMessage, Object[]> messageQueue = MessagingServer.messagesQueue.get(userData.username);
                 if (messageQueue != null) {
                     for (EMMessage message : messageQueue.keySet()) {
@@ -51,7 +54,8 @@ public class LoginMessage extends EMMessage {
                     }
                 }
             } else {
-                LoginFailedMessage fail = new LoginFailedMessage();
+                FailMessage fail = new FailMessage();
+                fail.type = "loginFail";
                 fail.cause = "pw";
                 connection.sendTCP(fail);
             }

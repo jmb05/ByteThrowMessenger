@@ -46,9 +46,13 @@ public class RegisterMessage extends EMMessage {
                         EMLogger.trace("MessagingServer", "Client tried to register instead of login -> logging client in");
                         MessagingServer.clientConnectionKeys.get(connection).setUsername(user.username);
                         MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
-                        connection.sendTCP(new LoginSuccessMessage());
+                        SuccessMessage successMessage = new SuccessMessage();
+                        successMessage.type = "login";
+                        connection.sendTCP(successMessage);
                     } else {
-                        connection.sendTCP(new UsernameAlreadyExistMessage());
+                        FailMessage fail = new FailMessage();
+                        fail.type = "usernameTaken";
+                        connection.sendTCP(fail);
                     }
                 }
             } else {
@@ -56,7 +60,8 @@ public class RegisterMessage extends EMMessage {
             }
         } catch (NullPointerException e) {
             EMLogger.warn("MessagingServer", "Error adding user");
-            RegisterFailedMessage registerFailedMessage = new RegisterFailedMessage();
+            FailMessage registerFailedMessage = new FailMessage();
+            registerFailedMessage.type = "registerFail";
             registerFailedMessage.cause = "There was an internal database error";
             connection.sendTCP(registerFailedMessage);
         }

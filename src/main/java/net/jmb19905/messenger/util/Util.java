@@ -142,14 +142,10 @@ public class Util {
         kryo.register(byte[].class);
         kryo.register(LoginMessage.class);
         kryo.register(RegisterMessage.class);
-        kryo.register(UsernameAlreadyExistMessage.class);
-        kryo.register(RegisterSuccessfulMessage.class);
-        kryo.register(NotRegisteredMessage.class);
-        kryo.register(LoginSuccessMessage.class);
+        kryo.register(SuccessMessage.class);
         kryo.register(ConnectWithOtherUserMessage.class);
         kryo.register(DataMessage.class);
-        kryo.register(LoginFailedMessage.class);
-        kryo.register(RegisterFailedMessage.class);
+        kryo.register(FailMessage.class);
     }
 
     /**

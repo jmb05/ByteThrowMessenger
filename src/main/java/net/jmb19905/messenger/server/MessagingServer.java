@@ -6,7 +6,7 @@ import com.esotericsoftware.kryonet.Server;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.messages.EMMessage;
 import net.jmb19905.messenger.messages.LoginPublicKeyMessage;
-import net.jmb19905.messenger.messages.RegisterSuccessfulMessage;
+import net.jmb19905.messenger.messages.SuccessMessage;
 import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
@@ -95,9 +95,8 @@ public class MessagingServer extends Listener {
      * @param uuid the UUID of the Client
      */
     public void sendRegisterSuccess(Connection connection, String username, UUID uuid) {
-        RegisterSuccessfulMessage message = new RegisterSuccessfulMessage();
-        message.username = username;
-        message.uuid = uuid.toString();
+        SuccessMessage message = new SuccessMessage();
+        message.type = "register";
         connection.sendTCP(message);
     }
 

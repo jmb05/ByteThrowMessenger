@@ -1,7 +1,6 @@
 package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.minlog.Log;
-import com.sun.istack.internal.Nullable;
 
 import java.io.*;
 import java.util.Date;
@@ -67,7 +66,7 @@ public class EMLogger extends Log.Logger {
      * @param ex an optional Exception
      */
     @Override
-    public void log(int level, String category, String message, @Nullable Throwable ex) {
+    public void log(int level, String category, String message, Throwable ex) {
         //Basically copied code from the original method
         StringBuilder builder = new StringBuilder(256);
 

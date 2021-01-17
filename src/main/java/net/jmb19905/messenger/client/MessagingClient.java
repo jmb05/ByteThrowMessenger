@@ -21,7 +21,6 @@ public class MessagingClient extends Listener {
 
     private final String serverAddress;
     private final int serverPort;
-    public UUID uuid;
 
     public Client client;
     public static final Node thisDevice = new Node();
