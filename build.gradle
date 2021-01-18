@@ -7,8 +7,8 @@ group 'net.jmb19905'
 version '1.0-SNAPSHOT-5'
 
 jar {
-    archiveName "EncryptedMessenger-${project.version}-Client.jar"
-    baseName "EncryptedMessenger-${project.version}-Client"
+    archiveName "ByteThrowMessenger-${project.version}-Client.jar"
+    baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
         attributes(
             'Main-Class': 'net.jmb19905.messenger.client.EncryptedMessenger'
@@ -50,7 +50,7 @@ launch4j {
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
     textVersion = '1.0.SN3'
-    internalName = 'EncryptedMessenger'
+    internalName = 'ByteThrowMessenger'
     productName = "${project.name}-${project.version}"
 }
 
