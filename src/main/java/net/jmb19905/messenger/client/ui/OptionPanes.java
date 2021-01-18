@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.client.ui;
 
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +13,7 @@ public class OptionPanes {
 
     public static OutputValue showLoginDialog(ActionListener registerEvent) {
         final OutputValue[] value = new OutputValue[1];
-        JDialog dialog = new JDialog(EncryptedMessenger.window);
+        JDialog dialog = new JDialog(ByteThrowClient.window);
         dialog.setModal(true);
         dialog.setResizable(false);
         dialog.setLayout(new GridBagLayout());
@@ -110,7 +110,7 @@ public class OptionPanes {
 
     public static OutputValue showRegisterDialog(ActionListener loginListener) {
         final OutputValue[] value = new OutputValue[1];
-        JDialog dialog = new JDialog(EncryptedMessenger.window);
+        JDialog dialog = new JDialog(ByteThrowClient.window);
         dialog.setModal(true);
         dialog.setLayout(new GridBagLayout());
         dialog.setPreferredSize(new Dimension(400, 250));

@@ -2,11 +2,11 @@ package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ChatHistory;
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.server.MessagingServer;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import javax.imageio.ImageIO;
@@ -21,7 +21,7 @@ import java.util.HashMap;
 /**
  * Transfers text between two users
  */
-public class DataPackage extends EMPackage implements IQueueable {
+public class DataPackage extends BTMPackage implements IQueueable {
 
     public String username;
     public String type;
@@ -39,22 +39,22 @@ public class DataPackage extends EMPackage implements IQueueable {
                 String decryptedType = Util.decryptString(chatHistory.getNode(), partiallyType);
                 if(decryptedType.equals("text")) {
                     String message = new String(byteMessage, StandardCharsets.UTF_8);
-                    EncryptedMessenger.window.appendLine("<" + sender + "> " + message);
+                    ByteThrowClient.window.appendLine("<" + sender + "> " + message);
                     Util.displayNotification("Message from " + sender, message, Util.getImageResource("icon.png"));
                     chatHistory.addMessage(sender, message);
                 }else if(decryptedType.equals("image")){
                     BufferedImage image = Util.convertBytesToImage(byteMessage);
-                    File outputFile = new File("userdata/" + EncryptedMessenger.getUsername() + "/media/image-" + new SimpleDateFormat("yyyy-MM.dd-HH-mm-ss").format(new Date()) + ".png");
+                    File outputFile = new File("userdata/" + ByteThrowClient.getUsername() + "/media/image-" + new SimpleDateFormat("yyyy-MM.dd-HH-mm-ss").format(new Date()) + ".png");
                     Util.createFile(outputFile);
                     ImageIO.write(image, "png", outputFile);
                 }
             } else {
-                EMLogger.warn("MessagingClient", "Received Message from unconnected client");
+                BTMLogger.warn("MessagingClient", "Received Message from unconnected client");
             }
         } catch (NullPointerException e) {
-            EMLogger.warn("MessagingClient", "Received invalid message", e);
+            BTMLogger.warn("MessagingClient", "Received invalid message", e);
         } catch (IOException e) {
-            EMLogger.warn("MessagingClient", " Error parsing image from DataPackage", e);
+            BTMLogger.warn("MessagingClient", " Error parsing image from DataPackage", e);
         }
     }
 
@@ -73,13 +73,13 @@ public class DataPackage extends EMPackage implements IQueueable {
                 if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {
                     if (MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()) {
                         handleOnQueue(recipientConnection, extraData);
-                        EMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
+                        BTMLogger.trace("MessagingServer", "Passed Data from " + sender + " to " + recipient);
                         return;
                     }
                 }
             }
 
-            HashMap<EMPackage, Object[]> queueData;
+            HashMap<BTMPackage, Object[]> queueData;
             if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
             } else {
@@ -88,7 +88,7 @@ public class DataPackage extends EMPackage implements IQueueable {
             queueData.put(this, extraData);
             MessagingServer.messagesQueue.put(recipient, queueData);
 
-            EMLogger.info("MessagingServer", "Recipient: " + recipient + " for message from " + sender + " is offline - added to Queue");
+            BTMLogger.info("MessagingServer", "Recipient: " + recipient + " for message from " + sender + " is offline - added to Queue");
         }
     }
 
@@ -105,7 +105,7 @@ public class DataPackage extends EMPackage implements IQueueable {
             dataPackage.encryptedMessage = recipientNode.encrypt(decryptedMessage);
             connection.sendTCP(dataPackage);
         } catch (ArrayIndexOutOfBoundsException | NullPointerException e) {
-            EMLogger.warn("DataMessage", "Error parsing data for Message: " + this + " from queue", e);
+            BTMLogger.warn("DataMessage", "Error parsing data for Message: " + this + " from queue", e);
         }
     }
 }

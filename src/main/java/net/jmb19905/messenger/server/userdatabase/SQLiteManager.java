@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.server.userdatabase;
 
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.File;
@@ -25,7 +25,7 @@ public class SQLiteManager {
             Class.forName("org.sqlite.JDBC");
             Connection conn = DriverManager.getConnection("jdbc:sqlite:" + fileName);
             try (Statement stmt = conn.createStatement()) {
-                EMLogger.trace("SQLiteManager", "Opened database successfully");
+                BTMLogger.trace("SQLiteManager", "Opened database successfully");
                 String sql = "CREATE TABLE IF NOT EXISTS users("
                         + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                         + "username VARCHAR(20) NOT NULL, "
@@ -37,7 +37,7 @@ public class SQLiteManager {
                 return conn;
             }
         } catch (ClassNotFoundException | SQLException | IOException ex) {
-            EMLogger.error("SQLiteManager", "Error opening/creating database/table", ex);
+            BTMLogger.error("SQLiteManager", "Error opening/creating database/table", ex);
             return null;
         }
     }
@@ -59,10 +59,10 @@ public class SQLiteManager {
             statement.execute();
             connection.close();
         } catch (SQLException | NullPointerException e) {
-            EMLogger.warn("SQLiteManager", "Error adding user to database", e);
+            BTMLogger.warn("SQLiteManager", "Error adding user to database", e);
             return false;
         }
-        EMLogger.trace("SQLiteManager", "Closed database successfully");
+        BTMLogger.trace("SQLiteManager", "Closed database successfully");
         return true;
     }
 
@@ -88,16 +88,16 @@ public class SQLiteManager {
                 user.salt = salt;
                 user.uuid = UUID.fromString(uuidAsString);
                 connection.close();
-                EMLogger.trace("SQLiteManager", "Closed database successfully");
+                BTMLogger.trace("SQLiteManager", "Closed database successfully");
                 return user;
             } else {
                 connection.close();
             }
         } catch (SQLException | NullPointerException e) {
-            EMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
+            BTMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
-        EMLogger.trace("SQLiteManager", "No UserData for Username: " + username + " found");
-        EMLogger.trace("SQLiteManager", "Closed database successfully");
+        BTMLogger.trace("SQLiteManager", "No UserData for Username: " + username + " found");
+        BTMLogger.trace("SQLiteManager", "Closed database successfully");
         return null;
     }
 
@@ -124,14 +124,14 @@ public class SQLiteManager {
                 user.salt = salt;
                 user.uuid = uuid;
                 connection.close();
-                EMLogger.trace("SQLiteManager", "Closed database successfully");
+                BTMLogger.trace("SQLiteManager", "Closed database successfully");
                 return user;
             }
         } catch (SQLException | NullPointerException e) {
-            EMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
+            BTMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
-        EMLogger.trace("SQLiteManager", "No UserData for User UUID: " + uuid + " found");
-        EMLogger.trace("SQLiteManager", "Closed database successfully");
+        BTMLogger.trace("SQLiteManager", "No UserData for User UUID: " + uuid + " found");
+        BTMLogger.trace("SQLiteManager", "Closed database successfully");
         return null;
     }
 

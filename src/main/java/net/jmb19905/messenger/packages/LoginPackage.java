@@ -8,13 +8,12 @@ import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.Util;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
  * Sent to the server when a User wants to login
  */
-public class LoginPackage extends EMPackage {
+public class LoginPackage extends BTMPackage {
 
     public String username;
     public String password;
@@ -43,9 +42,9 @@ public class LoginPackage extends EMPackage {
                 SuccessPackage successMessage = new SuccessPackage();
                 successMessage.type = "login";
                 connection.sendTCP(successMessage);
-                HashMap<EMPackage, Object[]> messageQueue = MessagingServer.messagesQueue.get(userData.username);
+                HashMap<BTMPackage, Object[]> messageQueue = MessagingServer.messagesQueue.get(userData.username);
                 if (messageQueue != null) {
-                    for (EMPackage message : messageQueue.keySet()) {
+                    for (BTMPackage message : messageQueue.keySet()) {
                         if (message instanceof IQueueable) {
                             ((IQueueable) message).handleOnQueue(connection, messageQueue.get(message));
                         }

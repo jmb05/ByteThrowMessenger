@@ -11,7 +11,7 @@ jar {
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
         attributes(
-            'Main-Class': 'net.jmb19905.messenger.client.EncryptedMessenger'
+            'Main-Class': 'net.jmb19905.messenger.client.ByteThrowMessenger'
         )
     }
     from {
@@ -65,7 +65,7 @@ task serverJar(type: Jar){
     baseName "EM-${project.version}"
     manifest {
         attributes(
-            'Main-Class': 'net.jmb19905.messenger.server.ServerMain'
+            'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'
         )
     }
     with jar

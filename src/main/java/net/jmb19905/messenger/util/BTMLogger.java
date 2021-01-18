@@ -5,13 +5,13 @@ import com.esotericsoftware.minlog.Log;
 import java.io.*;
 import java.util.Date;
 
-public class EMLogger extends Log.Logger {
+public class BTMLogger extends Log.Logger {
 
     public static File logFile;
     private static BufferedWriter writer;
     private final long firstLogTime = new Date().getTime();
 
-    private static EMLogger instance;
+    private static BTMLogger instance;
 
     public static final int LEVEL_NONE = 6;
     public static final int LEVEL_ERROR = 5;
@@ -34,15 +34,15 @@ public class EMLogger extends Log.Logger {
     public static void init() {
         logFile = new File("logs/" + Variables.currentTime + "_" + Variables.currentSide + ".log");
         if (!Util.createFile(logFile)) {
-            Log.error("EMLogger", "Error creating log file");
+            Log.error("BTMLogger", "Error creating log file");
             return;
         }
         try {
             writer = new BufferedWriter(new FileWriter(logFile));
         } catch (IOException e) {
-            Log.error("EMLogger", "Error creating File Writer for the Log File", e);
+            Log.error("BTMLogger", "Error creating File Writer for the Log File", e);
         }
-        instance = new EMLogger();
+        instance = new BTMLogger();
     }
 
     /**
@@ -53,7 +53,7 @@ public class EMLogger extends Log.Logger {
             try {
                 writer.close();
             } catch (IOException e) {
-                Log.error("EMLogger", "Error closing file writer", e);
+                Log.error("BTMLogger", "Error closing file writer", e);
             }
         }
     }
@@ -122,7 +122,7 @@ public class EMLogger extends Log.Logger {
                 writer.write(builder.toString() + "\n");
                 writer.flush();
             } catch (IOException e) {
-                Log.error("EMLogger", "Error writing to log file", e);
+                Log.error("BTMLogger", "Error writing to log file", e);
             }
         }
     }
@@ -133,11 +133,11 @@ public class EMLogger extends Log.Logger {
      * @param level the level of the Logger
      */
     public static void setLevel(int level) {
-        EMLogger.ERROR = level <= LEVEL_ERROR;
-        EMLogger.WARN = level <= LEVEL_WARN;
-        EMLogger.INFO = level <= LEVEL_INFO;
-        EMLogger.DEBUG = level <= LEVEL_DEBUG;
-        EMLogger.TRACE = level <= LEVEL_TRACE;
+        BTMLogger.ERROR = level <= LEVEL_ERROR;
+        BTMLogger.WARN = level <= LEVEL_WARN;
+        BTMLogger.INFO = level <= LEVEL_INFO;
+        BTMLogger.DEBUG = level <= LEVEL_DEBUG;
+        BTMLogger.TRACE = level <= LEVEL_TRACE;
     }
 
     /**

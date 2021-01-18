@@ -2,14 +2,13 @@ package net.jmb19905.messenger.client;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.FrameworkMessage;
 import com.esotericsoftware.kryonet.Listener;
 import net.jmb19905.messenger.client.ui.OptionPanes;
 import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.packages.*;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
@@ -39,32 +38,32 @@ public class MessagingClient extends Listener {
     }
 
     private void init() {
-        EMLogger.trace("MessagingClient", "Initializing Client");
+        BTMLogger.trace("MessagingClient", "Initializing Client");
         client = new Client();
 
         Util.registerPackages(client.getKryo());
-        EMLogger.trace("MessagingClient", "Registered Packages");
+        BTMLogger.trace("MessagingClient", "Registered Packages");
 
         client.addListener(this);
-        EMLogger.trace("MessagingClient", "Added Listener");
-        EMLogger.info("MessagingClient", "Initialized Client");
+        BTMLogger.trace("MessagingClient", "Added Listener");
+        BTMLogger.info("MessagingClient", "Initialized Client");
     }
 
     /**
      * Starts the Client
      */
     public void start() {
-        EMLogger.trace("MessagingClient", "Starting Client");
+        BTMLogger.trace("MessagingClient", "Starting Client");
         new Thread(client).start();
         try {
             client.connect(5000, serverAddress, serverPort, serverPort + 1);
         } catch (IOException e) {
-            EMLogger.error("MessagingClient", "Error establishing connection", e);
+            BTMLogger.error("MessagingClient", "Error establishing connection", e);
             JOptionPane.showMessageDialog(null, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
             stop(-1);
         }
 
-        EMLogger.info("MessagingClient", "Started Client");
+        BTMLogger.info("MessagingClient", "Started Client");
     }
 
     /**
@@ -72,13 +71,13 @@ public class MessagingClient extends Listener {
      * @param code the exit code
      */
     public void stop(int code) {
-        EMLogger.trace("MessagingClient", "Stopping Client");
+        BTMLogger.trace("MessagingClient", "Stopping Client");
         client.stop();
-        EMLogger.info("MessagingClient", "Stopped Client");
-        if (!EncryptedMessenger.getUsername().equals("") && EncryptedMessenger.getUsername() != null) {
+        BTMLogger.info("MessagingClient", "Stopped Client");
+        if (!ByteThrowClient.getUsername().equals("") && ByteThrowClient.getUsername() != null) {
             Util.saveChatHistories(otherUsers);
         }
-        EMLogger.close();
+        BTMLogger.close();
         System.exit(code);
     }
 
@@ -87,11 +86,12 @@ public class MessagingClient extends Listener {
      */
     @Override
     public void connected(Connection connection) {
-        EMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
+        BTMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
         LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
+        loginPublicKeyPackage.version = ByteThrowClient.version;
         loginPublicKeyPackage.encodedKey = thisDevice.getPublicKey().getEncoded();
         connection.sendTCP(loginPublicKeyPackage);
-        EMLogger.trace("MessagingClient", "Sent PublicKey");
+        BTMLogger.trace("MessagingClient", "Sent PublicKey");
     }
 
     /**
@@ -99,11 +99,11 @@ public class MessagingClient extends Listener {
      */
     @Override
     public void disconnected(Connection connection) {
-        EMLogger.info("MessagingClient", "Lost Connection");
+        BTMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
         if (!Window.closeRequested) {
-            EncryptedMessenger.window.dispose();
-            Thread reconnectionThread = new Thread(() -> EncryptedMessenger.main(EncryptedMessenger.arguments));
+            ByteThrowClient.window.dispose();
+            Thread reconnectionThread = new Thread(() -> ByteThrowClient.main(ByteThrowClient.arguments));
             reconnectionThread.start();
         }
     }
@@ -113,11 +113,11 @@ public class MessagingClient extends Listener {
      */
     @Override
     public void received(Connection connection, Object o) {
-        if (o instanceof EMPackage) {
+        if (o instanceof BTMPackage) {
             try {
-                ((EMPackage) o).handleOnClient(connection);
+                ((BTMPackage) o).handleOnClient(connection);
             } catch (UnsupportedSideException e) {
-                EMLogger.warn("MessagingClient", "Package received on wrong side", e);
+                BTMLogger.warn("MessagingClient", "Package received on wrong side", e);
             }
         }
     }
@@ -151,13 +151,13 @@ public class MessagingClient extends Listener {
                 dataPackage.username = Util.encryptString(thisDevice, username);
                 dataPackage.encryptedMessage = thisDevice.encrypt(chatHistory.getNode().encrypt(message.getBytes(StandardCharsets.UTF_8)));
                 client.sendTCP(dataPackage);
-                chatHistory.addMessage(EncryptedMessenger.getUsername(), message);
+                chatHistory.addMessage(ByteThrowClient.getUsername(), message);
                 return true;
             } else {
-                EMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
+                BTMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
         } else {
-            EMLogger.info("MessagingClient", "Your are not connected with this client - use connect");
+            BTMLogger.info("MessagingClient", "Your are not connected with this client - use connect");
         }
         return false;
     }
@@ -166,10 +166,10 @@ public class MessagingClient extends Listener {
      * Logs the Client in
      */
     public void login(Connection connection) {
-        if (!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")) {
+        if (!ByteThrowClient.getUsername().equals("") && !ByteThrowClient.getPassword().equals("")) {
             LoginPackage loginPackage = new LoginPackage();
-            loginPackage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
-            loginPackage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
+            loginPackage.username = Util.encryptString(thisDevice, ByteThrowClient.getUsername());
+            loginPackage.password = Util.encryptString(thisDevice, ByteThrowClient.getPassword());
             connection.sendTCP(loginPackage);
         } else {
             OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register(connection));
@@ -180,7 +180,7 @@ public class MessagingClient extends Listener {
                 loginPackage.username = Util.encryptString(thisDevice, value.values[0]);
                 loginPackage.password = Util.encryptString(thisDevice, value.values[1]);
                 connection.sendTCP(loginPackage);
-                EncryptedMessenger.setUserData(value.values[0], value.values[1]);
+                ByteThrowClient.setUserData(value.values[0], value.values[1]);
             }
         }
     }
@@ -197,7 +197,7 @@ public class MessagingClient extends Listener {
             registerPackage.username = Util.encryptString(thisDevice, value.values[0]);
             registerPackage.password = Util.encryptString(thisDevice, value.values[1]);
             client.sendTCP(registerPackage);
-            EMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
+            BTMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
         }
     }
 
@@ -212,11 +212,11 @@ public class MessagingClient extends Listener {
                 if (key.equals(chatHistory.getName())) {
                     addChatHistory(chatHistory);
                 } else {
-                    EMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
+                    BTMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
                 }
             }
         }catch (NullPointerException e){
-            EMLogger.warn("MessagingClient", "Error parsing ChatHistory");
+            BTMLogger.warn("MessagingClient", "Error parsing ChatHistory");
         }
     }
 
@@ -231,7 +231,7 @@ public class MessagingClient extends Listener {
             for (int i = 1; i < parts.length; i++) {
                 stringBuilder.append(parts[i]);
             }
-            EncryptedMessenger.window.appendLine("<" + parts[0] + "> " + stringBuilder.toString());
+            ByteThrowClient.window.appendLine("<" + parts[0] + "> " + stringBuilder.toString());
         }
     }
 
@@ -251,12 +251,12 @@ public class MessagingClient extends Listener {
     public void setPublicKey(byte[] decryptedEncodedKey, Node node) {
         try {
             PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
-            EMLogger.trace("MessagingClient", "Received PublicKey");
+            BTMLogger.trace("MessagingClient", "Received PublicKey");
             if (publicKey != null) {
                 node.setReceiverPublicKey(publicKey);
             }
         } catch (InvalidKeySpecException e) {
-            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.", e);
+            BTMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.", e);
             JOptionPane.showMessageDialog(null, "There was an error during the Server - Client Key exchange", "ERROR", JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         }

@@ -1,27 +1,27 @@
 package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 
-public class SuccessPackage extends EMPackage {
+public class SuccessPackage extends BTMPackage {
 
     public String type;
 
     @Override
     public void handleOnClient(Connection connection) {
         if(type.equals("login")){
-            EMLogger.info("MessagingClient", "Logged in successfully");
-            EncryptedMessenger.writeUserData();
-            EncryptedMessenger.setLoggedIn(true);
+            BTMLogger.info("MessagingClient", "Logged in successfully");
+            ByteThrowClient.writeUserData();
+            ByteThrowClient.setLoggedIn(true);
             MessagingClient.initOtherUsers();
         }else if(type.equals("register")){
-            EncryptedMessenger.writeUserData();
-            EncryptedMessenger.setLoggedIn(true);
+            ByteThrowClient.writeUserData();
+            ByteThrowClient.setLoggedIn(true);
             MessagingClient.initOtherUsers();
-            EMLogger.info("MessagingClient", "Registered Successful");
+            BTMLogger.info("MessagingClient", "Registered Successful");
         }
     }
 

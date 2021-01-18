@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.client.ui;
 
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
@@ -102,7 +102,7 @@ public class Window extends JFrame {
             if (username.length() < 3 || username == null) {
                 JOptionPane.showMessageDialog(null, "Invalid Username (" + username + ") (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
             } else {
-                EncryptedMessenger.messagingClient.connectWithOtherUser(username);
+                ByteThrowClient.messagingClient.connectWithOtherUser(username);
             }
         });
         constraints.gridx = 0;
@@ -120,8 +120,8 @@ public class Window extends JFrame {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     String message = inputField.getText();
-                    if (EncryptedMessenger.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
-                        appendLine("<" + EncryptedMessenger.getUsername() + "> " + message);
+                    if (ByteThrowClient.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
+                        appendLine("<" + ByteThrowClient.getUsername() + "> " + message);
                     } else {
                         JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
                     }
@@ -159,7 +159,7 @@ public class Window extends JFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 closeRequested = true;
-                EncryptedMessenger.messagingClient.stop(0);
+                ByteThrowClient.messagingClient.stop(0);
             }
         });
 

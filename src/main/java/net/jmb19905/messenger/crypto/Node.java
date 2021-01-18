@@ -9,10 +9,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
-import net.jmb19905.messenger.packages.FailPackage;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import javax.crypto.*;
@@ -55,7 +54,7 @@ public class Node {
                     keyAgreement = KeyAgreement.getInstance("ECDH");
                     keyAgreement.init(privateKey);
                 } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-                    EMLogger.error("Crypto", "Error initializing Node", e);
+                    BTMLogger.error("Crypto", "Error initializing Node", e);
                 }
             } else {
                 throw new InvalidNodeException("The Public or Private key is null");
@@ -79,7 +78,7 @@ public class Node {
             keyAgreement = KeyAgreement.getInstance("ECDH");
             keyAgreement.init(privateKey);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            EMLogger.error("CryptoNode", "Error initializing Node", e);
+            BTMLogger.error("CryptoNode", "Error initializing Node", e);
         }
     }
 
@@ -92,7 +91,7 @@ public class Node {
             keyAgreement.doPhase(publicKey, true);
             sharedSecret = keyAgreement.generateSecret();
         } catch (InvalidKeyException e) {
-            EMLogger.error("CryptoNode", "Invalid Key", e);
+            BTMLogger.error("CryptoNode", "Invalid Key", e);
         }
     }
 
@@ -109,12 +108,12 @@ public class Node {
             byte[] encVal = c.doFinal(in);
             return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
-            EMLogger.error("CryptoNode", "Error encrypting", e);
-            if (EncryptedMessenger.messagingClient != null) {
-                EncryptedMessenger.messagingClient.stop(-1);
+            BTMLogger.error("CryptoNode", "Error encrypting", e);
+            if (ByteThrowClient.messagingClient != null) {
+                ByteThrowClient.messagingClient.stop(-1);
             }
         } catch (IllegalArgumentException e) {
-            EMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
+            BTMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
         }
         return in;
     }
@@ -132,9 +131,9 @@ public class Node {
             byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
             return c.doFinal(decodedValue);
         } catch (InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
-            EMLogger.error("CryptoNode", "Error decrypting", e);
+            BTMLogger.error("CryptoNode", "Error decrypting", e);
         } catch (BadPaddingException e){
-            EMLogger.error("CryptoNode", "Error decrypting - wrong key", e);
+            BTMLogger.error("CryptoNode", "Error decrypting - wrong key", e);
         }
         return encryptedData;
     }
@@ -226,7 +225,7 @@ public class Node {
             try {
                 return new Node(publicKey, privateKey, sharedKey);
             } catch (InvalidNodeException e) {
-                EMLogger.error("MessagingClient", "Error deserializing Nodes from JSON", e);
+                BTMLogger.error("MessagingClient", "Error deserializing Nodes from JSON", e);
                 return null;
             }
         }

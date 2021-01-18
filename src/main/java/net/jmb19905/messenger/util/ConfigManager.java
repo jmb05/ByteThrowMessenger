@@ -17,7 +17,7 @@ public class ConfigManager {
         try {
             return objectMapper.readValue(new File(configFilePath), ClientConfig.class);
         } catch (IOException e) {
-            EMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
+            BTMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
             return new ClientConfig();
         }
     }
@@ -37,7 +37,7 @@ public class ConfigManager {
             }
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
         } catch (IOException e) {
-            EMLogger.warn("ConfigMapper", "Error saving config file.", e);
+            BTMLogger.warn("ConfigMapper", "Error saving config file.", e);
         }
     }
 
@@ -51,7 +51,7 @@ public class ConfigManager {
         try {
             return objectMapper.readValue(new File(configFilePath), ServerConfig.class);
         } catch (IOException e) {
-            EMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
+            BTMLogger.warn("ConfigMapper", "Error loading config file. Using Default");
             return new ServerConfig();
         }
     }
@@ -71,7 +71,7 @@ public class ConfigManager {
             }
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
         } catch (IOException e) {
-            EMLogger.warn("ConfigMapper", "Error saving config file.", e);
+            BTMLogger.warn("ConfigMapper", "Error saving config file.", e);
         }
     }
 

@@ -2,8 +2,8 @@ package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.ChatHistory;
-import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.packages.*;
 
@@ -45,7 +45,7 @@ public class Util {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePublic(new X509EncodedKeySpec(encodedKey));
         } catch (NoSuchAlgorithmException e) {
-            EMLogger.warn("Util", "Error retrieving PublicKey", e);
+            BTMLogger.warn("Util", "Error retrieving PublicKey", e);
             return null;
         }
     }
@@ -61,7 +61,7 @@ public class Util {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            EMLogger.warn("Util", "Error retrieving PrivateKey", e);
+            BTMLogger.warn("Util", "Error retrieving PrivateKey", e);
             return null;
         }
     }
@@ -72,25 +72,27 @@ public class Util {
      */
     public static HashMap<String, ChatHistory> loadChatHistories() {
         HashMap<String, ChatHistory> map = new HashMap<>();
-        File parentDirectory = new File("userdata/" + EncryptedMessenger.getUsername() + "/");
+        File parentDirectory = new File("userdata/" + ByteThrowClient.getUsername() + "/");
         if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
             parentDirectory.mkdirs();
         }
         for (File file : parentDirectory.listFiles()) {
             String username = file.getName().split("\\.")[0];
             map.put(username, loadChatHistory(username));
-            EncryptedMessenger.window.addConnectedUser(username);
+            ByteThrowClient.window.addConnectedUser(username);
         }
         return map;
     }
 
     /**
      * Saves the ChatHistories for the current user
-     * @param nodes a HashMap with the username of the history as key and the ChatHistory object as value
+     * @param chatHistoryHashMap a HashMap with the username of the history as key and the ChatHistory object as value
      */
-    public static void saveChatHistories(HashMap<String, ChatHistory> nodes) {
-        for (String name : nodes.keySet()) {
-            saveChatHistory(name, nodes.get(name));
+    public static void saveChatHistories(HashMap<String, ChatHistory> chatHistoryHashMap) {
+        if(chatHistoryHashMap != null) {
+            for (String name : chatHistoryHashMap.keySet()) {
+                saveChatHistory(name, chatHistoryHashMap.get(name));
+            }
         }
     }
 
@@ -100,7 +102,7 @@ public class Util {
      * @param chat the ChatHistory
      */
     public static void saveChatHistory(String username, ChatHistory chat) {
-        File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
+        File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
         if (!file.exists()) {
             file.getParentFile().mkdirs();
         }
@@ -108,7 +110,7 @@ public class Util {
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, chat);
         } catch (IOException e) {
-            EMLogger.error("Util", "Error writing ChatHistory to File", e);
+            BTMLogger.error("Util", "Error writing ChatHistory to File", e);
         }
     }
 
@@ -118,16 +120,16 @@ public class Util {
      * @return the loaded ChatHistory
      */
     public static ChatHistory loadChatHistory(String username) {
-        File file = new File("userdata/" + EncryptedMessenger.getUsername() + "/" + username + ".json");
+        File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
         if (file.exists()) {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 return mapper.readValue(file, ChatHistory.class);
             } catch (IOException e) {
-                EMLogger.error("Util", "Error reading ChatHistory from File", e);
+                BTMLogger.error("Util", "Error reading ChatHistory from File", e);
             }
         } else {
-            EMLogger.warn("Util", "Cannot read ChatHistory from File - ChatHistory does not exist");
+            BTMLogger.warn("Util", "Cannot read ChatHistory from File - ChatHistory does not exist");
         }
         return null;
     }
@@ -177,7 +179,7 @@ public class Util {
             InputStream stream = getResource(s);
             return ImageIO.read(stream);
         } catch (IOException e) {
-            EMLogger.warn("Util", "Error loading image");
+            BTMLogger.warn("Util", "Error loading image");
             return null;
         }
     }
@@ -198,14 +200,14 @@ public class Util {
      * @param icon the icon of the Notification
      */
     public static void displayNotification(String title, String text, Image icon) {
-        TrayIcon trayIcon = new TrayIcon(icon, "EM Notification");
+        TrayIcon trayIcon = new TrayIcon(icon, "BTM Notification");
         trayIcon.setImageAutoSize(true);
-        trayIcon.setToolTip("EM Notification");
+        trayIcon.setToolTip("BTM Notification");
 
         try {
             systemTray.add(trayIcon);
         } catch (AWTException e) {
-            EMLogger.warn("Util", "Error adding Icon to Notification");
+            BTMLogger.warn("Util", "Error adding Icon to Notification");
         }
 
         trayIcon.displayMessage(title, text, TrayIcon.MessageType.NONE);
@@ -235,11 +237,16 @@ public class Util {
                 return true;
             }
         } catch (IOException e) {
-            EMLogger.warn("Util", "Error creating file: " + file.getAbsolutePath());
+            BTMLogger.warn("Util", "Error creating file: " + file.getAbsolutePath());
         }
         return false;
     }
 
+    /**
+     * Takes BufferedImage and returns all its bytes
+     * @param image the image
+     * @return the bytes
+     */
     public static byte[] convertImageToBytes(BufferedImage image){
         try {
             ByteArrayOutputStream stream = new ByteArrayOutputStream(65536);
@@ -249,20 +256,30 @@ public class Util {
             stream.close();
             return bytes;
         } catch (IOException e) {
-            EMLogger.warn("Util", "Error converting Image to bytes", e);
+            BTMLogger.warn("Util", "Error converting Image to bytes", e);
             return new byte[0];
         }
     }
 
+    /**
+     * Takes bytes and turns them into a BufferedImage
+     * @param bytes the bytes
+     * @return the image
+     */
     public static BufferedImage convertBytesToImage(byte[] bytes){
         try {
             return ImageIO.read(new ByteArrayInputStream(bytes));
         } catch (IOException e) {
-            EMLogger.warn("Util", "Error converting bytes to Image", e);
+            BTMLogger.warn("Util", "Error converting bytes to Image", e);
             return null;
         }
     }
 
+    /**
+     * Read a string (format: [45, 34, -32, ...]) and returns the bytes
+     * @param arrayAsString the String
+     * @return the bytes
+     */
     public static byte[] readByteArray(String arrayAsString){
         if(!arrayAsString.startsWith("[") || !arrayAsString.endsWith("]")){
             return new byte[0];
@@ -273,11 +290,31 @@ public class Util {
             try {
                 output[i] = (byte) Integer.parseInt(parts[i]);
             }catch (NumberFormatException e){
-                EMLogger.warn("Util", "String array does not represent a byte array", e);
+                BTMLogger.warn("Util", "String array does not represent a byte array", e);
                 return new byte[0];
             }
         }
         return output;
+    }
+
+    /**
+     * Loads the version of the program from the Resources
+     * @return the version as as string
+     */
+    public static String readVersion(){
+        BufferedReader reader = new BufferedReader(new InputStreamReader(getResource("version.txt")));
+        String version = null;
+        try {
+            version = reader.readLine();
+            reader.close();
+        } catch (IOException e) {
+            BTMLogger.error("Util", "Error loading version");
+            if(ByteThrowClient.messagingClient != null){
+                ByteThrowClient.messagingClient.stop(-1);
+            }
+            System.exit(-1);
+        }
+        return version;
     }
 
 }

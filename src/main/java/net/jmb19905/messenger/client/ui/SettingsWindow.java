@@ -4,9 +4,9 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import net.jmb19905.messenger.client.EncryptedMessenger;
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.util.ConfigManager;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
@@ -49,7 +49,7 @@ public class SettingsWindow extends JDialog {
         constraints.gridheight = 1;
         contentPanel.add(themeCombo, constraints);
 
-        themeCombo.setSelectedItem(EncryptedMessenger.clientConfig.theme);
+        themeCombo.setSelectedItem(ByteThrowClient.clientConfig.theme);
         themeCombo.addItemListener(e -> setLookAndFeel((String) themeCombo.getSelectedItem()));
 
         JLabel autoLoginLabel = new JLabel("Automatic Login: ");
@@ -66,10 +66,10 @@ public class SettingsWindow extends JDialog {
         constraints.gridheight = 1;
         contentPanel.add(autoLoginCheckBox, constraints);
 
-        autoLoginCheckBox.setSelected(EncryptedMessenger.clientConfig.autoLogin);
+        autoLoginCheckBox.setSelected(ByteThrowClient.clientConfig.autoLogin);
         autoLoginCheckBox.addActionListener((e) -> {
-            EncryptedMessenger.clientConfig.autoLogin = autoLoginCheckBox.isSelected();
-            ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
+            ByteThrowClient.clientConfig.autoLogin = autoLoginCheckBox.isSelected();
+            ConfigManager.saveClientConfig(ByteThrowClient.clientConfig, "config/client_config.json");
         });
 
         JButton resetSettings = new JButton("Reset Settings");
@@ -80,11 +80,11 @@ public class SettingsWindow extends JDialog {
         contentPanel.add(resetSettings, constraints);
 
         resetSettings.addActionListener(e -> {
-            EncryptedMessenger.clientConfig = new ConfigManager.ClientConfig();
-            ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
-            themeCombo.setSelectedItem(EncryptedMessenger.clientConfig.theme);
+            ByteThrowClient.clientConfig = new ConfigManager.ClientConfig();
+            ConfigManager.saveClientConfig(ByteThrowClient.clientConfig, "config/client_config.json");
+            themeCombo.setSelectedItem(ByteThrowClient.clientConfig.theme);
             setLookAndFeel((String) themeCombo.getSelectedItem());
-            autoLoginCheckBox.setSelected(EncryptedMessenger.clientConfig.autoLogin);
+            autoLoginCheckBox.setSelected(ByteThrowClient.clientConfig.autoLogin);
         });
 
         add(pane);
@@ -118,22 +118,22 @@ public class SettingsWindow extends JDialog {
                     UIManager.setLookAndFeel(new FlatIntelliJLaf());
                     break;
             }
-            EncryptedMessenger.clientConfig.theme = lookAndFeelName;
+            ByteThrowClient.clientConfig.theme = lookAndFeelName;
         } catch (UnsupportedLookAndFeelException ex) {
-            EMLogger.warn("MessagingClient", "Could not change look and feel. Skipping", ex);
+            BTMLogger.warn("MessagingClient", "Could not change look and feel. Skipping", ex);
         }
         try {
-            SwingUtilities.updateComponentTreeUI(EncryptedMessenger.window.settingsWindow);
-            SwingUtilities.updateComponentTreeUI(EncryptedMessenger.window);
-            EncryptedMessenger.window.settingsWindow.revalidate();
-            EncryptedMessenger.window.revalidate();
-            EncryptedMessenger.window.settingsWindow.repaint();
-            EncryptedMessenger.window.repaint();
-            EncryptedMessenger.window.settingsWindow.pack();
-            EncryptedMessenger.window.pack();
+            SwingUtilities.updateComponentTreeUI(ByteThrowClient.window.settingsWindow);
+            SwingUtilities.updateComponentTreeUI(ByteThrowClient.window);
+            ByteThrowClient.window.settingsWindow.revalidate();
+            ByteThrowClient.window.revalidate();
+            ByteThrowClient.window.settingsWindow.repaint();
+            ByteThrowClient.window.repaint();
+            ByteThrowClient.window.settingsWindow.pack();
+            ByteThrowClient.window.pack();
         } catch (NullPointerException ignored) {
         }
-        ConfigManager.saveClientConfig(EncryptedMessenger.clientConfig, "config/client_config.json");
+        ConfigManager.saveClientConfig(ByteThrowClient.clientConfig, "config/client_config.json");
     }
 
     /**

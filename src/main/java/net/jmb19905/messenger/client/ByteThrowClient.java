@@ -4,13 +4,15 @@ import com.esotericsoftware.minlog.Log;
 import net.jmb19905.messenger.client.ui.SettingsWindow;
 import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.util.ConfigManager;
-import net.jmb19905.messenger.util.EMLogger;
+import net.jmb19905.messenger.util.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
 
 import java.io.*;
 
-public class EncryptedMessenger {
+public class ByteThrowClient {
+
+    public static String version;
 
     private static String username = "";
     private static String password = "";
@@ -41,13 +43,14 @@ public class EncryptedMessenger {
     }
 
     /**
-     * Initializes Variable, EMLogger, Log, ClientConfig, LookAndFeel
+     * Initializes Variable, BTMLogger, Log, ClientConfig, LookAndFeel
      */
     private static void startUp() {
         Variables.currentSide = "client";
-        EMLogger.setLevel(EMLogger.LEVEL_TRACE);
+        BTMLogger.setLevel(BTMLogger.LEVEL_TRACE);
         Log.set(Log.LEVEL_DEBUG);
-        EMLogger.init();
+        BTMLogger.init();
+        version = Util.readVersion();
         clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
         SettingsWindow.setLookAndFeel(clientConfig.theme);
     }
@@ -68,23 +71,23 @@ public class EncryptedMessenger {
                     password = reader.readLine();
                     reader.close();
                 } catch (NullPointerException e) {
-                    EMLogger.warn("MessagingClient", "No UserData found in file user.dat - login required");
+                    BTMLogger.warn("MessagingClient", "No UserData found in file user.dat - login required");
                 }
             }else {
-                EMLogger.warn("MessagingClient", "Error creating userdata file");
+                BTMLogger.warn("MessagingClient", "Error creating userdata file");
             }
         } catch (IOException e) {
-            EMLogger.warn("MessagingClient", "Error reading userdata", e);
+            BTMLogger.warn("MessagingClient", "Error reading userdata", e);
         }
     }
 
     public static void setUserData(String username, String password) {
-        EncryptedMessenger.username = username;
-        EncryptedMessenger.password = password;
+        ByteThrowClient.username = username;
+        ByteThrowClient.password = password;
     }
 
     public static void setLoggedIn(boolean loggedIn) {
-        EncryptedMessenger.loggedIn = loggedIn;
+        ByteThrowClient.loggedIn = loggedIn;
     }
 
     public static boolean isLoggedIn() {
@@ -105,13 +108,13 @@ public class EncryptedMessenger {
                     writer.write(password + "\n");
                     writer.close();
                 }else{
-                    EMLogger.warn("MessagingClient", "Error creating userdata file");
+                    BTMLogger.warn("MessagingClient", "Error creating userdata file");
                 }
             } catch (IOException e) {
-                EMLogger.info("MessagingClient", "Error writing userdata", e);
+                BTMLogger.info("MessagingClient", "Error writing userdata", e);
             }
         } else {
-            EMLogger.warn("MessagingClient", "Can't write UserData to file 'user.dat'! Incomplete data");
+            BTMLogger.warn("MessagingClient", "Can't write UserData to file 'user.dat'! Incomplete data");
         }
     }
 
@@ -128,7 +131,7 @@ public class EncryptedMessenger {
                 userDat.createNewFile();
             }
         } catch (IOException e) {
-            EMLogger.warn("MessagingClient", "Cannot wipe userdata (user.dat)");
+            BTMLogger.warn("MessagingClient", "Cannot wipe userdata (user.dat)");
         }
     }
 
