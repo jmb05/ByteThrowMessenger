@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.messages;
+package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.EncryptedMessenger;
@@ -8,11 +8,11 @@ import net.jmb19905.messenger.util.EMLogger;
 /**
  * Sent on started connection between Server and Client to ensure an encrypted connection
  */
-public class LoginPublicKeyMessage extends EMMessage {
+public class LoginPublicKeyPackage extends EMPackage {
 
     public byte[] encodedKey;
 
-    public LoginPublicKeyMessage() {
+    public LoginPublicKeyPackage() {
     }
 
     @Override

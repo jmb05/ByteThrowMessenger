@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.messages.exception;
+package net.jmb19905.messenger.packages.exception;
 
 public class UnsupportedSideException extends Exception {
 

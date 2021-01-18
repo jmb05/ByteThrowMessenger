@@ -4,10 +4,10 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.EMMessage;
-import net.jmb19905.messenger.messages.LoginPublicKeyMessage;
-import net.jmb19905.messenger.messages.SuccessMessage;
-import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packages.EMPackage;
+import net.jmb19905.messenger.packages.LoginPublicKeyPackage;
+import net.jmb19905.messenger.packages.SuccessPackage;
+import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
@@ -16,7 +16,6 @@ import java.net.BindException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
-import java.util.UUID;
 
 public class MessagingServer extends Listener {
 
@@ -24,15 +23,16 @@ public class MessagingServer extends Listener {
     private final Server server;
 
     public static final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
-    public static final HashMap<String, HashMap<EMMessage, Object[]>> messagesQueue = new HashMap<>();
+    public static final HashMap<String, HashMap<EMPackage, Object[]>> messagesQueue = new HashMap<>();
+    public static final HashMap<String, E2EConnection> e2eConnectedClients = new HashMap<>();
 
     public MessagingServer() {
         EMLogger.trace("MessagingServer", "Initializing Server");
         this.port = ServerMain.config.port;
         server = new Server();
 
-        Util.registerMessages(server.getKryo());
-        EMLogger.trace("MessagingServer", "Registered Messages");
+        Util.registerPackages(server.getKryo());
+        EMLogger.trace("MessagingServer", "Registered Packages");
 
         server.addListener(this);
         EMLogger.trace("MessagingServer", "Added Listener");
@@ -75,15 +75,15 @@ public class MessagingServer extends Listener {
     }
 
     /**
-     * What to do when a Message from a Client is received
+     * What to do when a Package from a Client is received
      */
     @Override
     public void received(Connection connection, Object o) {
-        if (o instanceof EMMessage) {
+        if (o instanceof EMPackage) {
             try {
-                ((EMMessage) o).handleOnServer(connection);
+                ((EMPackage) o).handleOnServer(connection);
             } catch (UnsupportedSideException e) {
-                EMLogger.warn("MessagingServer", "Message received on wrong side", e);
+                EMLogger.warn("MessagingServer", "Package received on wrong side", e);
             }
         }
     }
@@ -91,13 +91,11 @@ public class MessagingServer extends Listener {
     /**
      * Tells a Client that the registration succeeded
      * @param connection the connection to the Client
-     * @param username the username of the Client
-     * @param uuid the UUID of the Client
      */
-    public void sendRegisterSuccess(Connection connection, String username, UUID uuid) {
-        SuccessMessage message = new SuccessMessage();
-        message.type = "register";
-        connection.sendTCP(message);
+    public void sendRegisterSuccess(Connection connection) {
+        SuccessPackage success = new SuccessPackage();
+        success.type = "register";
+        connection.sendTCP(success);
     }
 
     /**
@@ -107,9 +105,9 @@ public class MessagingServer extends Listener {
      */
     public void sendPublicKey(Connection connection, byte[] encodedKey) {
         Node clientConnection = initNode(connection, encodedKey);
-        LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
-        loginPublicKeyMessage.encodedKey = clientConnection.getPublicKey().getEncoded();
-        connection.sendTCP(loginPublicKeyMessage);
+        LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
+        loginPublicKeyPackage.encodedKey = clientConnection.getPublicKey().getEncoded();
+        connection.sendTCP(loginPublicKeyPackage);
         EMLogger.trace("MessagingServer", "Sent Public Key");
     }
 

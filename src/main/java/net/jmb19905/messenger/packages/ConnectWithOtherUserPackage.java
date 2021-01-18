@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.messages;
+package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ChatHistory;
@@ -16,17 +16,17 @@ import java.util.HashMap;
 /**
  * Used when two Users want to connect
  */
-public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable {
+public class ConnectWithOtherUserPackage extends EMPackage implements IQueueable {
 
     public String username;
     public byte[] publicKeyEncodedEncrypted;
 
-    public ConnectWithOtherUserMessage() {
+    public ConnectWithOtherUserPackage() {
     }
 
     @Override
     public void handleOnClient(Connection connection) {
-        EMLogger.trace("MessagingClient", "Received ConnectWithOtherUserMessage");
+        EMLogger.trace("MessagingClient", "Received ConnectWithOtherUserPackage");
         String decryptedUsername = Util.decryptString(MessagingClient.thisDevice, username);
         byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
         if (MessagingClient.otherUsers.get(decryptedUsername) != null) {
@@ -85,7 +85,7 @@ public class ConnectWithOtherUserMessage extends EMMessage implements IQueueable
                 }
             }
 
-            HashMap<EMMessage, Object[]> queueData;
+            HashMap<EMPackage, Object[]> queueData;
             if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
             } else {

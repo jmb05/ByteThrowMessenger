@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jmb19905.messenger.client.ChatHistory;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.*;
+import net.jmb19905.messenger.packages.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -134,18 +134,18 @@ public class Util {
     }
 
     /**
-     * Registers the ALL the Messages
-     * @param kryo the Kryo that the messages will be registered to
+     * Registers the ALL the Packages
+     * @param kryo the Kryo that the Packages will be registered to
      */
-    public static void registerMessages(Kryo kryo) {
-        kryo.register(LoginPublicKeyMessage.class);
+    public static void registerPackages(Kryo kryo) {
+        kryo.register(LoginPublicKeyPackage.class);
         kryo.register(byte[].class);
-        kryo.register(LoginMessage.class);
-        kryo.register(RegisterMessage.class);
-        kryo.register(SuccessMessage.class);
-        kryo.register(ConnectWithOtherUserMessage.class);
-        kryo.register(DataMessage.class);
-        kryo.register(FailMessage.class);
+        kryo.register(LoginPackage.class);
+        kryo.register(RegisterPackage.class);
+        kryo.register(SuccessPackage.class);
+        kryo.register(ConnectWithOtherUserPackage.class);
+        kryo.register(DataPackage.class);
+        kryo.register(FailPackage.class);
     }
 
     /**

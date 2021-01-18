@@ -1,12 +1,12 @@
-package net.jmb19905.messenger.messages;
+package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.EncryptedMessenger;
-import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
-public class FailMessage extends EMMessage{
+public class FailPackage extends EMPackage {
 
     public String type;
     public String cause;
@@ -44,6 +44,6 @@ public class FailMessage extends EMMessage{
 
     @Override
     public void handleOnServer(Connection connection) throws UnsupportedSideException {
-        throw new UnsupportedSideException("LoginFailedMessage received on server");
+        throw new UnsupportedSideException("FailPackage received on server");
     }
 }

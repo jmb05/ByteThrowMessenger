@@ -1,8 +1,8 @@
-package net.jmb19905.messenger.messages;
+package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.ServerMain;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
@@ -15,17 +15,17 @@ import java.util.UUID;
 /**
  * Sent to the server when a Client wants to register a new account
  */
-public class RegisterMessage extends EMMessage {
+public class RegisterPackage extends EMPackage {
 
     public String username;
     public String password;
 
-    public RegisterMessage() {
+    public RegisterPackage() {
     }
 
     @Override
     public void handleOnClient(Connection connection) throws UnsupportedSideException {
-        throw new UnsupportedSideException("RegisterMessage received on client");
+        throw new UnsupportedSideException("RegisterPackage received on client");
     }
 
     @Override
@@ -39,18 +39,18 @@ public class RegisterMessage extends EMMessage {
                 if (user == null) {
                     //User does not exist create a new one
                     UUID uuid = SQLiteManager.createUser(username, password);
-                    ServerMain.messagingServer.sendRegisterSuccess(connection, username, uuid);
+                    ServerMain.messagingServer.sendRegisterSuccess(connection);
                     MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
                 } else {
                     if (BCrypt.hashpw(password, user.salt).equals(user.password)) {
                         EMLogger.trace("MessagingServer", "Client tried to register instead of login -> logging client in");
                         MessagingServer.clientConnectionKeys.get(connection).setUsername(user.username);
                         MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
-                        SuccessMessage successMessage = new SuccessMessage();
-                        successMessage.type = "login";
-                        connection.sendTCP(successMessage);
+                        SuccessPackage success = new SuccessPackage();
+                        success.type = "login";
+                        connection.sendTCP(success);
                     } else {
-                        FailMessage fail = new FailMessage();
+                        FailPackage fail = new FailPackage();
                         fail.type = "usernameTaken";
                         connection.sendTCP(fail);
                     }
@@ -60,10 +60,10 @@ public class RegisterMessage extends EMMessage {
             }
         } catch (NullPointerException e) {
             EMLogger.warn("MessagingServer", "Error adding user");
-            FailMessage registerFailedMessage = new FailMessage();
-            registerFailedMessage.type = "registerFail";
-            registerFailedMessage.cause = "There was an internal database error";
-            connection.sendTCP(registerFailedMessage);
+            FailPackage fail = new FailPackage();
+            fail.type = "registerFail";
+            fail.cause = "There was an internal database error";
+            connection.sendTCP(fail);
         }
     }
 }

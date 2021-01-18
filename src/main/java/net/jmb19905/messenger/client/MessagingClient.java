@@ -6,8 +6,8 @@ import com.esotericsoftware.kryonet.Listener;
 import net.jmb19905.messenger.client.ui.OptionPanes;
 import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.crypto.Node;
-import net.jmb19905.messenger.messages.*;
-import net.jmb19905.messenger.messages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packages.*;
+import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
@@ -40,8 +40,8 @@ public class MessagingClient extends Listener {
         EMLogger.trace("MessagingClient", "Initializing Client");
         client = new Client();
 
-        Util.registerMessages(client.getKryo());
-        EMLogger.trace("MessagingClient", "Registered Messages");
+        Util.registerPackages(client.getKryo());
+        EMLogger.trace("MessagingClient", "Registered Packages");
 
         client.addListener(this);
         EMLogger.trace("MessagingClient", "Added Listener");
@@ -86,10 +86,10 @@ public class MessagingClient extends Listener {
     @Override
     public void connected(Connection connection) {
         EMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
-        LoginPublicKeyMessage loginPublicKeyMessage = new LoginPublicKeyMessage();
-        loginPublicKeyMessage.encodedKey = thisDevice.getPublicKey().getEncoded();
-        connection.sendTCP(loginPublicKeyMessage);
-        EMLogger.trace("MessagingClient", "Sent PublicKey " + Arrays.toString(loginPublicKeyMessage.encodedKey));
+        LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
+        loginPublicKeyPackage.encodedKey = thisDevice.getPublicKey().getEncoded();
+        connection.sendTCP(loginPublicKeyPackage);
+        EMLogger.trace("MessagingClient", "Sent PublicKey " + Arrays.toString(loginPublicKeyPackage.encodedKey));
     }
 
     /**
@@ -107,15 +107,15 @@ public class MessagingClient extends Listener {
     }
 
     /**
-     * What to do when the Client receives a Message from the Server
+     * What to do when the Client receives a Package from the Server
      */
     @Override
     public void received(Connection connection, Object o) {
-        if (o instanceof EMMessage) {
+        if (o instanceof EMPackage) {
             try {
-                ((EMMessage) o).handleOnClient(connection);
+                ((EMPackage) o).handleOnClient(connection);
             } catch (UnsupportedSideException e) {
-                EMLogger.warn("MessagingClient", "Message received on wrong side", e);
+                EMLogger.warn("MessagingClient", "Package received on wrong side", e);
             }
         }
     }
@@ -126,10 +126,10 @@ public class MessagingClient extends Listener {
      */
     public void connectWithOtherUser(String username) {
         Node node = new Node();
-        ConnectWithOtherUserMessage message = new ConnectWithOtherUserMessage();
-        message.username = Util.encryptString(thisDevice, username);
-        message.publicKeyEncodedEncrypted = thisDevice.encrypt(node.getPublicKey().getEncoded());
-        client.sendTCP(message);
+        ConnectWithOtherUserPackage connectPackage = new ConnectWithOtherUserPackage();
+        connectPackage.username = Util.encryptString(thisDevice, username);
+        connectPackage.publicKeyEncodedEncrypted = thisDevice.encrypt(node.getPublicKey().getEncoded());
+        client.sendTCP(connectPackage);
         ChatHistory chatHistory = new ChatHistory(username, node);
         otherUsers.put(username, chatHistory);
         connectionRequested.add(username);
@@ -145,10 +145,10 @@ public class MessagingClient extends Listener {
         ChatHistory chatHistory = otherUsers.get(username);
         if (chatHistory != null && chatHistory.getNode() != null) {
             if (chatHistory.getNode().getSharedSecret() != null) {
-                DataMessage dataMessage = new DataMessage();
-                dataMessage.username = Util.encryptString(thisDevice, username);
-                dataMessage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(chatHistory.getNode(), message));
-                client.sendTCP(dataMessage);
+                DataPackage dataPackage = new DataPackage();
+                dataPackage.username = Util.encryptString(thisDevice, username);
+                dataPackage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(chatHistory.getNode(), message));
+                client.sendTCP(dataPackage);
                 chatHistory.addMessage(EncryptedMessenger.getUsername(), message);
                 return true;
             } else {
@@ -165,19 +165,19 @@ public class MessagingClient extends Listener {
      */
     public void login() {
         if (!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")) {
-            LoginMessage loginMessage = new LoginMessage();
-            loginMessage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
-            loginMessage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
-            client.sendTCP(loginMessage);
+            LoginPackage loginPackage = new LoginPackage();
+            loginPackage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
+            loginPackage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
+            client.sendTCP(loginPackage);
         } else {
             OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register());
             if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
                 System.exit(0);
             } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
-                LoginMessage loginMessage = new LoginMessage();
-                loginMessage.username = Util.encryptString(thisDevice, value.values[0]);
-                loginMessage.password = Util.encryptString(thisDevice, value.values[1]);
-                client.sendTCP(loginMessage);
+                LoginPackage loginPackage = new LoginPackage();
+                loginPackage.username = Util.encryptString(thisDevice, value.values[0]);
+                loginPackage.password = Util.encryptString(thisDevice, value.values[1]);
+                client.sendTCP(loginPackage);
                 EncryptedMessenger.setUserData(value.values[0], value.values[1]);
             }
         }
@@ -191,10 +191,10 @@ public class MessagingClient extends Listener {
         if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
             stop(0);
         } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
-            RegisterMessage registerMessage = new RegisterMessage();
-            registerMessage.username = Util.encryptString(thisDevice, value.values[0]);
-            registerMessage.password = Util.encryptString(thisDevice, value.values[1]);
-            client.sendTCP(registerMessage);
+            RegisterPackage registerPackage = new RegisterPackage();
+            registerPackage.username = Util.encryptString(thisDevice, value.values[0]);
+            registerPackage.password = Util.encryptString(thisDevice, value.values[1]);
+            client.sendTCP(registerPackage);
             EMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
         }
     }

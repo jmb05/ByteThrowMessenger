@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.messages;
+package net.jmb19905.messenger.packages;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ChatHistory;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 /**
  * Transfers text between two users
  */
-public class DataMessage extends EMMessage implements IQueueable {
+public class DataPackage extends EMPackage implements IQueueable {
 
     public String username;
 
@@ -57,7 +57,7 @@ public class DataMessage extends EMMessage implements IQueueable {
                 }
             }
 
-            HashMap<EMMessage, Object[]> queueData;
+            HashMap<EMPackage, Object[]> queueData;
             if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
             } else {
@@ -76,10 +76,10 @@ public class DataMessage extends EMMessage implements IQueueable {
             Node recipientNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
             String decryptedUserName = (String) extraData[0];
             String decryptedMessage = (String) extraData[1];
-            DataMessage dataMessage = new DataMessage();
-            dataMessage.username = Util.encryptString(recipientNode, decryptedUserName);
-            dataMessage.encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
-            connection.sendTCP(dataMessage);
+            DataPackage dataPackage = new DataPackage();
+            dataPackage.username = Util.encryptString(recipientNode, decryptedUserName);
+            dataPackage.encryptedMessage = Util.encryptString(recipientNode, decryptedMessage);
+            connection.sendTCP(dataPackage);
         } catch (ArrayIndexOutOfBoundsException | NullPointerException e) {
             EMLogger.warn("DataMessage", "Error parsing data for Message: " + this + " from queue", e);
         }
