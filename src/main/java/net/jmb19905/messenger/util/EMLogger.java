@@ -112,7 +112,11 @@ public class EMLogger extends Log.Logger {
             builder.append(writer.toString().trim());
         }
 
-        print(builder.toString());
+        if(level < LEVEL_ERROR) {
+            print(builder.toString());
+        }else{
+            printError(builder.toString());
+        }
         if (logFile.exists() && writer != null) {
             try {
                 writer.write(builder.toString() + "\n");
@@ -239,6 +243,14 @@ public class EMLogger extends Log.Logger {
     public static void error(String category, String message, Throwable ex) {
         if (ERROR)
             instance.log(Log.LEVEL_ERROR, category, message, ex);
+    }
+
+    /**
+     * Prints a message as error
+     * @param message the message
+     */
+    private void printError(String message){
+        System.err.println(message);
     }
 
 }

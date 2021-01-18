@@ -3,18 +3,13 @@ package net.jmb19905.messenger.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import net.jmb19905.messenger.crypto.Node;
 import net.jmb19905.messenger.packages.EMPackage;
-import net.jmb19905.messenger.packages.LoginPublicKeyPackage;
-import net.jmb19905.messenger.packages.SuccessPackage;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import java.io.IOException;
 import java.net.BindException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 
 public class MessagingServer extends Listener {
@@ -22,7 +17,7 @@ public class MessagingServer extends Listener {
     private final int port;
     private final Server server;
 
-    public static final HashMap<Connection, ClientConnection> clientConnectionKeys = new HashMap<>();
+    public static final HashMap<Connection, ClientConnection>  clientConnectionKeys = new HashMap<>();
     public static final HashMap<String, HashMap<EMPackage, Object[]>> messagesQueue = new HashMap<>();
     public static final HashMap<String, E2EConnection> e2eConnectedClients = new HashMap<>();
 
@@ -48,7 +43,7 @@ public class MessagingServer extends Listener {
         try {
             server.bind(port, port + 1);
         } catch (BindException e) {
-            EMLogger.error("MessagingServer", "Error Binding Server to port: " + port + "! Probably is a server already running!", e);
+            EMLogger.error("MessagingServer", "Error Binding Server to port: " + port + " and/or " + (port + 1) + "! There is probably a server already running!", e);
             System.exit(-1);
         } catch (IOException e) {
             EMLogger.error("MessagingServer", "Error binding server", e);
@@ -87,47 +82,4 @@ public class MessagingServer extends Listener {
             }
         }
     }
-
-    /**
-     * Tells a Client that the registration succeeded
-     * @param connection the connection to the Client
-     */
-    public void sendRegisterSuccess(Connection connection) {
-        SuccessPackage success = new SuccessPackage();
-        success.type = "register";
-        connection.sendTCP(success);
-    }
-
-    /**
-     * Sends the Client a PublicKey
-     * @param connection the connection to the Client
-     * @param encodedKey the PublicKey encoded as byte-array
-     */
-    public void sendPublicKey(Connection connection, byte[] encodedKey) {
-        Node clientConnection = initNode(connection, encodedKey);
-        LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
-        loginPublicKeyPackage.encodedKey = clientConnection.getPublicKey().getEncoded();
-        connection.sendTCP(loginPublicKeyPackage);
-        EMLogger.trace("MessagingServer", "Sent Public Key");
-    }
-
-    /**
-     * Initializes a Node when the PublicKey of a Client is received
-     * @param connection the connection to the Client
-     * @param encodedKey the PublicKey from the Client encoded as byte-array
-     * @return the Node
-     */
-    private Node initNode(Connection connection, byte[] encodedKey) {
-        try {
-            Node clientConnection = new Node();
-            PublicKey publicKey = Util.createPublicKeyFromData(encodedKey);
-            clientConnection.setReceiverPublicKey(publicKey);
-            clientConnectionKeys.put(connection, new ClientConnection(clientConnection, false));
-            return clientConnection;
-        } catch (InvalidKeySpecException e) {
-            EMLogger.error("MessagingServer", "Error initializing Node. Key is invalid.");
-            return null;
-        }
-    }
-
 }

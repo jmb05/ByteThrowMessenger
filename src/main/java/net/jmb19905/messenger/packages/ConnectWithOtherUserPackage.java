@@ -21,9 +21,6 @@ public class ConnectWithOtherUserPackage extends EMPackage implements IQueueable
     public String username;
     public byte[] publicKeyEncodedEncrypted;
 
-    public ConnectWithOtherUserPackage() {
-    }
-
     @Override
     public void handleOnClient(Connection connection) {
         EMLogger.trace("MessagingClient", "Received ConnectWithOtherUserPackage");

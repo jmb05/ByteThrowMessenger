@@ -20,9 +20,6 @@ public class RegisterPackage extends EMPackage {
     public String username;
     public String password;
 
-    public RegisterPackage() {
-    }
-
     @Override
     public void handleOnClient(Connection connection) throws UnsupportedSideException {
         throw new UnsupportedSideException("RegisterPackage received on client");
@@ -39,7 +36,7 @@ public class RegisterPackage extends EMPackage {
                 if (user == null) {
                     //User does not exist create a new one
                     UUID uuid = SQLiteManager.createUser(username, password);
-                    ServerMain.messagingServer.sendRegisterSuccess(connection);
+                    sendRegisterSuccess(connection);
                     MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
                 } else {
                     if (BCrypt.hashpw(password, user.salt).equals(user.password)) {
@@ -66,4 +63,16 @@ public class RegisterPackage extends EMPackage {
             connection.sendTCP(fail);
         }
     }
+
+    /**
+     * Tells a Client that the registration succeeded
+     *
+     * @param connection the connection to the Client
+     */
+    public void sendRegisterSuccess(Connection connection) {
+        SuccessPackage success = new SuccessPackage();
+        success.type = "register";
+        connection.sendTCP(success);
+    }
+
 }

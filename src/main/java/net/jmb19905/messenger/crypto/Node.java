@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import net.jmb19905.messenger.client.EncryptedMessenger;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
+import net.jmb19905.messenger.packages.FailPackage;
 import net.jmb19905.messenger.util.EMLogger;
 import net.jmb19905.messenger.util.Util;
 
@@ -88,7 +89,7 @@ public class Node {
      */
     public void setReceiverPublicKey(PublicKey publicKey) {
         try {
-            keyAgreement.doPhase(publickey, true);
+            keyAgreement.doPhase(publicKey, true);
             sharedSecret = keyAgreement.generateSecret();
         } catch (InvalidKeyException e) {
             EMLogger.error("CryptoNode", "Invalid Key", e);
@@ -111,8 +112,6 @@ public class Node {
             EMLogger.error("CryptoNode", "Error encrypting", e);
             if (EncryptedMessenger.messagingClient != null) {
                 EncryptedMessenger.messagingClient.stop(-1);
-            } else {
-                System.exit(-1);
             }
         } catch (IllegalArgumentException e) {
             EMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
@@ -132,8 +131,10 @@ public class Node {
             c.init(Cipher.DECRYPT_MODE, key);
             byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
             return c.doFinal(decodedValue);
-        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
+        } catch (InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
             EMLogger.error("CryptoNode", "Error decrypting", e);
+        } catch (BadPaddingException e){
+            EMLogger.error("CryptoNode", "Error decrypting - wrong key", e);
         }
         return encryptedData;
     }

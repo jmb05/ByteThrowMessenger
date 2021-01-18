@@ -8,6 +8,7 @@ import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
 import net.jmb19905.messenger.util.Util;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -18,9 +19,6 @@ public class LoginPackage extends EMPackage {
     public String username;
     public String password;
 
-    public LoginPackage() {
-    }
-
     @Override
     public void handleOnClient(Connection connection) throws UnsupportedSideException {
         throw new UnsupportedSideException("LoginPackage received on client");
@@ -28,9 +26,9 @@ public class LoginPackage extends EMPackage {
 
     @Override
     public void handleOnServer(Connection connection) {
-        Node clientConnection = MessagingServer.clientConnectionKeys.get(connection).getNode();
-        String username = Util.decryptString(clientConnection, this.username);
-        String password = Util.decryptString(clientConnection, this.password);
+        Node clientConnectionNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
+        String username = Util.decryptString(clientConnectionNode, this.username);
+        String password = Util.decryptString(clientConnectionNode, this.password);
 
         SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
         if (userData == null) {

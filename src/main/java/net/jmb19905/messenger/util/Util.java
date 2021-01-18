@@ -9,9 +9,8 @@ import net.jmb19905.messenger.packages.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -142,9 +141,9 @@ public class Util {
         kryo.register(byte[].class);
         kryo.register(LoginPackage.class);
         kryo.register(RegisterPackage.class);
-        kryo.register(SuccessPackage.class);
         kryo.register(ConnectWithOtherUserPackage.class);
         kryo.register(DataPackage.class);
+        kryo.register(SuccessPackage.class);
         kryo.register(FailPackage.class);
     }
 
@@ -206,7 +205,7 @@ public class Util {
         try {
             systemTray.add(trayIcon);
         } catch (AWTException e) {
-            e.printStackTrace();
+            EMLogger.warn("Util", "Error adding Icon to Notification");
         }
 
         trayIcon.displayMessage(title, text, TrayIcon.MessageType.NONE);
@@ -239,6 +238,46 @@ public class Util {
             EMLogger.warn("Util", "Error creating file: " + file.getAbsolutePath());
         }
         return false;
+    }
+
+    public static byte[] convertImageToBytes(BufferedImage image){
+        try {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream(65536);
+            ImageIO.write(image, "png", stream);
+            stream.flush();
+            byte[] bytes = stream.toByteArray();
+            stream.close();
+            return bytes;
+        } catch (IOException e) {
+            EMLogger.warn("Util", "Error converting Image to bytes", e);
+            return new byte[0];
+        }
+    }
+
+    public static BufferedImage convertBytesToImage(byte[] bytes){
+        try {
+            return ImageIO.read(new ByteArrayInputStream(bytes));
+        } catch (IOException e) {
+            EMLogger.warn("Util", "Error converting bytes to Image", e);
+            return null;
+        }
+    }
+
+    public static byte[] readByteArray(String arrayAsString){
+        if(!arrayAsString.startsWith("[") || !arrayAsString.endsWith("]")){
+            return new byte[0];
+        }
+        String[] parts = arrayAsString.replaceAll("\\[", "").replaceAll("]", "").split(", ");
+        byte[] output = new byte[parts.length];
+        for(int i=0;i<parts.length;i++){
+            try {
+                output[i] = (byte) Integer.parseInt(parts[i]);
+            }catch (NumberFormatException e){
+                EMLogger.warn("Util", "String array does not represent a byte array", e);
+                return new byte[0];
+            }
+        }
+        return output;
     }
 
 }

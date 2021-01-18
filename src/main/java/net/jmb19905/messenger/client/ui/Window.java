@@ -19,6 +19,7 @@ public class Window extends JFrame {
     private final DefaultListModel<String> model;
     private final JTextField inputField;
     private final JButton ellipsisButton;
+    private final JButton imageButton;
 
     public SettingsWindow settingsWindow;
 
@@ -143,6 +144,13 @@ public class Window extends JFrame {
         ellipsisButton.addActionListener((e) -> settingsWindow.setVisible(true));
 
         toolBar.add(ellipsisButton);
+
+        toolBar.add(Box.createVerticalGlue());
+
+        imageButton = new JButton();
+        imageButton.setIcon(new ImageIcon(Util.getImageResource("image" + (SettingsWindow.isLight() ? "_dark" : "") + ".png")));
+
+        toolBar.add(imageButton);
         toolBar.setFloatable(false);
 
         add(toolBar, BorderLayout.EAST);
@@ -195,5 +203,6 @@ public class Window extends JFrame {
     public void repaint() {
         super.revalidate();
         ellipsisButton.setIcon(new ImageIcon(Util.getImageResource("ellipsis" + (SettingsWindow.isLight() ? "_dark" : "") + ".png")));
+        imageButton.setIcon(new ImageIcon(Util.getImageResource("image" + (SettingsWindow.isLight() ? "_dark" : "") + ".png")));
     }
 }

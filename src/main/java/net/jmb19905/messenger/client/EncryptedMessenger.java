@@ -45,8 +45,8 @@ public class EncryptedMessenger {
      */
     private static void startUp() {
         Variables.currentSide = "client";
-        EMLogger.setLevel(EMLogger.LEVEL_DEBUG);
-        Log.set(Log.LEVEL_INFO);
+        EMLogger.setLevel(EMLogger.LEVEL_TRACE);
+        Log.set(Log.LEVEL_DEBUG);
         EMLogger.init();
         clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
         SettingsWindow.setLookAndFeel(clientConfig.theme);

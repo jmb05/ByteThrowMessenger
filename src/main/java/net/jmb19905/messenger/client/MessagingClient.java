@@ -2,6 +2,7 @@ package net.jmb19905.messenger.client;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.FrameworkMessage;
 import com.esotericsoftware.kryonet.Listener;
 import net.jmb19905.messenger.client.ui.OptionPanes;
 import net.jmb19905.messenger.client.ui.Window;
@@ -13,6 +14,7 @@ import net.jmb19905.messenger.util.Util;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
@@ -89,7 +91,7 @@ public class MessagingClient extends Listener {
         LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
         loginPublicKeyPackage.encodedKey = thisDevice.getPublicKey().getEncoded();
         connection.sendTCP(loginPublicKeyPackage);
-        EMLogger.trace("MessagingClient", "Sent PublicKey " + Arrays.toString(loginPublicKeyPackage.encodedKey));
+        EMLogger.trace("MessagingClient", "Sent PublicKey");
     }
 
     /**
@@ -147,7 +149,7 @@ public class MessagingClient extends Listener {
             if (chatHistory.getNode().getSharedSecret() != null) {
                 DataPackage dataPackage = new DataPackage();
                 dataPackage.username = Util.encryptString(thisDevice, username);
-                dataPackage.encryptedMessage = Util.encryptString(thisDevice, Util.encryptString(chatHistory.getNode(), message));
+                dataPackage.encryptedMessage = thisDevice.encrypt(chatHistory.getNode().encrypt(message.getBytes(StandardCharsets.UTF_8)));
                 client.sendTCP(dataPackage);
                 chatHistory.addMessage(EncryptedMessenger.getUsername(), message);
                 return true;
@@ -163,21 +165,21 @@ public class MessagingClient extends Listener {
     /**
      * Logs the Client in
      */
-    public void login() {
+    public void login(Connection connection) {
         if (!EncryptedMessenger.getUsername().equals("") && !EncryptedMessenger.getPassword().equals("")) {
             LoginPackage loginPackage = new LoginPackage();
             loginPackage.username = Util.encryptString(thisDevice, EncryptedMessenger.getUsername());
             loginPackage.password = Util.encryptString(thisDevice, EncryptedMessenger.getPassword());
-            client.sendTCP(loginPackage);
+            connection.sendTCP(loginPackage);
         } else {
-            OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register());
+            OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register(connection));
             if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
                 System.exit(0);
             } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
                 LoginPackage loginPackage = new LoginPackage();
                 loginPackage.username = Util.encryptString(thisDevice, value.values[0]);
                 loginPackage.password = Util.encryptString(thisDevice, value.values[1]);
-                client.sendTCP(loginPackage);
+                connection.sendTCP(loginPackage);
                 EncryptedMessenger.setUserData(value.values[0], value.values[1]);
             }
         }
@@ -186,8 +188,8 @@ public class MessagingClient extends Listener {
     /**
      * Registers a new account for the Client
      */
-    public void register() {
-        OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login());
+    public void register(Connection connection) {
+        OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login(connection));
         if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
             stop(0);
         } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
@@ -204,13 +206,17 @@ public class MessagingClient extends Listener {
      */
     public static void initOtherUsers() {
         otherUsers = Util.loadChatHistories();
-        for (String key : otherUsers.keySet()) {
-            ChatHistory chatHistory = otherUsers.get(key);
-            if (key.equals(chatHistory.getName())) {
-                addChatHistory(chatHistory);
-            } else {
-                EMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
+        try {
+            for (String key : otherUsers.keySet()) {
+                ChatHistory chatHistory = otherUsers.get(key);
+                if (key.equals(chatHistory.getName())) {
+                    addChatHistory(chatHistory);
+                } else {
+                    EMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
+                }
             }
+        }catch (NullPointerException e){
+            EMLogger.warn("MessagingClient", "Error parsing ChatHistory");
         }
     }
 
@@ -250,7 +256,9 @@ public class MessagingClient extends Listener {
                 node.setReceiverPublicKey(publicKey);
             }
         } catch (InvalidKeySpecException e) {
-            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.");
+            EMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.", e);
+            JOptionPane.showMessageDialog(null, "There was an error during the Server - Client Key exchange", "ERROR", JOptionPane.ERROR_MESSAGE);
+            System.exit(-1);
         }
     }
 

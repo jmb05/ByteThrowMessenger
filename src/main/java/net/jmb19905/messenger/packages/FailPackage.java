@@ -17,14 +17,14 @@ public class FailPackage extends EMPackage {
             case "loginFail":
                 JOptionPane.showMessageDialog(null, "Could not log in! " + (cause.equals("pw") ? "Password " : "Username ") + "was incorrect.", "Wrong credentials", JOptionPane.ERROR_MESSAGE);
                 EncryptedMessenger.wipeUserData();
-                EncryptedMessenger.messagingClient.login();
+                EncryptedMessenger.messagingClient.login(connection);
                 break;
             case "notRegistered":
                 int jop = JOptionPane.showConfirmDialog(null, "Login failed. If you have no account you have to register.\nDo you want to register?", "Login failed", JOptionPane.YES_NO_CANCEL_OPTION);
                 if (jop == JOptionPane.YES_OPTION) {
-                    EncryptedMessenger.messagingClient.register();
+                    EncryptedMessenger.messagingClient.register(connection);
                 } else if (jop == JOptionPane.NO_OPTION) {
-                    EncryptedMessenger.messagingClient.login();
+                    EncryptedMessenger.messagingClient.login(connection);
                 } else {
                     EncryptedMessenger.messagingClient.stop(0);
                 }
@@ -32,12 +32,12 @@ public class FailPackage extends EMPackage {
             case "registerFail":
                 JOptionPane.showMessageDialog(null, "Server Error registering user. " + cause + ". Please again try later.", "Error registering", JOptionPane.ERROR_MESSAGE);
                 EncryptedMessenger.wipeUserData();
-                EncryptedMessenger.messagingClient.login();
+                EncryptedMessenger.messagingClient.login(connection);
                 break;
             case "usernameTaken":
                 EncryptedMessenger.setUserData("", "");
                 EncryptedMessenger.setLoggedIn(false);
-                EncryptedMessenger.messagingClient.register();
+                EncryptedMessenger.messagingClient.register(connection);
                 break;
         }
     }
