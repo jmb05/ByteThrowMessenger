@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.server.userdatabase;
 
-import net.jmb19905.messenger.util.BTMLogger;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.File;

@@ -37,6 +37,11 @@ dependencies {
     implementation('org.xerial:sqlite-jdbc:3.32.3.2')
     implementation('org.mindrot:jbcrypt:0.4')
     implementation('com.formdev:flatlaf:0.46')
+    //Lots of Utility Libraries... because why not?
+    implementation('commons-io:commons-io:2.8.0')
+    implementation('org.apache.commons:commons-lang3:3.11')
+    implementation('org.apache.commons:commons-collections4:4.4')
+    implementation('com.google.guava:guava:30.1-jre')
 }
 
 test {
@@ -52,6 +57,7 @@ launch4j {
     textVersion = '1.0.SN3'
     internalName = 'ByteThrowMessenger'
     productName = "${project.name}-${project.version}"
+    jvmOptions ['-Dbtm.launch.type="exe"']
 }
 
 task createVersion(){
@@ -60,12 +66,12 @@ task createVersion(){
     }
 }
 
-task serverJar(type: Jar){
+task serverJar(type: Jar) {
     archiveName "EM-${project.version}.jar"
     baseName "EM-${project.version}"
     manifest {
         attributes(
-            'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'
+                'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'
         )
     }
     with jar

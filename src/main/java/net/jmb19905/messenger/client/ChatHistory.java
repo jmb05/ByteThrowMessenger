@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.client;
 
-import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.crypto.EncryptedConnection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,16 +11,16 @@ import java.util.List;
 public class ChatHistory {
 
     private final String name;
-    private Node node;
+    private EncryptedConnection encryptedConnection;
     private final List<String> messages;
 
     public ChatHistory() {
         this("", null);
     }
 
-    public ChatHistory(String name, Node node) {
+    public ChatHistory(String name, EncryptedConnection encryptedConnection) {
         this.name = name;
-        this.node = node;
+        this.encryptedConnection = encryptedConnection;
         this.messages = new ArrayList<>();
     }
 
@@ -28,27 +28,27 @@ public class ChatHistory {
         return name;
     }
 
-    public Node getNode() {
-        return node;
+    public EncryptedConnection getNode() {
+        return encryptedConnection;
     }
 
     public List<String> getMessages() {
         return messages;
     }
 
-    public void addMessage(String senderName, String message) {
-        messages.add(senderName + ":" + message);
+    public void addMessage(String senderName, String type, String message) {
+        messages.add(senderName + ":" + type + ":" + message);
     }
 
-    public void setNode(Node node) {
-        this.node = node;
+    public void setNode(EncryptedConnection encryptedConnection) {
+        this.encryptedConnection = encryptedConnection;
     }
 
     @Override
     public String toString() {
         return "ChatHistory{" +
                 "name='" + name + '\'' +
-                ", node=" + node +
+                ", encryptedConnection=" + encryptedConnection +
                 ", messages=" + messages +
                 '}';
     }

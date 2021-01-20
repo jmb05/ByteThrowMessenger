@@ -7,7 +7,7 @@ import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
-public class FailPackage extends BTMPackage {
+public class FailPacket extends BTMPacket {
 
     public String type;
     public String cause;
@@ -50,6 +50,6 @@ public class FailPackage extends BTMPackage {
 
     @Override
     public void handleOnServer(Connection connection) throws UnsupportedSideException {
-        throw new UnsupportedSideException("FailPackage received on server");
+        throw new UnsupportedSideException("FailPacket received on server");
     }
 }

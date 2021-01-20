@@ -1,8 +1,8 @@
 package net.jmb19905.messenger.server;
 
 import com.esotericsoftware.minlog.Log;
-import net.jmb19905.messenger.util.ConfigManager;
-import net.jmb19905.messenger.util.BTMLogger;
+import net.jmb19905.messenger.util.config.ConfigManager;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.Variables;
 

@@ -4,53 +4,53 @@ import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ChatHistory;
 import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.MessagingClient;
-import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
-import net.jmb19905.messenger.util.BTMLogger;
-import net.jmb19905.messenger.util.Util;
+import net.jmb19905.messenger.util.logging.BTMLogger;
+import net.jmb19905.messenger.util.EncryptionUtility;
 
 import java.util.HashMap;
 
 /**
  * Used when two Users want to connect
  */
-public class ConnectWithOtherUserPackage extends BTMPackage implements IQueueable {
+public class StartEndToEndConnectionPacket extends BTMPacket implements IQueueable {
 
     public String username;
     public byte[] publicKeyEncodedEncrypted;
 
     @Override
     public void handleOnClient(Connection connection) {
-        BTMLogger.trace("MessagingClient", "Received ConnectWithOtherUserPackage");
-        String decryptedUsername = Util.decryptString(MessagingClient.thisDevice, username);
-        byte[] publicKeyEncodedDecrypted = MessagingClient.thisDevice.decrypt(publicKeyEncodedEncrypted);
+        BTMLogger.trace("MessagingClient", "Received StartEndToEndConnectionPacket");
+        String decryptedUsername = EncryptionUtility.decryptString(MessagingClient.serverConnection, username);
+        byte[] publicKeyEncodedDecrypted = MessagingClient.serverConnection.decrypt(publicKeyEncodedEncrypted);
         if (MessagingClient.otherUsers.get(decryptedUsername) != null) {
             BTMLogger.trace("MessagingClient", "Changing/Adding key for" + decryptedUsername);
-            Node oldNode = MessagingClient.otherUsers.get(decryptedUsername).getNode();
-            byte[] publicKeyEncoded = oldNode.getPublicKey().getEncoded();
-            byte[] privateKeyEncoded = oldNode.getPrivateKey().getEncoded();
-            Node node = null;
+            EncryptedConnection oldEncryptedConnection = MessagingClient.otherUsers.get(decryptedUsername).getNode();
+            byte[] publicKeyEncoded = oldEncryptedConnection.getPublicKey().getEncoded();
+            byte[] privateKeyEncoded = oldEncryptedConnection.getPrivateKey().getEncoded();
+            EncryptedConnection encryptedConnection = null;
             try {
-                node = new Node(publicKeyEncoded, privateKeyEncoded, new byte[0]);
-                MessagingClient.otherUsers.get(decryptedUsername).setNode(node);
+                encryptedConnection = new EncryptedConnection(publicKeyEncoded, privateKeyEncoded, new byte[0]);
+                MessagingClient.otherUsers.get(decryptedUsername).setNode(encryptedConnection);
             } catch (InvalidNodeException e) {
                 BTMLogger.warn("MessagingClient", "Error changing key", e);
             }
-            ByteThrowClient.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
+            ByteThrowClient.messagingClient.setPublicKey(publicKeyEncodedDecrypted, encryptedConnection);
         } else {
-            Node node = new Node();
-            ByteThrowClient.messagingClient.setPublicKey(publicKeyEncodedDecrypted, node);
-            ChatHistory chatHistory = new ChatHistory(decryptedUsername, node);
+            EncryptedConnection encryptedConnection = new EncryptedConnection();
+            ByteThrowClient.messagingClient.setPublicKey(publicKeyEncodedDecrypted, encryptedConnection);
+            ChatHistory chatHistory = new ChatHistory(decryptedUsername, encryptedConnection);
             MessagingClient.otherUsers.put(decryptedUsername, chatHistory);
             BTMLogger.trace("MessagingClient", "Added " + decryptedUsername + " to connected users");
             if (MessagingClient.connectionRequested.contains(decryptedUsername)) {
                 BTMLogger.info("MessagingClient", decryptedUsername + " has responded");
                 MessagingClient.connectionRequested.remove(decryptedUsername);
             } else {
-                username = Util.encryptString(MessagingClient.thisDevice, decryptedUsername);
-                publicKeyEncodedEncrypted = MessagingClient.thisDevice.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getNode().getPublicKey().getEncoded());
+                username = EncryptionUtility.encryptString(MessagingClient.serverConnection, decryptedUsername);
+                publicKeyEncodedEncrypted = MessagingClient.serverConnection.encrypt(MessagingClient.otherUsers.get(decryptedUsername).getNode().getPublicKey().getEncoded());
                 ByteThrowClient.messagingClient.client.sendTCP(this);
             }
         }
@@ -59,10 +59,10 @@ public class ConnectWithOtherUserPackage extends BTMPackage implements IQueueabl
 
     @Override
     public void handleOnServer(Connection connection) {
-        Node senderNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
+        EncryptedConnection senderEncryptedConnection = MessagingServer.clientConnectionKeys.get(connection).getNode();
         String sender = MessagingServer.clientConnectionKeys.get(connection).getUsername();
-        String recipient = Util.decryptString(senderNode, username);
-        byte[] publicKeyEncoded = senderNode.decrypt(publicKeyEncodedEncrypted);
+        String recipient = EncryptionUtility.decryptString(senderEncryptedConnection, username);
+        byte[] publicKeyEncoded = senderEncryptedConnection.decrypt(publicKeyEncodedEncrypted);
         try {
             if (sender.equals(recipient)) {
                 BTMLogger.warn("MessagingServer", "Client " + sender + " tried to connect with himself");
@@ -82,7 +82,7 @@ public class ConnectWithOtherUserPackage extends BTMPackage implements IQueueabl
                 }
             }
 
-            HashMap<BTMPackage, Object[]> queueData;
+            HashMap<BTMPacket, Object[]> queueData;
             if (!MessagingServer.messagesQueue.containsKey(recipient)) {
                 queueData = new HashMap<>();
             } else {
@@ -99,9 +99,9 @@ public class ConnectWithOtherUserPackage extends BTMPackage implements IQueueabl
 
     @Override
     public void handleOnQueue(Connection connection, Object[] data) {
-        Node recipientNode = MessagingServer.clientConnectionKeys.get(connection).getNode();
-        username = Util.encryptString(recipientNode, (String) data[0]);
-        publicKeyEncodedEncrypted = recipientNode.encrypt((byte[]) data[1]);
+        EncryptedConnection recipientEncryptedConnection = MessagingServer.clientConnectionKeys.get(connection).getNode();
+        username = EncryptionUtility.encryptString(recipientEncryptedConnection, (String) data[0]);
+        publicKeyEncodedEncrypted = recipientEncryptedConnection.encrypt((byte[]) data[1]);
         connection.sendTCP(this);
         BTMLogger.trace("MessagingServer", "Passed Connection Request from " + data[0] + " to " + MessagingServer.clientConnectionKeys.get(connection).getUsername());
     }

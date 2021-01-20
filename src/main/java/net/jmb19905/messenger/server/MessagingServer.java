@@ -3,9 +3,9 @@ package net.jmb19905.messenger.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import net.jmb19905.messenger.packages.BTMPackage;
+import net.jmb19905.messenger.packages.BTMPacket;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.BTMLogger;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ public class MessagingServer extends Listener {
     private final Server server;
 
     public static final HashMap<Connection, ClientConnection>  clientConnectionKeys = new HashMap<>();
-    public static final HashMap<String, HashMap<BTMPackage, Object[]>> messagesQueue = new HashMap<>();
+    public static final HashMap<String, HashMap<BTMPacket, Object[]>> messagesQueue = new HashMap<>();
     public static final HashMap<String, E2EConnection> e2eConnectedClients = new HashMap<>();
 
     public MessagingServer() {
@@ -73,10 +73,10 @@ public class MessagingServer extends Listener {
      * What to do when a Package from a Client is received
      */
     @Override
-    public void received(Connection connection, Object o) {
-        if (o instanceof BTMPackage) {
+    public void received(Connection connection, Object packet) {
+        if (packet instanceof BTMPacket) {
             try {
-                ((BTMPackage) o).handleOnServer(connection);
+                ((BTMPacket) packet).handleOnServer(connection);
             } catch (UnsupportedSideException e) {
                 BTMLogger.warn("MessagingServer", "Package received on wrong side", e);
             }

@@ -1,12 +1,11 @@
 package net.jmb19905.messenger.client;
 
 import com.esotericsoftware.minlog.Log;
-import net.jmb19905.messenger.client.ui.SettingsWindow;
+import net.jmb19905.messenger.client.ui.settings.SettingsWindow;
 import net.jmb19905.messenger.client.ui.Window;
-import net.jmb19905.messenger.util.ConfigManager;
-import net.jmb19905.messenger.util.BTMLogger;
-import net.jmb19905.messenger.util.Util;
-import net.jmb19905.messenger.util.Variables;
+import net.jmb19905.messenger.util.*;
+import net.jmb19905.messenger.util.config.ConfigManager;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.io.*;
 
@@ -53,6 +52,7 @@ public class ByteThrowClient {
         version = Util.readVersion();
         clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
         SettingsWindow.setLookAndFeel(clientConfig.theme);
+        Variables.initFonts();
     }
 
     /**
@@ -61,7 +61,7 @@ public class ByteThrowClient {
     private static void readUserData() {
         try {
             File file = new File("userdata/user.dat");
-            if (Util.createFile(file)) {
+            if (FileUtility.createFile(file)) {
                 BufferedReader reader = new BufferedReader(new FileReader(file));
                 try {
                     if (!reader.readLine().equals("UserData:")) {
@@ -101,7 +101,7 @@ public class ByteThrowClient {
         if (!username.equals("") && !password.equals("")) {
             try {
                 File file = new File("userdata/user.dat");
-                if(Util.createFile(file)) {
+                if(FileUtility.createFile(file)) {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                     writer.write("UserData:\n");
                     writer.write(username + "\n");

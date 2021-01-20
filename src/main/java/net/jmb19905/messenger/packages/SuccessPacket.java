@@ -4,9 +4,9 @@ import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.BTMLogger;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
-public class SuccessPackage extends BTMPackage {
+public class SuccessPacket extends BTMPacket {
 
     public String type;
 
@@ -27,6 +27,6 @@ public class SuccessPackage extends BTMPackage {
 
     @Override
     public void handleOnServer(Connection connection) throws UnsupportedSideException {
-        throw new UnsupportedSideException("SuccessPackage received on server");
+        throw new UnsupportedSideException("SuccessPacket received on server");
     }
 }

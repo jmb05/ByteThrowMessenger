@@ -1,6 +1,8 @@
-package net.jmb19905.messenger.util;
+package net.jmb19905.messenger.util.logging;
 
 import com.esotericsoftware.minlog.Log;
+import net.jmb19905.messenger.util.FileUtility;
+import net.jmb19905.messenger.util.Variables;
 
 import java.io.*;
 import java.util.Date;
@@ -32,8 +34,8 @@ public class BTMLogger extends Log.Logger {
      *  -> initializes the File Writer (BufferedWriter)
      */
     public static void init() {
-        logFile = new File("logs/" + Variables.currentTime + "_" + Variables.currentSide + ".log");
-        if (!Util.createFile(logFile)) {
+        logFile = new File("logs/" + Variables.startupTime + "_" + Variables.currentSide + ".log");
+        if (!FileUtility.createFile(logFile)) {
             Log.error("BTMLogger", "Error creating log file");
             return;
         }

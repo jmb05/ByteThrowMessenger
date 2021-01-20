@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
-import net.jmb19905.messenger.util.BTMLogger;
-import net.jmb19905.messenger.util.Util;
+import net.jmb19905.messenger.util.logging.BTMLogger;
+import net.jmb19905.messenger.util.EncryptionUtility;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,12 +23,12 @@ import java.util.Arrays;
 import java.util.Base64;
 
 /**
- * a Node holds the Public and Private keys for a certain Connection (Server - Client | Client - Client)
- * Each side of the interaction has a separate Node that will take the PublicKey of the other side to generate the Shared Key
+ * a EncryptedConnection holds the Public and Private keys for a certain Connection (Server - Client | Client - Client)
+ * Each side of the interaction has a separate EncryptedConnection that will take the PublicKey of the other side to generate the Shared Key
  */
-@JsonSerialize(using = Node.JsonSerializer.class)
-@JsonDeserialize(using = Node.JsonDeserializer.class)
-public class Node {
+@JsonSerialize(using = EncryptedConnection.JsonSerializer.class)
+@JsonDeserialize(using = EncryptedConnection.JsonDeserializer.class)
+public class EncryptedConnection {
 
     private PublicKey publickey;
     private PrivateKey privateKey;
@@ -44,17 +44,17 @@ public class Node {
      * @param sharedSecret  the Shared Key encoded in a byte-array
      * @throws InvalidNodeException if the public or private key is invalid
      */
-    public Node(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret) throws InvalidNodeException {
+    public EncryptedConnection(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret) throws InvalidNodeException {
         try {
             if (encodedPrivateKey != null && encodedPublicKey != null) {
-                publickey = Util.createPublicKeyFromData(encodedPublicKey);
-                privateKey = Util.createPrivateKeyFromData(encodedPrivateKey);
+                publickey = EncryptionUtility.createPublicKeyFromData(encodedPublicKey);
+                privateKey = EncryptionUtility.createPrivateKeyFromData(encodedPrivateKey);
                 this.sharedSecret = sharedSecret;
                 try {
                     keyAgreement = KeyAgreement.getInstance("ECDH");
                     keyAgreement.init(privateKey);
                 } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-                    BTMLogger.error("Crypto", "Error initializing Node", e);
+                    BTMLogger.error("Crypto", "Error initializing EncryptedConnection", e);
                 }
             } else {
                 throw new InvalidNodeException("The Public or Private key is null");
@@ -65,9 +65,9 @@ public class Node {
     }
 
     /**
-     * Creates a new Node with unique Private and Public Keys
+     * Creates a new EncryptedConnection with unique Private and Public Keys
      */
-    public Node() {
+    public EncryptedConnection() {
         KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("EC");
@@ -78,7 +78,7 @@ public class Node {
             keyAgreement = KeyAgreement.getInstance("ECDH");
             keyAgreement.init(privateKey);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            BTMLogger.error("CryptoNode", "Error initializing Node", e);
+            BTMLogger.error("CryptoNode", "Error initializing EncryptedConnection", e);
         }
     }
 
@@ -168,8 +168,8 @@ public class Node {
 
     @Override
     public String toString() {
-        return "Node{" +
-                "publickey=" + publickey +
+        return "EncryptedConnection{" +
+                "publicKey=" + publickey +
                 ", privateKey=" + privateKey +
                 ", keyAgreement=" + keyAgreement +
                 ", sharedSecret=" + Arrays.toString(sharedSecret) +
@@ -179,18 +179,14 @@ public class Node {
     /**
      * The Serializer that converts Nodes into JSON
      */
-    public static class JsonSerializer extends StdSerializer<Node> {
+    public static class JsonSerializer extends StdSerializer<EncryptedConnection> {
 
-        public JsonSerializer() {
-            this(null);
-        }
-
-        public JsonSerializer(Class<Node> t) {
+        public JsonSerializer(Class<EncryptedConnection> t) {
             super(t);
         }
 
         @Override
-        public void serialize(Node value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(EncryptedConnection value, JsonGenerator gen, SerializerProvider provider) throws IOException {
             gen.writeStartObject();
             gen.writeBinaryField("public", value.publickey.getEncoded());
             gen.writeBinaryField("private", value.privateKey.getEncoded());
@@ -206,24 +202,20 @@ public class Node {
     /**
      * The Deserializer that retrieves Nodes from JSON
      */
-    public static class JsonDeserializer extends StdDeserializer<Node> {
-
-        public JsonDeserializer() {
-            this(null);
-        }
+    public static class JsonDeserializer extends StdDeserializer<EncryptedConnection> {
 
         public JsonDeserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public Node deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        public EncryptedConnection deserialize(JsonParser p, DeserializationContext context) throws IOException {
             JsonNode node = p.getCodec().readTree(p);
             byte[] publicKey = node.get("public").binaryValue();
             byte[] privateKey = node.get("private").binaryValue();
             byte[] sharedKey = node.get("shared").binaryValue();
             try {
-                return new Node(publicKey, privateKey, sharedKey);
+                return new EncryptedConnection(publicKey, privateKey, sharedKey);
             } catch (InvalidNodeException e) {
                 BTMLogger.error("MessagingClient", "Error deserializing Nodes from JSON", e);
                 return null;

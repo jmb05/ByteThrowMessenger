@@ -3,17 +3,20 @@ package net.jmb19905.messenger.client;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import net.jmb19905.messenger.client.ui.OptionPanes;
+import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
+import net.jmb19905.messenger.client.ui.util.dialoges.LoginDialog;
 import net.jmb19905.messenger.client.ui.Window;
-import net.jmb19905.messenger.crypto.Node;
+import net.jmb19905.messenger.client.ui.util.dialoges.RegisterDialog;
+import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.packages.*;
 import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.BTMLogger;
-import net.jmb19905.messenger.util.Util;
+import net.jmb19905.messenger.util.*;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
@@ -24,7 +27,7 @@ public class MessagingClient extends Listener {
     private final int serverPort;
 
     public Client client;
-    public static final Node thisDevice = new Node();
+    public static final EncryptedConnection serverConnection = new EncryptedConnection();
 
     public static HashMap<String, ChatHistory> otherUsers;
     public static final List<String> connectionRequested = new ArrayList<>();
@@ -75,7 +78,7 @@ public class MessagingClient extends Listener {
         client.stop();
         BTMLogger.info("MessagingClient", "Stopped Client");
         if (!ByteThrowClient.getUsername().equals("") && ByteThrowClient.getUsername() != null) {
-            Util.saveChatHistories(otherUsers);
+            FileUtility.saveChatHistories(otherUsers);
         }
         BTMLogger.close();
         System.exit(code);
@@ -87,11 +90,8 @@ public class MessagingClient extends Listener {
     @Override
     public void connected(Connection connection) {
         BTMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
-        LoginPublicKeyPackage loginPublicKeyPackage = new LoginPublicKeyPackage();
-        loginPublicKeyPackage.version = ByteThrowClient.version;
-        loginPublicKeyPackage.encodedKey = thisDevice.getPublicKey().getEncoded();
-        connection.sendTCP(loginPublicKeyPackage);
-        BTMLogger.trace("MessagingClient", "Sent PublicKey");
+        PublicKeyPacket publicKeyPacket = ClientUtils.createPubicKeyPacket(ByteThrowClient.version, serverConnection);
+        connection.sendTCP(publicKeyPacket);
     }
 
     /**
@@ -102,6 +102,7 @@ public class MessagingClient extends Listener {
         BTMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
         if (!Window.closeRequested) {
+            client.stop();
             ByteThrowClient.window.dispose();
             Thread reconnectionThread = new Thread(() -> ByteThrowClient.main(ByteThrowClient.arguments));
             reconnectionThread.start();
@@ -112,10 +113,10 @@ public class MessagingClient extends Listener {
      * What to do when the Client receives a Package from the Server
      */
     @Override
-    public void received(Connection connection, Object o) {
-        if (o instanceof BTMPackage) {
+    public void received(Connection connection, Object packet) {
+        if (packet instanceof BTMPacket) {
             try {
-                ((BTMPackage) o).handleOnClient(connection);
+                ((BTMPacket) packet).handleOnClient(connection);
             } catch (UnsupportedSideException e) {
                 BTMLogger.warn("MessagingClient", "Package received on wrong side", e);
             }
@@ -127,12 +128,10 @@ public class MessagingClient extends Listener {
      * @param username the username of the other user
      */
     public void connectWithOtherUser(String username) {
-        Node node = new Node();
-        ConnectWithOtherUserPackage connectPackage = new ConnectWithOtherUserPackage();
-        connectPackage.username = Util.encryptString(thisDevice, username);
-        connectPackage.publicKeyEncodedEncrypted = thisDevice.encrypt(node.getPublicKey().getEncoded());
-        client.sendTCP(connectPackage);
-        ChatHistory chatHistory = new ChatHistory(username, node);
+        EncryptedConnection endToEndConnection = new EncryptedConnection();
+        StartEndToEndConnectionPacket connectPacket = ClientUtils.createStartEndToEndConnectionPacket(username, serverConnection, endToEndConnection);
+        client.sendTCP(connectPacket);
+        ChatHistory chatHistory = new ChatHistory(username, endToEndConnection);
         otherUsers.put(username, chatHistory);
         connectionRequested.add(username);
     }
@@ -147,17 +146,32 @@ public class MessagingClient extends Listener {
         ChatHistory chatHistory = otherUsers.get(username);
         if (chatHistory != null && chatHistory.getNode() != null) {
             if (chatHistory.getNode().getSharedSecret() != null) {
-                DataPackage dataPackage = new DataPackage();
-                dataPackage.username = Util.encryptString(thisDevice, username);
-                dataPackage.encryptedMessage = thisDevice.encrypt(chatHistory.getNode().encrypt(message.getBytes(StandardCharsets.UTF_8)));
-                client.sendTCP(dataPackage);
-                chatHistory.addMessage(ByteThrowClient.getUsername(), message);
+                client.sendTCP(ClientUtils.createDataPacket(username, message, serverConnection, chatHistory.getNode()));
+                chatHistory.addMessage(ByteThrowClient.getUsername(), "text", message);
                 return true;
             } else {
                 BTMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
             }
         } else {
-            BTMLogger.info("MessagingClient", "Your are not connected with this client - use connect");
+            BTMLogger.info("MessagingClient", "Your are not connected with this client");
+        }
+        return false;
+    }
+
+    public boolean sendImagesToOtherUser(String username, String caption, FormattedImage... images){
+        ChatHistory chatHistory = otherUsers.get(username);
+        if (chatHistory != null && chatHistory.getNode() != null) {
+            if (chatHistory.getNode().getSharedSecret() != null) {
+                StringBuilder imagePathsBuilder = new StringBuilder();
+                DataPacket dataPacket = ClientUtils.createDataPacket(username, caption, images, serverConnection, chatHistory.getNode(), imagePathsBuilder);
+                client.sendTCP(dataPacket);
+                chatHistory.addMessage(ByteThrowClient.getUsername(), "file", imagePathsBuilder.toString());
+                return true;
+            } else {
+                BTMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
+            }
+        } else {
+            BTMLogger.info("MessagingClient", "Your are not connected with this client");
         }
         return false;
     }
@@ -167,21 +181,22 @@ public class MessagingClient extends Listener {
      */
     public void login(Connection connection) {
         if (!ByteThrowClient.getUsername().equals("") && !ByteThrowClient.getPassword().equals("")) {
-            LoginPackage loginPackage = new LoginPackage();
-            loginPackage.username = Util.encryptString(thisDevice, ByteThrowClient.getUsername());
-            loginPackage.password = Util.encryptString(thisDevice, ByteThrowClient.getPassword());
-            connection.sendTCP(loginPackage);
+            LoginPacket loginPacket = ClientUtils.createLoginPacket(ByteThrowClient.getUsername(), ByteThrowClient.getPassword(), serverConnection);
+            connection.sendTCP(loginPacket);
         } else {
-            OptionPanes.OutputValue value = OptionPanes.showLoginDialog((e) -> register(connection));
-            if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
-                System.exit(0);
-            } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
-                LoginPackage loginPackage = new LoginPackage();
-                loginPackage.username = Util.encryptString(thisDevice, value.values[0]);
-                loginPackage.password = Util.encryptString(thisDevice, value.values[1]);
-                connection.sendTCP(loginPackage);
-                ByteThrowClient.setUserData(value.values[0], value.values[1]);
-            }
+            LoginDialog loginDialog = new LoginDialog();
+            loginDialog.addRegisterButtonActionListener(e -> register(connection));
+            loginDialog.addConfirmButtonActionListener(e -> {
+                LoginPacket loginPacket = ClientUtils.createLoginPacket(loginDialog.getUsername(), loginDialog.getPassword(), serverConnection);
+                connection.sendTCP(loginPacket);
+                ByteThrowClient.setUserData(loginDialog.getUsername(), loginDialog.getPassword());
+            });
+            loginDialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    stop(0);
+                }
+            });
         }
     }
 
@@ -189,23 +204,26 @@ public class MessagingClient extends Listener {
      * Registers a new account for the Client
      */
     public void register(Connection connection) {
-        OptionPanes.OutputValue value = OptionPanes.showRegisterDialog((e) -> login(connection));
-        if (value.id == OptionPanes.OutputValue.CANCEL_OPTION) {
-            stop(0);
-        } else if (value.id == OptionPanes.OutputValue.CONFIRM_OPTION) {
-            RegisterPackage registerPackage = new RegisterPackage();
-            registerPackage.username = Util.encryptString(thisDevice, value.values[0]);
-            registerPackage.password = Util.encryptString(thisDevice, value.values[1]);
-            client.sendTCP(registerPackage);
+        RegisterDialog registerDialog = new RegisterDialog(true);
+        registerDialog.addLoginButtonActionListener(e -> login(connection));
+        registerDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                stop(0);
+            }
+        });
+        registerDialog.addConfirmButtonActionListener(e -> {
+            RegisterPacket registerPacket = ClientUtils.createRegisterPacket(registerDialog.getUsername(), registerDialog.getPassword(), serverConnection);
+            client.sendTCP(registerPacket);
             BTMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
-        }
+        });
     }
 
     /**
      * Loads the ChatHistory and Nodes of all connected users
      */
     public static void initOtherUsers() {
-        otherUsers = Util.loadChatHistories();
+        otherUsers = FileUtility.loadChatHistories();
         try {
             for (String key : otherUsers.keySet()) {
                 ChatHistory chatHistory = otherUsers.get(key);
@@ -214,6 +232,7 @@ public class MessagingClient extends Listener {
                 } else {
                     BTMLogger.warn("MessagingClient", "Error parsing ChatHistory -> wrong username");
                 }
+                System.out.println("Setting ChatHistory for: " + key);
             }
         }catch (NullPointerException e){
             BTMLogger.warn("MessagingClient", "Error parsing ChatHistory");
@@ -231,7 +250,7 @@ public class MessagingClient extends Listener {
             for (int i = 1; i < parts.length; i++) {
                 stringBuilder.append(parts[i]);
             }
-            ByteThrowClient.window.appendLine("<" + parts[0] + "> " + stringBuilder.toString());
+            ByteThrowClient.window.addMessage(parts[0], stringBuilder.toString(), (parts[0].equals(ByteThrowClient.getUsername())) ? ConversationPane.RIGHT : ConversationPane.LEFT);
         }
     }
 
@@ -240,20 +259,20 @@ public class MessagingClient extends Listener {
      * @param encodedKey the PublicKey of the Server encoded as byte-array
      */
     public void setPublicKey(byte[] encodedKey) {
-        setPublicKey(encodedKey, thisDevice);
+        setPublicKey(encodedKey, serverConnection);
     }
 
     /**
-     * Sets the Public Key for a Node
+     * Sets the Public Key for a EncryptedConnection
      * @param decryptedEncodedKey the PublicKey of encoded as byte-array
-     * @param node the Node that will receive and use the PublicKey
+     * @param encryptedConnection the EncryptedConnection that will receive and use the PublicKey
      */
-    public void setPublicKey(byte[] decryptedEncodedKey, Node node) {
+    public void setPublicKey(byte[] decryptedEncodedKey, EncryptedConnection encryptedConnection) {
         try {
-            PublicKey publicKey = Util.createPublicKeyFromData(decryptedEncodedKey);
+            PublicKey publicKey = EncryptionUtility.createPublicKeyFromData(decryptedEncodedKey);
             BTMLogger.trace("MessagingClient", "Received PublicKey");
             if (publicKey != null) {
-                node.setReceiverPublicKey(publicKey);
+                encryptedConnection.setReceiverPublicKey(publicKey);
             }
         } catch (InvalidKeySpecException e) {
             BTMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.", e);

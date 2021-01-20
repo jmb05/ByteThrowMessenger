@@ -1,23 +1,68 @@
 package net.jmb19905.messenger.client.ui.conversation;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * EXPERIMENTAL: Pane with Messages on it
- */
 public class ConversationPane extends JDesktopPane {
 
-    private List<JInternalFrame> frames = new ArrayList<>();
+    private final List<MessageFrameWrapper> messages = new ArrayList<>();
 
-    public ConversationPane() {
-        MessageFrame frame = new MessageFrame("Thiiiiiiiiiiis iiiiiiiiiiiis a veeeeeeeeeeery looooooooooooooooooooooooong text", 100, -1, this);
+    public static final int LEFT = -1;
+    public static final int CENTER = 0;
+    public static final int RIGHT = 1;
+
+    public ConversationPane(int width, int height){
+        setSize(new Dimension(width, height));
+    }
+
+    public void addMessage(MessageFrame messageFrame, Color color, int alignment){
+        int yPos = 20;
+        try {
+            for(MessageFrameWrapper frame : messages) {
+                yPos += (frame.messageFrame.getHeight() + 5);
+            }
+        }catch (ArrayIndexOutOfBoundsException ignored){}
+        if(alignment == LEFT){
+            messageFrame.setLocation(20, yPos);
+        }else if(alignment == CENTER){
+            messageFrame.setLocation((getWidth() / 2) - (messageFrame.getWidth() / 2), yPos);
+        }else if(alignment == RIGHT){
+            messageFrame.setLocation(getWidth() - messageFrame.getWidth() - 20, yPos);
+        }
+        messageFrame.setColor(color);
+        add(messageFrame);
+        messageFrame.setVisible(true);
+        messageFrame.show();
+        setPreferredSize(new Dimension(getPreferredSize().width, messageFrame.getLocation().y + messageFrame.getHeight() + 10));
+        messages.add(new MessageFrameWrapper(messageFrame, color, alignment));
     }
 
     @Override
     public void repaint() {
-
+        try {
+            removeAll();
+            List<MessageFrameWrapper> oldList = new ArrayList<>(messages);
+            messages.clear();
+            for (MessageFrameWrapper message : oldList) {
+                addMessage(message.messageFrame, message.color, message.alignment);
+            }
+        }catch (NullPointerException ignored){}
         super.repaint();
     }
+
+    private static class MessageFrameWrapper{
+
+        public final MessageFrame messageFrame;
+        public Color color;
+        public int alignment;
+
+        public MessageFrameWrapper(MessageFrame messageFrame, Color color, int alignment) {
+            this.messageFrame = messageFrame;
+            this.color = color;
+            this.alignment = alignment;
+        }
+    }
+
 }

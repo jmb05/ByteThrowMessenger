@@ -1,6 +1,7 @@
-package net.jmb19905.messenger.util;
+package net.jmb19905.messenger.util.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +85,8 @@ public class ConfigManager {
         public String server = "93.159.123.161";
         public int port = 10101;
         public boolean autoLogin = true;
+        public String font = "Segoe UI";
+        public int fontSize = 18;
 
     }
 
