@@ -1,10 +1,8 @@
 package net.jmb19905.messenger.client.ui.settings;
 
-import net.jmb19905.messenger.util.FileUtility;
-import net.jmb19905.messenger.util.Util;
-
 import javax.swing.*;
 import java.awt.*;
+import net.jmb19905.messenger.util.FileUtility;
 
 public class AccountSettings extends JDialog {
 

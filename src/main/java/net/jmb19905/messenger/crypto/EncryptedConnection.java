@@ -23,9 +23,10 @@ import java.util.Arrays;
 import java.util.Base64;
 
 /**
- * a EncryptedConnection holds the Public and Private keys for a certain Connection (Server - Client | Client - Client)
+ * An EncryptedConnection holds the Public and Private keys for a certain Connection (Server - Client | Client - Client)
  * Each side of the interaction has a separate EncryptedConnection that will take the PublicKey of the other side to generate the Shared Key
  */
+
 @JsonSerialize(using = EncryptedConnection.JsonSerializer.class)
 @JsonDeserialize(using = EncryptedConnection.JsonDeserializer.class)
 public class EncryptedConnection {
@@ -78,7 +79,7 @@ public class EncryptedConnection {
             keyAgreement = KeyAgreement.getInstance("ECDH");
             keyAgreement.init(privateKey);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            BTMLogger.error("CryptoNode", "Error initializing EncryptedConnection", e);
+            BTMLogger.error("EncryptedConnection", "Error initializing EncryptedConnection", e);
         }
     }
 
@@ -91,7 +92,7 @@ public class EncryptedConnection {
             keyAgreement.doPhase(publicKey, true);
             sharedSecret = keyAgreement.generateSecret();
         } catch (InvalidKeyException e) {
-            BTMLogger.error("CryptoNode", "Invalid Key", e);
+            BTMLogger.error("EncryptedConnection", "Invalid Key", e);
         }
     }
 
@@ -108,12 +109,12 @@ public class EncryptedConnection {
             byte[] encVal = c.doFinal(in);
             return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
-            BTMLogger.error("CryptoNode", "Error encrypting", e);
+            BTMLogger.error("EncryptedConnection", "Error encrypting", e);
             if (ByteThrowClient.messagingClient != null) {
                 ByteThrowClient.messagingClient.stop(-1);
             }
         } catch (IllegalArgumentException e) {
-            BTMLogger.warn("CryptoNode", "Error encrypting! Tried to encrypt without other PublicKey");
+            BTMLogger.warn("EncryptedConnection", "Error encrypting! Tried to encrypt without other PublicKey", e);
         }
         return in;
     }
@@ -131,9 +132,9 @@ public class EncryptedConnection {
             byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
             return c.doFinal(decodedValue);
         } catch (InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
-            BTMLogger.error("CryptoNode", "Error decrypting", e);
+            BTMLogger.error("EncryptedConnection", "Error decrypting", e);
         } catch (BadPaddingException e){
-            BTMLogger.error("CryptoNode", "Error decrypting - wrong key", e);
+            BTMLogger.error("EncryptedConnection", "Error decrypting - wrong key", e);
         }
         return encryptedData;
     }
@@ -181,6 +182,8 @@ public class EncryptedConnection {
      */
     public static class JsonSerializer extends StdSerializer<EncryptedConnection> {
 
+        public JsonSerializer(){this(null);}
+
         public JsonSerializer(Class<EncryptedConnection> t) {
             super(t);
         }
@@ -203,6 +206,8 @@ public class EncryptedConnection {
      * The Deserializer that retrieves Nodes from JSON
      */
     public static class JsonDeserializer extends StdDeserializer<EncryptedConnection> {
+
+        public JsonDeserializer(){this(null);}
 
         public JsonDeserializer(Class<?> vc) {
             super(vc);

@@ -1,7 +1,7 @@
 package net.jmb19905.messenger.server;
 
-import net.jmb19905.messenger.packages.FailPacket;
-import net.jmb19905.messenger.packages.SuccessPacket;
+import net.jmb19905.messenger.packets.FailPacket;
+import net.jmb19905.messenger.packets.SuccessPacket;
 
 public class ServerUtils {
 
@@ -51,6 +51,13 @@ public class ServerUtils {
         FailPacket fail = new FailPacket();
         fail.type = "outOfDate";
         fail.cause = ByteThrowServer.version;
+        return fail;
+    }
+
+    public static FailPacket createUserConnectionErrorPacket(String otherUser){
+        FailPacket fail = new FailPacket();
+        fail.type = "connectFail";
+        fail.cause = otherUser;
         return fail;
     }
 

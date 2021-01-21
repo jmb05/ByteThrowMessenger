@@ -4,8 +4,15 @@ public class TextMessage extends Message{
 
     public String text;
 
-    public TextMessage(String recipient, String text) {
-        super(recipient);
+    /**
+     * Used By Jackson
+     */
+    public TextMessage(){
+        this("", "");
+    }
+
+    public TextMessage(String sender, String text) {
+        super(sender);
         this.text = text;
     }
 

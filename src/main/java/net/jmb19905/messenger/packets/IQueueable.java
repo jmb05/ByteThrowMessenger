@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.packages;
+package net.jmb19905.messenger.packets;
 
 import com.esotericsoftware.kryonet.Connection;
 

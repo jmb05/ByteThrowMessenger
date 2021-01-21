@@ -1,6 +1,6 @@
 package net.jmb19905.messenger.util;
 
-import org.apache.commons.lang3.StringUtils;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,19 +13,27 @@ public class FormattedImage {
     public BufferedImage image;
     public String format;
 
-    public FormattedImage(String name, BufferedImage image, String format){
+    public FormattedImage(String name, String format, BufferedImage image){
         this.name = name;
         this.image = image;
         this.format = format;
     }
 
-    public void write(File directory) throws IOException {
-        if(!directory.isDirectory()){
-            directory = directory.getParentFile();
-        }if(!directory.exists()){
-            directory.mkdirs();
+    public void writeWithNewName(File file, boolean overwriteExisting) throws IOException {
+        if(file.exists() && overwriteExisting){
+            BTMLogger.warn("FormattedImage", "Cannot write Image - file already exists");
+            return;
         }
-        ImageIO.write(image, format, new File(directory.getAbsolutePath() + "/" + name + "." + format));
+        if(file.isDirectory()){
+            BTMLogger.warn("FormattedImage", "Cannot write Image - file is a directory");
+        }
+        FileUtility.createFile(file);
+        ImageIO.write(image, format, new File(file.getAbsolutePath()));
+
+    }
+
+    public void write(File directory, boolean overwriteExisting) throws IOException {
+        writeWithNewName(new File(directory.getAbsolutePath() + "/" + name + "." + format), overwriteExisting);
     }
 
     public static FormattedImage read(File file) throws IOException {
@@ -40,7 +48,7 @@ public class FormattedImage {
                 format = parts[i];
             }
         }
-        return new FormattedImage(nameBuilder.toString(), ImageIO.read(file), format);
+        return new FormattedImage(nameBuilder.toString(), format, ImageIO.read(file));
     }
 
     @Override

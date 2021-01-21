@@ -8,6 +8,8 @@ import net.jmb19905.messenger.util.config.ConfigManager;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class ByteThrowClient {
 
@@ -46,8 +48,8 @@ public class ByteThrowClient {
      */
     private static void startUp() {
         Variables.currentSide = "client";
-        BTMLogger.setLevel(BTMLogger.LEVEL_TRACE);
-        Log.set(Log.LEVEL_DEBUG);
+        BTMLogger.setLevel(BTMLogger.LEVEL_INFO);
+        Log.set(Log.LEVEL_INFO);
         BTMLogger.init();
         version = Util.readVersion();
         clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
@@ -88,6 +90,9 @@ public class ByteThrowClient {
 
     public static void setLoggedIn(boolean loggedIn) {
         ByteThrowClient.loggedIn = loggedIn;
+        if(loggedIn){
+            window.setTitle(Window.APPLICATION_NAME + " - " + username);
+        }
     }
 
     public static boolean isLoggedIn() {
@@ -133,6 +138,33 @@ public class ByteThrowClient {
         } catch (IOException e) {
             BTMLogger.warn("MessagingClient", "Cannot wipe userdata (user.dat)");
         }
+    }
+
+    public static void restartApplication(){
+        final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+        File currentJar = null;
+        try {
+            currentJar = new File(ByteThrowClient.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        if(!currentJar.getName().endsWith(".jar")) {
+            return;
+        }
+
+        final ArrayList<String> command = new ArrayList<>();
+        command.add(javaBin);
+        command.add("-jar");
+        command.add(currentJar.getPath());
+
+        final ProcessBuilder builder = new ProcessBuilder(command);
+        try {
+            builder.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
     }
 
     public static String getUsername() {

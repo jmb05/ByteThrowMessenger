@@ -1,17 +1,25 @@
 package net.jmb19905.messenger.messages;
 
-import java.awt.*;
+import net.jmb19905.messenger.util.FormattedImage;
 
 public class ImageMessage extends Message{
 
-    public Image image;
+    public FormattedImage[] images;
     public String caption;
 
-    public ImageMessage(String recipient, Image image, String caption) {
-        super(recipient);
-        this.image = image;
+    /**
+     * Used By Jackson
+     */
+    public ImageMessage(){
+        this("", "");
+    }
+
+    public ImageMessage(String sender, String caption, FormattedImage... images) {
+        super(sender);
+        this.images = images;
         this.caption = caption;
     }
+
 
 
 }

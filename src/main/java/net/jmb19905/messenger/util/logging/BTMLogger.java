@@ -29,7 +29,7 @@ public class BTMLogger extends Log.Logger {
     public static boolean TRACE = false;
 
     /**
-     * Initializes the Logger
+     * Initializes the Logger.
      *  -> creates Log file
      *  -> initializes the File Writer (BufferedWriter)
      */
@@ -75,10 +75,14 @@ public class BTMLogger extends Log.Logger {
         long time = new Date().getTime() - firstLogTime;
         long minutes = time / (1000 * 60);
         long seconds = time / (1000) % 60;
-        if (minutes <= 9) builder.append('0');
+        if (minutes <= 9){
+            builder.append('0');
+        }
         builder.append(minutes);
         builder.append(':');
-        if (seconds <= 9) builder.append('0');
+        if (seconds <= 9){
+            builder.append('0');
+        }
         builder.append(seconds);
 
         switch (level) {
@@ -88,14 +92,14 @@ public class BTMLogger extends Log.Logger {
             case Log.LEVEL_WARN:
                 builder.append("  WARN: ");
                 break;
-            case Log.LEVEL_INFO:
-                builder.append("  INFO: ");
-                break;
             case Log.LEVEL_DEBUG:
                 builder.append(" DEBUG: ");
                 break;
             case Log.LEVEL_TRACE:
                 builder.append(" TRACE: ");
+                break;
+            default:
+                builder.append("  INFO: ");
                 break;
         }
 

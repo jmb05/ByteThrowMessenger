@@ -1,4 +1,4 @@
-package net.jmb19905.messenger.packages;
+package net.jmb19905.messenger.packets;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ByteThrowClient;
@@ -20,6 +20,8 @@ public class PublicKeyPacket extends BTMPacket {
 
     public String version;
     public byte[] encodedKey;
+
+    public PublicKeyPacket(){}
 
     @Override
     public void handleOnClient(Connection connection) {

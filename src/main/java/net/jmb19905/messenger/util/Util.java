@@ -2,7 +2,7 @@ package net.jmb19905.messenger.util;
 
 import com.esotericsoftware.kryo.Kryo;
 import net.jmb19905.messenger.client.ByteThrowClient;
-import net.jmb19905.messenger.packages.*;
+import net.jmb19905.messenger.packets.*;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.awt.*;
@@ -50,6 +50,8 @@ public class Util {
         kryo.register(DataPacket.class);
         kryo.register(SuccessPacket.class);
         kryo.register(FailPacket.class);
+        kryo.register(E2EInfoPacket.class);
+        kryo.register(KeepAlivePacket.class);
     }
 
     /**
@@ -170,4 +172,5 @@ public class Util {
         }
         return false;
     }
+
 }

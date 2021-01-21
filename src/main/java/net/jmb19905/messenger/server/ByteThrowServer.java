@@ -29,8 +29,8 @@ public class ByteThrowServer {
      */
     private static void startUp() {
         Variables.currentSide = "server";
-        BTMLogger.setLevel(BTMLogger.LEVEL_TRACE);
-        Log.set(Log.LEVEL_DEBUG);
+        BTMLogger.setLevel(BTMLogger.LEVEL_INFO);
+        Log.set(Log.LEVEL_INFO);
         BTMLogger.init();
         version = Util.readVersion();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");

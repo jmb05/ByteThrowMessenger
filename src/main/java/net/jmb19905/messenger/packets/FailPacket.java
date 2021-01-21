@@ -1,9 +1,9 @@
-package net.jmb19905.messenger.packages;
+package net.jmb19905.messenger.packets;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.ui.Window;
-import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 
 import javax.swing.*;
 
@@ -11,6 +11,8 @@ public class FailPacket extends BTMPacket {
 
     public String type;
     public String cause;
+
+    public FailPacket(){}
 
     @Override
     public void handleOnClient(Connection connection){
@@ -44,6 +46,9 @@ public class FailPacket extends BTMPacket {
                 JOptionPane.showMessageDialog(null, "Your Client is out of Date. The Server is on Version: " + cause + ". You are on Version: " + ByteThrowClient.version + ". Please install the newest version.", "Client Out Of Date", JOptionPane.ERROR_MESSAGE);
                 Window.closeRequested = true;
                 ByteThrowClient.messagingClient.stop(0);
+                break;
+            case "connectFail":
+                JOptionPane.showMessageDialog(null, "There was an error when trying to connect with" + cause, "ERROR", JOptionPane.ERROR_MESSAGE);
                 break;
         }
     }

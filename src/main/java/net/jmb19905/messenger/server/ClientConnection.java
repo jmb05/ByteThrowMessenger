@@ -38,7 +38,7 @@ public class ClientConnection {
         return isLoggedIn;
     }
 
-    public EncryptedConnection getNode() {
+    public EncryptedConnection getEncryptedConnection() {
         return encryptedConnection;
     }
 

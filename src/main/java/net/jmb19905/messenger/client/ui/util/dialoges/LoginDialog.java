@@ -96,7 +96,6 @@ public class LoginDialog extends JDialog {
         add(register, constraints);
 
         pack();
-        setVisible(true);
     }
 
     public void addConfirmButtonActionListener(ActionListener listener){
@@ -107,7 +106,7 @@ public class LoginDialog extends JDialog {
         this.registerListener = listener;
     }
 
-    public void addWindowListener(WindowAdapter windowAdapter){
+    public void addCancelListener(WindowAdapter windowAdapter){
         this.cancelListener = windowAdapter;
     }
 
@@ -118,4 +117,9 @@ public class LoginDialog extends JDialog {
     public String getPassword() {
         return password;
     }
+
+    public void showDialog(){
+        setVisible(true);
+    }
+
 }

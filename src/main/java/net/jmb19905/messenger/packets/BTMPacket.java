@@ -1,7 +1,7 @@
-package net.jmb19905.messenger.packages;
+package net.jmb19905.messenger.packets;
 
 import com.esotericsoftware.kryonet.Connection;
-import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 
 public abstract class BTMPacket {
 

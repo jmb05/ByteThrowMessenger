@@ -1,6 +1,10 @@
 package net.jmb19905.messenger.client.ui.conversation;
 
+import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.ui.util.component.ImagePanel;
+import net.jmb19905.messenger.messages.ImageMessage;
+import net.jmb19905.messenger.messages.Message;
+import net.jmb19905.messenger.messages.TextMessage;
 import net.jmb19905.messenger.util.FormattedImage;
 import net.jmb19905.messenger.util.Variables;
 
@@ -10,6 +14,8 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +30,23 @@ public class MessageFrame extends JInternalFrame {
     private final List<ImagePanel> imagePanels = new ArrayList<>();
 
     private Color color;
+
+    public MessageFrame(Message message){
+        if(message instanceof TextMessage){
+            this.title = message.sender;
+            this.text = ((TextMessage) message).text;
+            this.images = new FormattedImage[0];
+        }else if(message instanceof ImageMessage){
+            this.title = message.sender;
+            this.text = ((ImageMessage) message).caption;
+            this.images = ((ImageMessage) message).images;
+        }else{
+            this.title = "";
+            this.text = "";
+            this.images = new FormattedImage[0];
+        }
+        initGUI();
+    }
 
     public MessageFrame(String text) {
         this("", text);
@@ -88,9 +111,19 @@ public class MessageFrame extends JInternalFrame {
             ImagePanel panel = new ImagePanel(image.image, panelWidth, panelHeight);
             constraints.gridx = 0;
             constraints.gridy = GridBagConstraints.RELATIVE;
-            //constraints.anchor = GridBagConstraints.CENTER;
             add(panel, constraints);
             imagePanels.add(panel);
+
+            panel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    try {
+                        Desktop.getDesktop().open(new File("userdata/" + ByteThrowClient.getUsername() + "/media/" + image.name + "." + image.format));
+                    } catch (IOException ioException) {
+                        JOptionPane.showMessageDialog(null, "Could not open file", "", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
 
             height += (panelHeight + 10);
         }

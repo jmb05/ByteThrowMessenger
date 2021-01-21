@@ -1,13 +1,12 @@
 package net.jmb19905.messenger.client;
 
 import net.jmb19905.messenger.crypto.EncryptedConnection;
-import net.jmb19905.messenger.packages.*;
+import net.jmb19905.messenger.packets.*;
 import net.jmb19905.messenger.util.EncryptionUtility;
 import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.FormattedImage;
 
 import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
 
 public class ClientUtils {
 
@@ -19,7 +18,7 @@ public class ClientUtils {
         return dataPacket;
     }
 
-    public static DataPacket createDataPacket(String username, String caption, FormattedImage[] images, EncryptedConnection clientToServerConnection, EncryptedConnection endToEndConnection, StringBuilder imagePathsBuilder){
+    public static DataPacket createDataPacket(String username, String caption, FormattedImage[] images, EncryptedConnection clientToServerConnection, EncryptedConnection endToEndConnection){
         DataPacket dataPacket = new DataPacket();
         dataPacket.username = EncryptionUtility.encryptString(clientToServerConnection, username);
         dataPacket.type = EncryptionUtility.encryptString(clientToServerConnection, EncryptionUtility.encryptString(endToEndConnection, "image"));
@@ -32,7 +31,6 @@ public class ClientUtils {
             data[i * 2 + 1] = meta;
             byte[] imageData = FileUtility.convertImageToBytes(image.image);
             data[i * 2 + 2] = imageData;
-            imagePathsBuilder.append("userdata/").append(ByteThrowClient.getUsername()).append("/media/").append(image.toString()).append("|");
         }
         dataPacket.data = EncryptionUtility.decrypt2DBytes(clientToServerConnection, EncryptionUtility.encrypt2DBytes(endToEndConnection, data));
         return dataPacket;
@@ -64,6 +62,13 @@ public class ClientUtils {
         publicKeyPacket.version = appVersion;
         publicKeyPacket.encodedKey = clientToServerConnection.getPublicKey().getEncoded();
         return publicKeyPacket;
+    }
+
+    public static E2EInfoPacket createCloseConnectionPacket(String username, EncryptedConnection recipientConnection){
+        E2EInfoPacket infoPacket = new E2EInfoPacket();
+        infoPacket.username = EncryptionUtility.encryptString(MessagingClient.serverConnection, username);
+        infoPacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, EncryptionUtility.encryptString(recipientConnection, "close"));
+        return infoPacket;
     }
 
 }

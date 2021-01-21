@@ -71,6 +71,8 @@ public class RegisterDialog extends JDialog {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         confirm.addActionListener(e -> {
+            username = "";
+            password = "";
             String password = new String(passwordInputField1.getPassword());
             if(!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())){
                 JOptionPane.showMessageDialog(this, "Passwords do not match", "", JOptionPane.ERROR_MESSAGE);
@@ -102,13 +104,14 @@ public class RegisterDialog extends JDialog {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         login.addActionListener(e -> {
+            username = "";
+            password = "";
             dispose();
             loginListener.actionPerformed(e);
         });
         add(login, constraints);
 
         pack();
-        setVisible(true);
     }
 
     public void addConfirmButtonActionListener(ActionListener listener){
@@ -119,7 +122,7 @@ public class RegisterDialog extends JDialog {
         this.loginListener = listener;
     }
 
-    public void addWindowListener(WindowAdapter windowAdapter){
+    public void addCancelListener(WindowAdapter windowAdapter){
         this.cancelListener = windowAdapter;
     }
 
@@ -129,6 +132,10 @@ public class RegisterDialog extends JDialog {
 
     public String getPassword() {
         return password;
+    }
+
+    public void showDialog(){
+        setVisible(true);
     }
 
 }

@@ -39,6 +39,10 @@ public class ConversationPane extends JDesktopPane {
         messages.add(new MessageFrameWrapper(messageFrame, color, alignment));
     }
 
+    public void clear(){
+        removeAll();
+    }
+
     @Override
     public void repaint() {
         try {

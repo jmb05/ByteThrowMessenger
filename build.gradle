@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-    implementation('kryonet:kryonet:2.21-2')
-    implementation('com.esotericsoftware.kryo:kryo:2.24.0')
+    implementation('com.esotericsoftware:kryonet:2.22.0-RC1')
+    implementation('com.esotericsoftware:kryo:5.0.3')
     implementation('com.fasterxml.jackson.core:jackson-core:2.11.2')
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.11.2')
     implementation('com.fasterxml.jackson.core:jackson-databind:2.11.2')
@@ -42,6 +42,8 @@ dependencies {
     implementation('org.apache.commons:commons-lang3:3.11')
     implementation('org.apache.commons:commons-collections4:4.4')
     implementation('com.google.guava:guava:30.1-jre')
+    //For testing
+    implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
 }
 
 test {
@@ -67,8 +69,8 @@ task createVersion(){
 }
 
 task serverJar(type: Jar) {
-    archiveName "EM-${project.version}.jar"
-    baseName "EM-${project.version}"
+    archiveName "BTM-${project.version}.jar"
+    baseName "BTM-${project.version}"
     manifest {
         attributes(
                 'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'

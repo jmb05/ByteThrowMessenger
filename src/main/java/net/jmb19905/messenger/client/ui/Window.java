@@ -1,21 +1,25 @@
 package net.jmb19905.messenger.client.ui;
 
 import net.jmb19905.messenger.client.ByteThrowClient;
+import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.client.ui.conversation.MessageFrame;
 import net.jmb19905.messenger.client.ui.settings.SettingsWindow;
 import net.jmb19905.messenger.client.ui.util.component.HintTextField;
 import net.jmb19905.messenger.client.ui.util.component.ImagePanel;
-import net.jmb19905.messenger.util.*;
+import net.jmb19905.messenger.messages.ImageMessage;
+import net.jmb19905.messenger.messages.Message;
+import net.jmb19905.messenger.messages.TextMessage;
+import net.jmb19905.messenger.util.FileUtility;
+import net.jmb19905.messenger.util.FormattedImage;
+import net.jmb19905.messenger.util.ImageUtility;
+import net.jmb19905.messenger.util.Variables;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -46,8 +50,10 @@ public class Window extends JFrame {
 
     public static boolean closeRequested = false;
 
+    public static final String APPLICATION_NAME = "ByteThrow Messenger " + ByteThrowClient.version;
+
     public Window() {
-        setTitle("ByteThrow Messenger " + ByteThrowClient.version);
+        setTitle(APPLICATION_NAME);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1000, 750));
         setIconImage(FileUtility.getImageResource("icon.png"));
@@ -93,11 +99,32 @@ public class Window extends JFrame {
         constraints.weighty = 1;
         connectedUsers.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         connectedUsers.addListSelectionListener(e -> {
-            conversationRootLayout.show(conversationRoot, "conversation");
-            conversationShown = true;
-            JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
-            verticalBar.setValue(verticalBar.getMaximum());
-            repaint();
+            if(connectedUsers.getSelectedValue() != null) {
+                conversationPane.clear();
+                MessagingClient.addUserConnectionToConversation(MessagingClient.otherUsers.get(connectedUsers.getSelectedValue()));
+                conversationRootLayout.show(conversationRoot, "conversation");
+                conversationShown = true;
+                JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
+                verticalBar.setValue(verticalBar.getMaximum());
+                repaint();
+            }else {
+                conversationPane.clear();
+                conversationRootLayout.show(conversationRoot, "blank");
+            }
+        });
+        connectedUsers.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int selectedIndex = connectedUsers.locationToIndex(e.getPoint());
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    connectedUsers.setSelectedIndex(selectedIndex);
+                    JPopupMenu popupMenu = new JPopupMenu();
+                    JMenuItem closeConnectionMenuItem = new JMenuItem("Close Conversation");
+                    popupMenu.add(closeConnectionMenuItem);
+                    closeConnectionMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.closeConnectionWithUser(connectedUsers.getSelectedValue()));
+                    popupMenu.show(connectedUsers, e.getX(), e.getY());
+                }
+            }
         });
         chatChooser.add(connectedUsers, constraints);
 
@@ -275,7 +302,7 @@ public class Window extends JFrame {
     private void send(){
         String message = inputField.getText();
         if (ByteThrowClient.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
-            addMessage(ByteThrowClient.getUsername(), message, ConversationPane.RIGHT);
+            addMessage(new TextMessage(ByteThrowClient.getUsername(), message), ConversationPane.RIGHT);
         } else {
             JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
@@ -284,7 +311,7 @@ public class Window extends JFrame {
 
     private void sendImages(String caption, FormattedImage... images){
         if(ByteThrowClient.messagingClient.sendImagesToOtherUser(connectedUsers.getSelectedValue(), caption, images)){
-            addMessage(ByteThrowClient.getUsername(), caption, ConversationPane.RIGHT, images);
+            addMessage(new ImageMessage(ByteThrowClient.getUsername(), caption, images), ConversationPane.RIGHT);
         }else{
             JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
@@ -329,17 +356,8 @@ public class Window extends JFrame {
     /**
      * Adds a Message to the ConversationPane
      */
-    public void addMessage(String title, String text, int alignment) {
-        conversationPane.addMessage(new MessageFrame(title, text), alignment == ConversationPane.LEFT ? new Color(69, 73, 74) : new Color(65, 83, 88), alignment);
-        JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
-        verticalBar.setValue(verticalBar.getMaximum());
-    }
-
-    /**
-     * Adds a Message to the ConversationPane
-     */
-    public void addMessage(String title, String text, int alignment, FormattedImage... images) {
-        conversationPane.addMessage(new MessageFrame(title, text, images), alignment == ConversationPane.LEFT ? new Color(69, 73, 74) : new Color(65, 83, 88), alignment);
+    public void addMessage(Message message, int alignment) {
+        conversationPane.addMessage(new MessageFrame(message), alignment == ConversationPane.LEFT ? new Color(69, 73, 74) : new Color(65, 83, 88), alignment);
         JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
         verticalBar.setValue(verticalBar.getMaximum());
     }

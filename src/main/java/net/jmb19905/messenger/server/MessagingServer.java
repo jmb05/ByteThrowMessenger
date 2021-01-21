@@ -3,8 +3,8 @@ package net.jmb19905.messenger.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import net.jmb19905.messenger.packages.BTMPacket;
-import net.jmb19905.messenger.packages.exception.UnsupportedSideException;
+import net.jmb19905.messenger.packets.BTMPacket;
+import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 import net.jmb19905.messenger.util.Util;
 

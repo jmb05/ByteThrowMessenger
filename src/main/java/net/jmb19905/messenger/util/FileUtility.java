@@ -1,31 +1,34 @@
 package net.jmb19905.messenger.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import net.jmb19905.messenger.client.ByteThrowClient;
-import net.jmb19905.messenger.client.ChatHistory;
+import net.jmb19905.messenger.client.UserConnection;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class FileUtility {
 
     /**
      * Loads the saved ChatHistories for the current user
-     * @return a HashMap with the username of the history as key and the ChatHistory object as value
+     * @return a HashMap with the username of the history as key and the UserConnection object as value
      */
-    public static HashMap<String, ChatHistory> loadChatHistories() {
-        HashMap<String, ChatHistory> map = new HashMap<>();
+    public static HashMap<String, UserConnection> loadUserConnections() {
+        HashMap<String, UserConnection> map = new HashMap<>();
         File parentDirectory = new File("userdata/" + ByteThrowClient.getUsername() + "/");
         if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
             parentDirectory.mkdirs();
         }
+        System.out.println(Arrays.toString(parentDirectory.listFiles()));
         for (File file : parentDirectory.listFiles()) {
             String username = file.getName().split("\\.")[0];
-            map.put(username, loadChatHistory(username));
+            map.put(username, loadUserConnection(username));
             ByteThrowClient.window.addConnectedUser(username);
         }
         return map;
@@ -33,22 +36,22 @@ public class FileUtility {
 
     /**
      * Saves the ChatHistories for the current user
-     * @param chatHistoryHashMap a HashMap with the username of the history as key and the ChatHistory object as value
+     * @param userConnectionHashMap a HashMap with the username of the history as key and the UserConnection object as value
      */
-    public static void saveChatHistories(HashMap<String, ChatHistory> chatHistoryHashMap) {
-        if(chatHistoryHashMap != null) {
-            for (String name : chatHistoryHashMap.keySet()) {
-                saveChatHistory(name, chatHistoryHashMap.get(name));
+    public static void saveUserConnections(HashMap<String, UserConnection> userConnectionHashMap) {
+        if(userConnectionHashMap != null) {
+            for (String name : userConnectionHashMap.keySet()) {
+                saveUserConnection(name, userConnectionHashMap.get(name));
             }
         }
     }
 
     /**
-     * Saves a single ChatHistory for the current user
-     * @param username the username of the history
-     * @param chat the ChatHistory
+     * Saves a single UserConnection for the current user
+     * @param username the username of the connection
+     * @param chat the UserConnection
      */
-    public static void saveChatHistory(String username, ChatHistory chat) {
+    public static void saveUserConnection(String username, UserConnection chat) {
         File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
         if (!file.exists()) {
             file.getParentFile().mkdirs();
@@ -57,26 +60,28 @@ public class FileUtility {
         try {
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, chat);
         } catch (IOException e) {
-            BTMLogger.error(FileUtility.class.getName(), "Error writing ChatHistory to File", e);
+            BTMLogger.error(FileUtility.class.getName(), "Error writing UserConnection to File", e);
         }
     }
 
     /**
-     * Loads a single ChatHistory for the current user
+     * Loads a single UserConnection for the current user
      * @param username the username of the history
-     * @return the loaded ChatHistory
+     * @return the loaded UserConnection
      */
-    public static ChatHistory loadChatHistory(String username) {
+    public static UserConnection loadUserConnection(String username) {
         File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
         if (file.exists()) {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                return mapper.readValue(file, ChatHistory.class);
-            } catch (IOException e) {
-                BTMLogger.error(FileUtility.class.getName(), "Error reading ChatHistory from File", e);
+                return mapper.readValue(file, UserConnection.class);
+            }catch (MismatchedInputException e){
+                BTMLogger.warn(FileUtility.class.getName(), "Error reading UserConnection from File - File is incomplete. Skipping", e);
+            }catch (IOException e) {
+                BTMLogger.error(FileUtility.class.getName(), "Error reading UserConnection from File", e);
             }
         } else {
-            BTMLogger.warn(FileUtility.class.getName(), "Cannot read ChatHistory from File - ChatHistory does not exist");
+            BTMLogger.warn(FileUtility.class.getName(), "Cannot read UserConnection from File - UserConnection does not exist");
         }
         return null;
     }
