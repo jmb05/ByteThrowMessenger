@@ -11,7 +11,7 @@ jar {
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
         attributes(
-            'Main-Class': 'net.jmb19905.messenger.client.ByteThrowMessenger'
+            'Main-Class': 'net.jmb19905.messenger.client.ByteThrowClient'
         )
     }
     from {
@@ -52,14 +52,13 @@ test {
 
 launch4j {
     outfile = "${project.name}-${project.version}.exe"
-    mainClassName = 'net.jmb19905.messenger.client.EncryptedMessenger'
+    mainClassName = 'net.jmb19905.messenger.client.ByteThrowClient'
     icon = "${projectDir}/build/libs/icon.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
     textVersion = '1.0.SN3'
     internalName = 'ByteThrowMessenger'
     productName = "${project.name}-${project.version}"
-    jvmOptions ['-Dbtm.launch.type="exe"']
 }
 
 task createVersion(){
