@@ -46,7 +46,6 @@ public class MessagingClient extends Listener {
             while (isKeepAliveRequired()){
                 if(client.isConnected()){
                     client.sendTCP(new KeepAlivePacket());
-                    System.out.println("Sent KeepAlivePacket");
                 }
                 try {
                     Thread.sleep(8000);
@@ -234,7 +233,6 @@ public class MessagingClient extends Listener {
             loginDialog.addRegisterButtonActionListener(e -> register(connection));
             loginDialog.addConfirmButtonActionListener(e -> {
                 LoginPacket loginPacket = ClientUtils.createLoginPacket(loginDialog.getUsername(), loginDialog.getPassword(), serverConnection);
-                System.out.println("Sent Login: " + loginDialog.getUsername());
                 connection.sendTCP(loginPacket);
                 ByteThrowClient.setUserData(loginDialog.getUsername(), loginDialog.getPassword());
             });
@@ -276,6 +274,11 @@ public class MessagingClient extends Listener {
      */
     public static void initOtherUsers() {
         otherUsers = FileUtility.loadUserConnections();
+        if(ByteThrowClient.window != null){
+            for(String username : otherUsers.keySet()){
+                ByteThrowClient.window.addConnectedUser(username);
+            }
+        }
     }
 
     /**
@@ -286,6 +289,7 @@ public class MessagingClient extends Listener {
         for (Message message : userConnection.getMessages()) {
             ByteThrowClient.window.addMessage(message, (message.sender.equals(ByteThrowClient.getUsername())) ? ConversationPane.RIGHT : ConversationPane.LEFT);
         }
+        System.out.println("Added user: " + userConnection.getName() + " to conversation panel");
     }
 
     /**

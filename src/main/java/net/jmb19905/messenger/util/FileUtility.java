@@ -1,16 +1,14 @@
 package net.jmb19905.messenger.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import net.jmb19905.messenger.client.ByteThrowClient;
 import net.jmb19905.messenger.client.UserConnection;
+import net.jmb19905.messenger.client.seralisation.ChatSerializer;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class FileUtility {
@@ -19,17 +17,23 @@ public class FileUtility {
      * Loads the saved ChatHistories for the current user
      * @return a HashMap with the username of the history as key and the UserConnection object as value
      */
-    public static HashMap<String, UserConnection> loadUserConnections() {
+    public static HashMap<String, UserConnection> loadUserConnections(){
         HashMap<String, UserConnection> map = new HashMap<>();
         File parentDirectory = new File("userdata/" + ByteThrowClient.getUsername() + "/");
         if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
             parentDirectory.mkdirs();
         }
-        System.out.println(Arrays.toString(parentDirectory.listFiles()));
         for (File file : parentDirectory.listFiles()) {
-            String username = file.getName().split("\\.")[0];
-            map.put(username, loadUserConnection(username));
-            ByteThrowClient.window.addConnectedUser(username);
+            if(file.isDirectory()) {
+                ChatSerializer serializer = new ChatSerializer(file.getName());
+                try {
+                    map.put(serializer.getName(), serializer.deserializeUserConnection());
+                }catch (FileNotFoundException e){
+                    BTMLogger.warn("ChatSerializer", "Error deserializing data... File not found. Fetching data from server", e);
+                }catch (IOException e){
+                    BTMLogger.warn("ChatSerializer", "Error deserializing data... Error reading. Fetching data from server", e);
+                }
+            }
         }
         return map;
     }
@@ -41,49 +45,10 @@ public class FileUtility {
     public static void saveUserConnections(HashMap<String, UserConnection> userConnectionHashMap) {
         if(userConnectionHashMap != null) {
             for (String name : userConnectionHashMap.keySet()) {
-                saveUserConnection(name, userConnectionHashMap.get(name));
+                ChatSerializer serializer = new ChatSerializer(name);
+                serializer.serializeUserConnection(userConnectionHashMap.get(name));
             }
         }
-    }
-
-    /**
-     * Saves a single UserConnection for the current user
-     * @param username the username of the connection
-     * @param chat the UserConnection
-     */
-    public static void saveUserConnection(String username, UserConnection chat) {
-        File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(file, chat);
-        } catch (IOException e) {
-            BTMLogger.error(FileUtility.class.getName(), "Error writing UserConnection to File", e);
-        }
-    }
-
-    /**
-     * Loads a single UserConnection for the current user
-     * @param username the username of the history
-     * @return the loaded UserConnection
-     */
-    public static UserConnection loadUserConnection(String username) {
-        File file = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
-        if (file.exists()) {
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                return mapper.readValue(file, UserConnection.class);
-            }catch (MismatchedInputException e){
-                BTMLogger.warn(FileUtility.class.getName(), "Error reading UserConnection from File - File is incomplete. Skipping", e);
-            }catch (IOException e) {
-                BTMLogger.error(FileUtility.class.getName(), "Error reading UserConnection from File", e);
-            }
-        } else {
-            BTMLogger.warn(FileUtility.class.getName(), "Cannot read UserConnection from File - UserConnection does not exist");
-        }
-        return null;
     }
 
     /**

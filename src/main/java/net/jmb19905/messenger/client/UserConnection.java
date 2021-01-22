@@ -42,6 +42,10 @@ public class UserConnection {
         messages.add(message);
     }
 
+    public void addMessages(List<Message> messages){
+        this.messages.addAll(messages);
+    }
+
     public void setEncryptedConnection(EncryptedConnection encryptedConnection) {
         this.encryptedConnection = encryptedConnection;
     }

@@ -51,6 +51,7 @@ public class ConversationPane extends JDesktopPane {
             messages.clear();
             for (MessageFrameWrapper message : oldList) {
                 addMessage(message.messageFrame, message.color, message.alignment);
+                message.messageFrame.pack();
             }
         }catch (NullPointerException ignored){}
         super.repaint();

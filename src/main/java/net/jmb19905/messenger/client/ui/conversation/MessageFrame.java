@@ -11,7 +11,12 @@ import net.jmb19905.messenger.util.Variables;
 import javax.swing.*;
 import javax.swing.plaf.InternalFrameUI;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -85,6 +90,8 @@ public class MessageFrame extends JInternalFrame {
         }
 
         area = new JTextArea(text);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
         area.setEditable(false);
         area.setFont(Variables.defaultFont);
         constraints.gridx = 0;
@@ -96,7 +103,6 @@ public class MessageFrame extends JInternalFrame {
         }else{
             width += area.getPreferredSize().width + 10;
         }
-        System.out.println(area.getPreferredSize());
         height += area.getPreferredSize().height;
 
         for(FormattedImage image : images){
@@ -141,6 +147,42 @@ public class MessageFrame extends JInternalFrame {
 
         getContentPane().setPreferredSize(new Dimension(width, height));
         pack();
+    }
+
+    private void recalculateSizes(){
+        int width = 10;
+        int height = 10;
+
+        if(getParent() != null){
+            area.setPreferredSize(new Dimension((getParent().getWidth() / 3) * 2, area.getMinimumSize().height));
+        }
+
+        if(titleLabel != null) {
+            height += titleLabel.getPreferredSize().height;
+            width += Math.max(titleLabel.getPreferredSize().width, area.getPreferredSize().width) + 10;
+        }else{
+            width += area.getPreferredSize().width + 10;
+        }
+
+        height += area.getPreferredSize().height;
+        for(FormattedImage image : images) {
+            int panelWidth = width - 10;
+            if (getParent() != null) {
+                panelWidth = (getParent().getWidth() / 3) - 10;
+            }
+            if (panelWidth > width) {
+                width = panelWidth;
+            }
+            int panelHeight = image.image.getHeight() / image.image.getWidth() * panelWidth;
+            height += (panelHeight + 10);
+        }
+        getContentPane().setPreferredSize(new Dimension(width, height));
+    }
+
+    @Override
+    public void pack() {
+        recalculateSizes();
+        super.pack();
     }
 
     private void remove(){
@@ -197,38 +239,13 @@ public class MessageFrame extends JInternalFrame {
         }
         if(area != null) {
             area.setBackground(color);
+            if(getParent() != null){
+                area.setMaximumSize(new Dimension(getParent().getWidth() / 2, area.getMinimumSize().height));
+            }
         }
         try {
             titleLabel.setFont(Variables.boldFont);
             area.setFont(Variables.defaultFont);
         }catch (NullPointerException ignored){}
-        /*if(getParent() != null && getWidth() > 0) {
-            int width = getWidth();
-            int height = getHeight();
-            if (width > getParent().getWidth() / 2){
-                height -= area.getPreferredSize().height;
-                String firstPart = "";
-                String secondPart = "";
-                for(int i=0;i<100;i++){
-                    try {
-                        if (text.charAt((text.length() / 2) - i) == ' ') {
-                            firstPart = text.substring(0, (text.length() / 2) - i);
-                            secondPart = text.substring((text.length() / 2) - i);
-                            break;
-                        } else if (text.charAt((text.length() / 2) + i) == ' ') {
-                            firstPart = text.substring(0, (text.length() / 2) + i);
-                            secondPart = text.substring((text.length() / 2) + i);
-                            break;
-                        }
-                    }catch (StringIndexOutOfBoundsException e){
-                        break;
-                    }
-                }
-                area.setText(firstPart + "\n" + secondPart);
-                height += area.getPreferredSize().height;
-                width = Math.max(area.getPreferredSize().width, width);
-            }
-            setPreferredSize(new Dimension(width, height));
-        }*/
     }
 }

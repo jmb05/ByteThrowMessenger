@@ -7,9 +7,7 @@ public class KeepAlivePacket extends BTMPacket{
     public KeepAlivePacket(){}
 
     @Override
-    public void handleOnClient(Connection connection){
-        System.out.println("Received KeepAlivePacket");
-    }
+    public void handleOnClient(Connection connection){/*Doesn't handle it because it does not carry and information*/}
 
     @Override
     public void handleOnServer(Connection connection){

@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -98,20 +99,6 @@ public class Window extends JFrame {
         constraints.weightx = 1;
         constraints.weighty = 1;
         connectedUsers.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-        connectedUsers.addListSelectionListener(e -> {
-            if(connectedUsers.getSelectedValue() != null) {
-                conversationPane.clear();
-                MessagingClient.addUserConnectionToConversation(MessagingClient.otherUsers.get(connectedUsers.getSelectedValue()));
-                conversationRootLayout.show(conversationRoot, "conversation");
-                conversationShown = true;
-                JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
-                verticalBar.setValue(verticalBar.getMaximum());
-                repaint();
-            }else {
-                conversationPane.clear();
-                conversationRootLayout.show(conversationRoot, "blank");
-            }
-        });
         connectedUsers.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -123,6 +110,19 @@ public class Window extends JFrame {
                     popupMenu.add(closeConnectionMenuItem);
                     closeConnectionMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.closeConnectionWithUser(connectedUsers.getSelectedValue()));
                     popupMenu.show(connectedUsers, e.getX(), e.getY());
+                }else{
+                    if(connectedUsers.getSelectedValue() != null) {
+                        conversationPane.clear();
+                        MessagingClient.addUserConnectionToConversation(MessagingClient.otherUsers.get(connectedUsers.getSelectedValue()));
+                        conversationRootLayout.show(conversationRoot, "conversation");
+                        conversationShown = true;
+                        JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
+                        verticalBar.setValue(verticalBar.getMaximum());
+                        repaint();
+                    }else {
+                        conversationPane.clear();
+                        conversationRootLayout.show(conversationRoot, "blank");
+                    }
                 }
             }
         });
@@ -257,7 +257,7 @@ public class Window extends JFrame {
 
             }
         });
-        toolBar.add(imageButton);
+        //toolBar.add(imageButton);
         imageButton.setVisible(conversationShown);
 
         sendMessageButton = new JButton();
@@ -307,6 +307,7 @@ public class Window extends JFrame {
             JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
         inputField.setText("");
+        System.out.println("Sent Message");
     }
 
     private void sendImages(String caption, FormattedImage... images){
@@ -358,8 +359,10 @@ public class Window extends JFrame {
      */
     public void addMessage(Message message, int alignment) {
         conversationPane.addMessage(new MessageFrame(message), alignment == ConversationPane.LEFT ? new Color(69, 73, 74) : new Color(65, 83, 88), alignment);
-        JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
-        verticalBar.setValue(verticalBar.getMaximum());
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar verticalBar = conversationScrollPane.getVerticalScrollBar();
+            verticalBar.setValue(verticalBar.getMaximum());
+        });
     }
 
     /**
@@ -391,9 +394,4 @@ public class Window extends JFrame {
         connectedUsers.setFont(Variables.defaultFont);
         conversationPane.setBackground(SettingsWindow.isLight() ? Color.white : new Color(60, 63, 65));
     }
-
-    public static class ImageSendingDialog extends JDialog{
-
-    }
-
 }

@@ -9,8 +9,10 @@ import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.messages.ImageMessage;
 import net.jmb19905.messenger.messages.TextMessage;
 import net.jmb19905.messenger.server.MessagingServer;
-import net.jmb19905.messenger.server.ServerUtils;
-import net.jmb19905.messenger.util.*;
+import net.jmb19905.messenger.util.EncryptionUtility;
+import net.jmb19905.messenger.util.FileUtility;
+import net.jmb19905.messenger.util.FormattedImage;
+import net.jmb19905.messenger.util.Util;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.awt.image.BufferedImage;
