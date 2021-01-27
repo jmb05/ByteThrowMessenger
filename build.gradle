@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0-SNAPSHOT-5'
+version '1.0.0-SNAPSHOT-6'
 
 jar {
     archiveName "ByteThrowMessenger-${project.version}-Client.jar"
@@ -56,7 +56,7 @@ launch4j {
     icon = "${projectDir}/build/libs/icon.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
-    textVersion = '1.0.SN3'
+    textVersion = '1.0.0-SN-5'
     internalName = 'ByteThrowMessenger'
     productName = "${project.name}-${project.version}"
 }
@@ -72,7 +72,7 @@ task serverJar(type: Jar) {
     baseName "BTM-${project.version}"
     manifest {
         attributes(
-                'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'
+            'Main-Class': 'net.jmb19905.messenger.server.ByteThrowServer'
         )
     }
     with jar

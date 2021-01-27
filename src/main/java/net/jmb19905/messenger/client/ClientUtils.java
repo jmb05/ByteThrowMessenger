@@ -5,6 +5,7 @@ import net.jmb19905.messenger.packets.*;
 import net.jmb19905.messenger.util.EncryptionUtility;
 import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.FormattedImage;
+import net.jmb19905.messenger.util.ImageUtility;
 
 import java.nio.charset.StandardCharsets;
 
@@ -22,16 +23,7 @@ public class ClientUtils {
         DataPacket dataPacket = new DataPacket();
         dataPacket.username = EncryptionUtility.encryptString(clientToServerConnection, username);
         dataPacket.type = EncryptionUtility.encryptString(clientToServerConnection, EncryptionUtility.encryptString(endToEndConnection, "image"));
-        byte[][] data = new byte[(images.length * 2) + 1][0];
-        byte[] rawCaption = caption.getBytes(StandardCharsets.UTF_8);
-        data[0] = rawCaption;
-        for(int i=0;i<images.length;i++){
-            FormattedImage image = images[i];
-            byte[] meta = (image.name + "|" + image.format + "|" + image.image.getWidth() + "|" + image.image.getHeight()).getBytes(StandardCharsets.UTF_8);
-            data[i * 2 + 1] = meta;
-            byte[] imageData = FileUtility.convertImageToBytes(image.image);
-            data[i * 2 + 2] = imageData;
-        }
+        byte[][] data = ImageUtility.imagesToBytes(caption, images);
         dataPacket.data = EncryptionUtility.decrypt2DBytes(clientToServerConnection, EncryptionUtility.encrypt2DBytes(endToEndConnection, data));
         return dataPacket;
     }
@@ -67,8 +59,15 @@ public class ClientUtils {
     public static E2EInfoPacket createCloseConnectionPacket(String username, EncryptedConnection recipientConnection){
         E2EInfoPacket infoPacket = new E2EInfoPacket();
         infoPacket.username = EncryptionUtility.encryptString(MessagingClient.serverConnection, username);
-        infoPacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, EncryptionUtility.encryptString(recipientConnection, "close"));
+        infoPacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, "close");
         return infoPacket;
+    }
+
+    public static ToServerDataRequestPacket createHistoryRequest(EncryptedConnection connection, String otherUser){
+        ToServerDataRequestPacket dataRequestPacket = new ToServerDataRequestPacket();
+        dataRequestPacket.type = EncryptionUtility.encryptString(connection, "chatHistory");
+        dataRequestPacket.data = EncryptionUtility.encryptString(connection, otherUser);
+        return dataRequestPacket;
     }
 
 }

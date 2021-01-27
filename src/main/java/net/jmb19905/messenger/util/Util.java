@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +53,9 @@ public class Util {
         kryo.register(FailPacket.class);
         kryo.register(E2EInfoPacket.class);
         kryo.register(KeepAlivePacket.class);
+        kryo.register(ToServerDataRequestPacket.class);
+        kryo.register(ToClientDataPacket.class);
+        kryo.register(List.class);
     }
 
     /**

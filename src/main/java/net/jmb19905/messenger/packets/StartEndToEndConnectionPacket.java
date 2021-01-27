@@ -6,6 +6,7 @@ import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.UserConnection;
 import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.crypto.exception.InvalidNodeException;
+import net.jmb19905.messenger.server.E2EConnection;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.server.ServerUtils;
 import net.jmb19905.messenger.server.userdatabase.SQLiteManager;
@@ -75,6 +76,8 @@ public class StartEndToEndConnectionPacket extends BTMPacket implements IQueueab
                 return;
             }
 
+            addE2EConnectionToServer(sender, recipient);
+
             for (Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()) {
                 if (MessagingServer.clientConnectionKeys.get(recipientConnection).isLoggedIn()) {
                     if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {
@@ -99,6 +102,32 @@ public class StartEndToEndConnectionPacket extends BTMPacket implements IQueueab
             BTMLogger.warn("MessagingServer", "Error connecting users", e);
             connection.sendTCP(ServerUtils.createUserConnectionErrorPacket(recipient));
         }
+    }
+
+    private void addE2EConnectionToServer(String sender, String recipient) {
+        E2EConnection end2EndConnection = new E2EConnection(sender, recipient);
+        boolean connectionCanBeConfirmed = false;
+        int listIndex = -1;
+        for(E2EConnection e2EConnection : MessagingServer.e2eToBeConfirmed){
+            if(e2EConnection.equals(end2EndConnection)){
+                connectionCanBeConfirmed = true;
+                listIndex = MessagingServer.e2eToBeConfirmed.indexOf(e2EConnection);
+                break;
+            }
+        }
+        if(connectionCanBeConfirmed){
+            E2EConnection toBeRemoved = MessagingServer.e2eToBeConfirmed.get(listIndex);
+            MessagingServer.deleteUnconfirmedConnection(toBeRemoved);
+            MessagingServer.e2eToBeConfirmed.remove(toBeRemoved);
+            toBeRemoved.close();
+            MessagingServer.e2eConnectedClients.add(end2EndConnection);
+        }else {
+            MessagingServer.e2eToBeConfirmed.add(end2EndConnection);
+        }
+        System.out.println("Connected: " + MessagingServer.e2eConnectedClients);
+        System.out.println("Unconfirmed: " + MessagingServer.e2eToBeConfirmed);
+        MessagingServer.writeUnconfirmedConnectionsToFile();
+        MessagingServer.writeE2EConnectionsToFile();
     }
 
     @Override

@@ -22,6 +22,8 @@ public abstract class Message {
         this.sender = sender;
     }
 
+    public abstract EncryptedMessage toEncrypted();
+
     public static class JsonSerializer extends StdSerializer<Message>{
 
         public JsonSerializer(){this(null);}
@@ -38,7 +40,14 @@ public abstract class Message {
                 gen.writeStringField("text", ((TextMessage) value).text);
                 gen.writeEndObject();
             }
+            //TODO: image sending: needs serialization
         }
+    }
+
+    public abstract String toString();
+
+    public static Message fromString(String s){
+        throw new IllegalArgumentException("Called default Message::fromString method. Has to be called from subclass.");
     }
 
     public static class JsonDeserializer extends StdDeserializer<Message>{
@@ -56,9 +65,7 @@ public abstract class Message {
             JsonNode jsonNode = p.getCodec().readTree(p);
             String sender = jsonNode.get("sender").asText();
             String text = jsonNode.get("text").asText();
-            try {
-                String image = jsonNode.get("image").asText();
-            }catch (NullPointerException ignored){/*Only if the message is an ImageMessage we need this*/}
+            //TODO: image sending: needs deserialization
             return new TextMessage(sender, text);
         }
     }

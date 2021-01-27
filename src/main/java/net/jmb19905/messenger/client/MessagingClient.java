@@ -85,7 +85,7 @@ public class MessagingClient extends Listener {
             client.connect(5000, serverAddress, serverPort, serverPort + 1);
         } catch (IOException e) {
             BTMLogger.error("MessagingClient", "Error establishing connection", e);
-            JOptionPane.showMessageDialog(null, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ByteThrowClient.window, "Error connecting to server! Please check internet connection.", "Connection Failure", JOptionPane.ERROR_MESSAGE);
             stop(-1);
         }
 
@@ -314,7 +314,7 @@ public class MessagingClient extends Listener {
             }
         } catch (InvalidKeySpecException e) {
             BTMLogger.error("MessagingServer", "Error setting PublicKey. Key is invalid.", e);
-            JOptionPane.showMessageDialog(null, "There was an error during the Server - Client Key exchange", "ERROR", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ByteThrowClient.window, "There was an error during the Server - Client Key exchange", "ERROR", JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         }
     }

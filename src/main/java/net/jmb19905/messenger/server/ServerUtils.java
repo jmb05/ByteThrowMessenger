@@ -1,7 +1,13 @@
 package net.jmb19905.messenger.server;
 
+import net.jmb19905.messenger.crypto.EncryptedConnection;
+import net.jmb19905.messenger.messages.Message;
 import net.jmb19905.messenger.packets.FailPacket;
 import net.jmb19905.messenger.packets.SuccessPacket;
+import net.jmb19905.messenger.packets.ToClientDataPacket;
+import net.jmb19905.messenger.util.EncryptionUtility;
+
+import java.util.Collection;
 
 public class ServerUtils {
 
@@ -59,6 +65,15 @@ public class ServerUtils {
         fail.type = "connectFail";
         fail.cause = otherUser;
         return fail;
+    }
+
+    //Data Packet
+    public static ToClientDataPacket<Message> createHistoryPacket(EncryptedConnection connection, E2EConnection e2EConnection, String otherUser){
+        ToClientDataPacket<Message> dataPacket = new ToClientDataPacket<>();
+        dataPacket.otherUser = EncryptionUtility.encryptString(connection, otherUser);
+        dataPacket.type = EncryptionUtility.encryptString(connection, "chatHistory");
+        dataPacket.data.addAll(e2EConnection.getHistory());
+        return dataPacket;
     }
 
 }

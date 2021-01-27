@@ -1,6 +1,6 @@
 package net.jmb19905.test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.IOException;
 
 /**
  * To test stuff
@@ -8,7 +8,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class Test {
 
     @org.junit.jupiter.api.Test
-    public void test(){
+    public void equalsTest() {
+
     }
 
 }

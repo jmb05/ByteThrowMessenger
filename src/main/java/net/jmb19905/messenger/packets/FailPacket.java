@@ -18,12 +18,12 @@ public class FailPacket extends BTMPacket {
     public void handleOnClient(Connection connection){
         switch (type) {
             case "loginFail":
-                JOptionPane.showMessageDialog(null, "Could not log in! " + (cause.equals("pw") ? "Password " : "Username ") + "was incorrect.", "Wrong credentials", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Could not log in! " + (cause.equals("pw") ? "Password " : "Username ") + "was incorrect.", "Wrong credentials", JOptionPane.ERROR_MESSAGE);
                 ByteThrowClient.wipeUserData();
                 ByteThrowClient.messagingClient.login(connection);
                 break;
             case "notRegistered":
-                int jop = JOptionPane.showConfirmDialog(null, "Login failed. If you have no account you have to register.\nDo you want to register?", "Login failed", JOptionPane.YES_NO_CANCEL_OPTION);
+                int jop = JOptionPane.showConfirmDialog(ByteThrowClient.window, "Login failed. If you have no account you have to register.\nDo you want to register?", "Login failed", JOptionPane.YES_NO_CANCEL_OPTION);
                 if (jop == JOptionPane.YES_OPTION) {
                     ByteThrowClient.messagingClient.register(connection);
                 } else if (jop == JOptionPane.NO_OPTION) {
@@ -33,7 +33,7 @@ public class FailPacket extends BTMPacket {
                 }
                 break;
             case "registerFail":
-                JOptionPane.showMessageDialog(null, "Server Error registering user. " + cause + ". Please again try later.", "Error registering", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Server Error registering user. " + cause + ". Please again try later.", "Error registering", JOptionPane.ERROR_MESSAGE);
                 ByteThrowClient.wipeUserData();
                 ByteThrowClient.messagingClient.login(connection);
                 break;
@@ -43,12 +43,12 @@ public class FailPacket extends BTMPacket {
                 ByteThrowClient.messagingClient.register(connection);
                 break;
             case "outOfDate":
-                JOptionPane.showMessageDialog(null, "Your Client is out of Date. The Server is on Version: " + cause + ". You are on Version: " + ByteThrowClient.version + ". Please install the newest version.", "Client Out Of Date", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Your Client is out of Date. The Server is on Version: " + cause + ". You are on Version: " + ByteThrowClient.version + ". Please install the newest version.", "Client Out Of Date", JOptionPane.ERROR_MESSAGE);
                 Window.closeRequested = true;
                 ByteThrowClient.messagingClient.stop(0);
                 break;
             case "connectFail":
-                JOptionPane.showMessageDialog(null, "There was an error when trying to connect with" + cause, "ERROR", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "There was an error when trying to connect with" + cause, "ERROR", JOptionPane.ERROR_MESSAGE);
                 break;
         }
     }

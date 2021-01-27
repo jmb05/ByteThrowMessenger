@@ -10,7 +10,6 @@ import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -19,9 +18,9 @@ public class ChatSerializer {
     private final File directory;
     private final String name;
 
-    public ChatSerializer(String name){
+    public ChatSerializer(String name, File directory){
         this.name = name;
-        directory = new File("userdata/" + ByteThrowClient.getUsername() + "/" + name + "/");
+        this.directory = directory;
         if(!directory.exists() || !directory.isDirectory()){
             directory.mkdirs();
         }

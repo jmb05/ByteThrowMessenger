@@ -126,7 +126,7 @@ public class MessageFrame extends JInternalFrame {
                     try {
                         Desktop.getDesktop().open(new File("userdata/" + ByteThrowClient.getUsername() + "/media/" + image.name + "." + image.format));
                     } catch (IOException ioException) {
-                        JOptionPane.showMessageDialog(null, "Could not open file", "", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(ByteThrowClient.window, "Could not open file", "", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });

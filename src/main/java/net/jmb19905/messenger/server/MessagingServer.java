@@ -5,12 +5,16 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import net.jmb19905.messenger.packets.BTMPacket;
 import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
-import net.jmb19905.messenger.util.logging.BTMLogger;
+import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.Util;
+import net.jmb19905.messenger.util.logging.BTMLogger;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MessagingServer extends Listener {
 
@@ -19,11 +23,14 @@ public class MessagingServer extends Listener {
 
     public static final HashMap<Connection, ClientConnection>  clientConnectionKeys = new HashMap<>();
     public static final HashMap<String, HashMap<BTMPacket, Object[]>> messagesQueue = new HashMap<>();
-    public static final HashMap<String, E2EConnection> e2eConnectedClients = new HashMap<>();
+    public static List<E2EConnection> e2eToBeConfirmed = new ArrayList<>();
+    public static List<E2EConnection> e2eConnectedClients = new ArrayList<>();
 
     public MessagingServer() {
         BTMLogger.trace("MessagingServer", "Initializing Server");
         this.port = ByteThrowServer.config.port;
+        e2eConnectedClients = readAllE2EConnections();
+        e2eToBeConfirmed = readAllUnconfirmedConnections();
         server = new Server();
 
         Util.registerPackages(server.getKryo());
@@ -82,4 +89,49 @@ public class MessagingServer extends Listener {
             }
         }
     }
+
+    public static void writeE2EConnectionsToFile(){
+        File folder = new File("serverdata/connections/");
+        folder.mkdirs();
+        FileUtility.writeDirectory(folder, e2eConnectedClients);
+    }
+
+    public static void writeUnconfirmedConnectionsToFile(){
+        File folder = new File("serverdata/unconfirmed/");
+        folder.mkdirs();
+        FileUtility.writeDirectory(folder, e2eToBeConfirmed);
+    }
+
+    private List<E2EConnection> readAllE2EConnections(){
+        try {
+            File folder = new File("serverdata/connections/");
+            folder.mkdirs();
+            if(folder != null && folder.exists()) {
+                return FileUtility.readDirectory(folder);
+            }
+        } catch (IOException e) {
+            BTMLogger.warn("MessagingServer", "Error loading connections");
+        }
+        return new ArrayList<>();
+    }
+
+    private List<E2EConnection> readAllUnconfirmedConnections(){
+        try {
+            File folder = new File("/serverdata/unconfirmed/");
+            folder.mkdirs();
+            if(folder != null && folder.exists()) {
+                return FileUtility.readDirectory(folder);
+            }
+        } catch (IOException e) {
+            BTMLogger.warn("MessagingServer", "Error loading unconfirmed connections");
+        }
+        return new ArrayList<>();
+    }
+
+    public static void deleteUnconfirmedConnection(E2EConnection e2EConnection){
+        File folder = new File("/serverdata/unconfirmed/" + e2EConnection.getFileName() + "/");
+        System.out.println(FileUtility.deleteDirectory(folder));
+        System.out.println("Deleted: " + folder.getAbsolutePath());
+    }
+
 }

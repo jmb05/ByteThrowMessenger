@@ -6,8 +6,11 @@ import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.UserConnection;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.crypto.EncryptedConnection;
+import net.jmb19905.messenger.messages.EncryptedMessage;
 import net.jmb19905.messenger.messages.ImageMessage;
+import net.jmb19905.messenger.messages.Message;
 import net.jmb19905.messenger.messages.TextMessage;
+import net.jmb19905.messenger.server.E2EConnection;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.util.EncryptionUtility;
 import net.jmb19905.messenger.util.FileUtility;
@@ -128,6 +131,14 @@ public class DataPacket extends BTMPacket implements IQueueable {
             String decryptedType = EncryptionUtility.decryptString(senderEncryptedConnection, type);
 
             Object[] extraData = new Object[]{sender, decryptedType, decryptedData};
+
+            E2EConnection e2EConnection = E2EConnection.getByNames(MessagingServer.e2eConnectedClients, sender, recipient);
+            if(e2EConnection != null){
+                EncryptedMessage message = new EncryptedMessage(sender, decryptedType, decryptedData);
+                e2EConnection.addMessage(message);
+                System.out.println("Added Message");
+            }
+            MessagingServer.writeE2EConnectionsToFile();
 
             for (Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()) {
                 if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {

@@ -49,8 +49,8 @@ public class LoginPacket extends BTMPacket {
                             ((IQueueable) message).handleOnQueue(connection, messageQueue.get(message));
                         }
                     }
+                    messageQueue.clear();
                 }
-                MessagingServer.messagesQueue.remove(userData.username);
             } else {
                 connection.sendTCP(ServerUtils.createLoginPasswordFailPacket());
             }

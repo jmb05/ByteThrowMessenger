@@ -1,32 +1,20 @@
 package net.jmb19905.messenger.server.serialisation;
 
+import net.jmb19905.messenger.server.E2EConnection;
+
 import java.io.File;
 
 public class ClientDataSerializer {
 
-    private String user1Name;
-    private String user2Name;
+    private final E2EConnection connection;
 
-    private File directory;
+    public ClientDataSerializer(E2EConnection connection) {
+        this.connection = connection;
 
-    public ClientDataSerializer(String user1Name, String user2Name){
-        this.user1Name = user1Name;
-        this.user2Name = user2Name;
-        this.directory = new File("clientData/" + user1Name + "-" + user2Name + "/");
-        if(!directory.exists() || !directory.isDirectory()){
-            directory.mkdirs();
-        }
-    }
-
-    public void serializeClientData(){
 
     }
 
-    public String getUser1Name() {
-        return user1Name;
-    }
+    public void serializeClientData() {
 
-    public String getUser2Name() {
-        return user2Name;
     }
 }

@@ -1,6 +1,7 @@
 package net.jmb19905.messenger.client.ui;
 
 import net.jmb19905.messenger.client.ByteThrowClient;
+import net.jmb19905.messenger.client.ClientUtils;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.client.ui.conversation.MessageFrame;
@@ -109,6 +110,10 @@ public class Window extends JFrame {
                     JMenuItem closeConnectionMenuItem = new JMenuItem("Close Conversation");
                     popupMenu.add(closeConnectionMenuItem);
                     closeConnectionMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.closeConnectionWithUser(connectedUsers.getSelectedValue()));
+
+                    JMenuItem requestRefreshMenuItem = new JMenuItem();
+                    popupMenu.add(requestRefreshMenuItem);
+                    requestRefreshMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.client.sendTCP(ClientUtils.createHistoryRequest(MessagingClient.serverConnection, connectedUsers.getSelectedValue())));
                     popupMenu.show(connectedUsers, e.getX(), e.getY());
                 }else{
                     if(connectedUsers.getSelectedValue() != null) {
@@ -130,9 +135,9 @@ public class Window extends JFrame {
 
         JButton startConversation = new JButton("Start Conversation");
         startConversation.addActionListener(e -> {
-            String username = JOptionPane.showInputDialog(null, "Please input the username of the conversation partner: ", "Start Conversation", JOptionPane.PLAIN_MESSAGE);
+            String username = JOptionPane.showInputDialog(this, "Please input the username of the conversation partner: ", "Start Conversation", JOptionPane.PLAIN_MESSAGE);
             if (username.length() < 3 || username == null) {
-                JOptionPane.showMessageDialog(null, "Invalid Username (" + username + ") (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid Username (" + username + ") (has to be at least 3 characters)", "", JOptionPane.ERROR_MESSAGE);
             } else {
                 ByteThrowClient.messagingClient.connectWithOtherUser(username);
             }
@@ -304,7 +309,7 @@ public class Window extends JFrame {
         if (ByteThrowClient.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
             addMessage(new TextMessage(ByteThrowClient.getUsername(), message), ConversationPane.RIGHT);
         } else {
-            JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
         inputField.setText("");
         System.out.println("Sent Message");
@@ -314,7 +319,7 @@ public class Window extends JFrame {
         if(ByteThrowClient.messagingClient.sendImagesToOtherUser(connectedUsers.getSelectedValue(), caption, images)){
             addMessage(new ImageMessage(ByteThrowClient.getUsername(), caption, images), ConversationPane.RIGHT);
         }else{
-            JOptionPane.showMessageDialog(null, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
 

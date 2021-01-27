@@ -7,6 +7,7 @@ import net.jmb19905.messenger.client.UserConnection;
 import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 import net.jmb19905.messenger.server.ClientConnection;
+import net.jmb19905.messenger.server.E2EConnection;
 import net.jmb19905.messenger.server.MessagingServer;
 import net.jmb19905.messenger.util.EncryptionUtility;
 import net.jmb19905.messenger.util.logging.BTMLogger;
@@ -28,11 +29,10 @@ public class E2EInfoPacket extends BTMPacket implements IQueueable{
         if(sender == null || connectionToSender == null){
             return;
         }
-        String partiallyDecryptedType = EncryptionUtility.decryptString(MessagingClient.serverConnection,  type);
-        String decryptedType =  EncryptionUtility.decryptString(connectionToSender.getEncryptedConnection(), partiallyDecryptedType);
+        String decryptedType = EncryptionUtility.decryptString(MessagingClient.serverConnection,  type);
         if(decryptedType.equals("close")){
             BTMLogger.info("MessagingClient", sender + " has closed the connection");
-            JOptionPane.showMessageDialog(null, sender + " has closed the connection");
+            JOptionPane.showMessageDialog(ByteThrowClient.window, sender + " has closed the connection");
             ByteThrowClient.window.removeConnectedUser(sender);
             MessagingClient.otherUsers.get(sender).close();
             MessagingClient.otherUsers.remove(sender);
@@ -47,9 +47,15 @@ public class E2EInfoPacket extends BTMPacket implements IQueueable{
         }
         String sender = senderConnection.getUsername();
         String recipient = EncryptionUtility.decryptString(senderConnection.getEncryptedConnection(), username);
-        String partiallyDecryptedType = EncryptionUtility.decryptString(senderConnection.getEncryptedConnection(), type);
+        String decryptedType = EncryptionUtility.decryptString(senderConnection.getEncryptedConnection(), type);
 
-        Object[] extraData = new Object[]{sender, partiallyDecryptedType};
+        if(decryptedType.equals("close")) {
+            E2EConnection e2EConnection = new E2EConnection(sender, recipient);
+            MessagingServer.e2eConnectedClients.removeIf(e2e -> e2e.equals(e2EConnection));
+        }
+        MessagingServer.writeE2EConnectionsToFile();
+
+        Object[] extraData = new Object[]{sender, decryptedType};
 
         for (Connection recipientConnection : MessagingServer.clientConnectionKeys.keySet()) {
             if (MessagingServer.clientConnectionKeys.get(recipientConnection).getUsername().equals(recipient)) {
