@@ -9,9 +9,7 @@ import net.jmb19905.messenger.util.Variables;
 public class ByteThrowServer {
 
     public static String version;
-
     public static ConfigManager.ServerConfig config;
-
     public static MessagingServer messagingServer;
 
     /**

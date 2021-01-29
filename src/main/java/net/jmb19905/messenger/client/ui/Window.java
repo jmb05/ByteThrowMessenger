@@ -5,6 +5,7 @@ import net.jmb19905.messenger.client.ClientUtils;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.client.ui.conversation.MessageFrame;
+import net.jmb19905.messenger.client.ui.settings.AccountSettings;
 import net.jmb19905.messenger.client.ui.settings.SettingsWindow;
 import net.jmb19905.messenger.client.ui.util.component.HintTextField;
 import net.jmb19905.messenger.client.ui.util.component.ImagePanel;
@@ -16,6 +17,7 @@ import net.jmb19905.messenger.util.FormattedImage;
 import net.jmb19905.messenger.util.ImageUtility;
 import net.jmb19905.messenger.util.Variables;
 import net.jmb19905.messenger.util.logging.BTMLogger;
+import org.checkerframework.checker.units.qual.A;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -35,6 +37,7 @@ public class Window extends JFrame {
 
     private final JSplitPane pane;
     public final SettingsWindow settingsWindow;
+    public AccountSettings accountSettings;
     private JScrollPane conversationScrollPane;
     private ConversationPane conversationPane;
     private JList<String> connectedUsers;
@@ -212,7 +215,8 @@ public class Window extends JFrame {
             menu.add(settings);
             JMenuItem account = new JMenuItem("My Account");
             account.addActionListener(ae -> {
-                //TODO:add account settings
+                accountSettings = new AccountSettings(new ImageIcon(ImageUtility.resizeImage(FileUtility.getImageResource("icon.png"), 150, 150)), ByteThrowClient.getUsername());
+                accountSettings.showDialog();
             });
             menu.add(account);
             menu.show((Component) e.getSource(), 15,15);

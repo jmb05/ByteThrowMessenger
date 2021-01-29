@@ -31,7 +31,7 @@ public class SQLiteManager {
                         + "username VARCHAR(20) NOT NULL, "
                         + "password VARCHAR(1024) NOT NULL, "
                         + "salt VARCHAR(1024) NOT NULL,"
-                        + "uuid VARCHAR(1024) NOT NULL"
+                        + "uuid VARCHAR(1024)"
                         + ");";
                 stmt.executeUpdate(sql);
                 return conn;
@@ -56,6 +56,25 @@ public class SQLiteManager {
             statement.setString(2, user.password);
             statement.setString(3, user.salt);
             statement.setString(4, user.uuid.toString());
+            statement.execute();
+            connection.close();
+        } catch (SQLException | NullPointerException e) {
+            BTMLogger.warn("SQLiteManager", "Error adding user to database", e);
+            return false;
+        }
+        BTMLogger.trace("SQLiteManager", "Closed database successfully");
+        return true;
+    }
+
+    public static boolean addUser(String username, String password, String salt){
+        Connection connection = connect("database/users.db");
+        try {
+            assert connection != null;
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt,uuid) VALUES (?,?,?,?);");
+            statement.setString(1, username);
+            statement.setString(2, password);
+            statement.setString(3, salt);
+            statement.setString(4, null);
             statement.execute();
             connection.close();
         } catch (SQLException | NullPointerException e) {
@@ -155,6 +174,45 @@ public class SQLiteManager {
             return uuid;
         }
         return null;
+    }
+
+    public static boolean changeUserName(String oldUsername, String newUsername){
+        Connection databaseConnection = connect("database/users.db");
+        try {
+            UserData userData = getUserByName(oldUsername);
+            if(addUser(newUsername, userData.password, userData.salt)){
+                PreparedStatement passwordStatement = databaseConnection.prepareStatement("DELETE FROM users WHERE username = ?");
+                passwordStatement.setString(1, oldUsername);
+                passwordStatement.execute();
+                return true;
+            }else{
+                BTMLogger.warn("SQLiteManager", "Error changing Username");
+                return false;
+            }
+        }catch (SQLException e){
+            BTMLogger.warn("SQLiteManager", "Error changing Username", e);
+            return false;
+        }
+    }
+
+    public static boolean changeUserPassword(String username, String newPassword){
+        String salt = BCrypt.gensalt();
+        Connection databaseConnection = connect("database/users.db");
+        try {
+            PreparedStatement passwordStatement = databaseConnection.prepareStatement("UPDATE users SET password = ? WHERE username = ?");
+            passwordStatement.setString(1, newPassword);
+            passwordStatement.setString(2, String.valueOf(username));
+            passwordStatement.execute();
+
+            PreparedStatement saltStatement = databaseConnection.prepareStatement("UPDATE users SET salt = ? WHERE username = ?");
+            saltStatement.setString(1, salt);
+            saltStatement.setString(2, String.valueOf(username));
+            saltStatement.execute();
+            return true;
+        } catch (SQLException e) {
+            BTMLogger.warn("SQLiteManager", "Error changing User Password", e);
+            return false;
+        }
     }
 
     public static class UserData {

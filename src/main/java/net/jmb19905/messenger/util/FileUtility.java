@@ -71,7 +71,7 @@ public class FileUtility {
      * @param s the path of the image
      * @return the loaded image
      */
-    public static Image getImageResource(String s) {
+    public static BufferedImage getImageResource(String s) {
         try {
             InputStream stream = getResource(s);
             return ImageIO.read(stream);

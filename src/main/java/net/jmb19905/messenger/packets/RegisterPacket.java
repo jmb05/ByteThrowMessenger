@@ -49,7 +49,7 @@ public class RegisterPacket extends BTMPacket {
                         MessagingServer.clientConnectionKeys.get(connection).setLoggedIn(true);
                         connection.sendTCP(ServerUtils.createLoginSuccessPacket());
                     } else {
-                        connection.sendTCP(ServerUtils.createRegisterNameTakenPacket());
+                        connection.sendTCP(ServerUtils.createRegisterNameTakenPacket("initial"));
                     }
                 }
             } else {
@@ -57,7 +57,7 @@ public class RegisterPacket extends BTMPacket {
             }
         } catch (NullPointerException e) {
             BTMLogger.warn("MessagingServer", "Error adding user", e);
-            connection.sendTCP(ServerUtils.createInternalRegisterFailPacket());
+            connection.sendTCP(ServerUtils.createInternalErrorPacket("register"));
         }
     }
 }

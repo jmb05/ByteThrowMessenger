@@ -3,6 +3,8 @@ package net.jmb19905.messenger.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jmb19905.messenger.packets.BTMPacket;
 import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 import net.jmb19905.messenger.util.FileUtility;
@@ -25,6 +27,7 @@ public class MessagingServer extends Listener {
     public static final HashMap<String, HashMap<BTMPacket, Object[]>> messagesQueue = new HashMap<>();
     public static List<E2EConnection> e2eToBeConfirmed = new ArrayList<>();
     public static List<E2EConnection> e2eConnectedClients = new ArrayList<>();
+    public static List<String> watchList = new ArrayList<>();
 
     public MessagingServer() {
         BTMLogger.trace("MessagingServer", "Initializing Server");
@@ -32,6 +35,7 @@ public class MessagingServer extends Listener {
         e2eConnectedClients = readAllE2EConnections();
         e2eToBeConfirmed = readAllUnconfirmedConnections();
         server = new Server();
+        readWatchlist();
 
         Util.registerPackages(server.getKryo());
         BTMLogger.trace("MessagingServer", "Registered Packages");
@@ -132,6 +136,29 @@ public class MessagingServer extends Listener {
         File folder = new File("/serverdata/unconfirmed/" + e2EConnection.getFileName() + "/");
         System.out.println(FileUtility.deleteDirectory(folder));
         System.out.println("Deleted: " + folder.getAbsolutePath());
+    }
+
+    public static void saveWatchlist(){
+        File watchListFile = new File("serverdata/watchlist.json");
+        FileUtility.createFile(watchListFile);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(watchListFile, watchList);
+        } catch (IOException e) {
+            BTMLogger.warn("MessagingServer", "Error saving watchlist");
+        }
+    }
+
+    private static void readWatchlist(){
+        File watchListFile = new File("serverdata/watchlist.json");
+        if(!watchListFile.exists()) return;
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {};
+        try {
+            watchList = objectMapper.readValue(watchListFile, typeReference);
+        } catch (IOException e) {
+            BTMLogger.warn("MessagingServer", "Error reading watchlist");
+        }
     }
 
 }

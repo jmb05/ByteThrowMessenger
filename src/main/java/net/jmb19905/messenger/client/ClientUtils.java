@@ -70,4 +70,22 @@ public class ClientUtils {
         return dataRequestPacket;
     }
 
+    public static ChangePacket createChangeUsernamePacket(String newUsername){
+        ChangePacket changePacket = new ChangePacket();
+        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUsername());
+        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getPassword());
+        changePacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, "name");
+        changePacket.change = EncryptionUtility.encryptString(MessagingClient.serverConnection, newUsername);
+        return changePacket;
+    }
+
+    public static ChangePacket createChangePasswordPacket(String newPassword){
+        ChangePacket changePacket = new ChangePacket();
+        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUsername());
+        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getPassword());
+        changePacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, "pw");
+        changePacket.change = EncryptionUtility.encryptString(MessagingClient.serverConnection, newPassword);
+        return changePacket;
+    }
+
 }

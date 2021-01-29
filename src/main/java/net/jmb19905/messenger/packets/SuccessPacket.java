@@ -11,23 +11,41 @@ import javax.swing.*;
 public class SuccessPacket extends BTMPacket {
 
     public String type;
+    public String extraData;
 
     public SuccessPacket(){}
 
     @Override
     public void handleOnClient(Connection connection) {
-        if(type.equals("login")){
-            BTMLogger.info("MessagingClient", "Logged in successfully");
-            ByteThrowClient.writeUserData();
-            ByteThrowClient.setLoggedIn(true);
-            MessagingClient.initOtherUsers();
-            JOptionPane.showMessageDialog(ByteThrowClient.window, "Login succeeded", "Success", JOptionPane.PLAIN_MESSAGE);
-        }else if(type.equals("register")){
-            ByteThrowClient.writeUserData();
-            ByteThrowClient.setLoggedIn(true);
-            MessagingClient.initOtherUsers();
-            BTMLogger.info("MessagingClient", "Registered Successful");
-            JOptionPane.showMessageDialog(ByteThrowClient.window, "Register succeeded", "Success", JOptionPane.PLAIN_MESSAGE);
+        switch (type) {
+            case "login":
+                BTMLogger.info("MessagingClient", "Logged in successfully");
+                ByteThrowClient.writeUserData();
+                ByteThrowClient.setLoggedIn(true);
+                MessagingClient.initOtherUsers();
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Login succeeded", "Success", JOptionPane.PLAIN_MESSAGE);
+                break;
+            case "register":
+                ByteThrowClient.writeUserData();
+                ByteThrowClient.setLoggedIn(true);
+                MessagingClient.initOtherUsers();
+                BTMLogger.info("MessagingClient", "Registered Successful");
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Register succeeded", "Success", JOptionPane.PLAIN_MESSAGE);
+                break;
+            case "changeName":
+                ByteThrowClient.setUserData(extraData, ByteThrowClient.getPassword());
+                ByteThrowClient.writeUserData();
+                ByteThrowClient.setLoggedIn(true);
+                BTMLogger.info("MessagingClient", "Changed Name");
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Name is now changed", "Success", JOptionPane.PLAIN_MESSAGE);
+                break;
+            case "changePassword":
+                ByteThrowClient.setUserData(ByteThrowClient.getUsername(), extraData);
+                ByteThrowClient.writeUserData();
+                ByteThrowClient.setLoggedIn(true);
+                BTMLogger.info("MessagingClient", "Changed Password");
+                JOptionPane.showMessageDialog(ByteThrowClient.window, "Password is now changed", "Success", JOptionPane.PLAIN_MESSAGE);
+                break;
         }
         ByteThrowClient.messagingClient.setKeepAliveRequired(false);
         try {

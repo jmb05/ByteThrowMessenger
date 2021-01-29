@@ -17,7 +17,7 @@ public class LoginDialog extends JDialog {
     private String username = "";
     private String password = "";
 
-    public LoginDialog(){
+    public LoginDialog(String usernameText, String passwordText, String extraText){
         setModal(true);
         setResizable(false);
         setLayout(new GridBagLayout());
@@ -40,19 +40,32 @@ public class LoginDialog extends JDialog {
         constraints.weightx = 1;
         constraints.weighty = 1;
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(5, 15, 5, 15);
 
-        JTextField usernameInputField = new HintTextField("Username");
+        JLabel extraInformationLabel = new JLabel(extraText);
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
+        if(extraText.trim().equals("")){
+            constraints.insets = new Insets(0, 0, 0, 0);
+        }
+        add(extraInformationLabel, constraints);
+
+        JTextField usernameInputField = new HintTextField("Username");
+        usernameInputField.setText(usernameText);
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets(5, 15, 5, 15);
         add(usernameInputField, constraints);
 
         JPasswordField passwordInputField = new HintPasswordField("Password");
+        passwordInputField.setText(passwordText);
         constraints.gridx = 0;
-        constraints.gridy = 1;
+        constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
@@ -60,7 +73,7 @@ public class LoginDialog extends JDialog {
 
         JButton confirm = new JButton("Confirm");
         constraints.gridx = 0;
-        constraints.gridy = 2;
+        constraints.gridy = 3;
         constraints.gridwidth = 3;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
@@ -74,7 +87,7 @@ public class LoginDialog extends JDialog {
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         constraints.gridx = 0;
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         Dimension dimension = separator.getPreferredSize();
@@ -84,7 +97,7 @@ public class LoginDialog extends JDialog {
 
         JButton register = new JButton("Register instead");
         constraints.gridx = 0;
-        constraints.gridy = 4;
+        constraints.gridy = 5;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         register.addActionListener(e -> {

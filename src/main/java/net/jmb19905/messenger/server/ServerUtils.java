@@ -24,6 +24,19 @@ public class ServerUtils {
         return successMessage;
     }
 
+    public static SuccessPacket createUsernameChangeSuccessPacket(String newUsername){
+        SuccessPacket successPacket = new SuccessPacket();
+        successPacket.type = "changeName";
+        successPacket.extraData = newUsername;
+        return successPacket;
+    }
+
+    public static SuccessPacket createPasswordChangeSuccessPacket(String newPassword){
+        SuccessPacket successPacket = new SuccessPacket();
+        successPacket.type = "changePassword";
+        successPacket.extraData = newPassword;
+        return successPacket;
+    }
 
     //Fail Packets
     public static FailPacket createLoginNameFailPacket(){
@@ -40,16 +53,18 @@ public class ServerUtils {
         return fail;
     }
 
-    public static FailPacket createRegisterNameTakenPacket(){
+    public static FailPacket createRegisterNameTakenPacket(String cause){
         FailPacket fail = new FailPacket();
         fail.type = "usernameTaken";
+        fail.cause = cause;
         return fail;
     }
 
-    public static FailPacket createInternalRegisterFailPacket(){
+    public static FailPacket createInternalErrorPacket(String cause){
         FailPacket fail = new FailPacket();
-        fail.type = "registerFail";
-        fail.cause = "There was an internal database error";
+        fail.type = "internal";
+        fail.cause = cause;
+        fail.message = "There was an internal database error";
         return fail;
     }
 
@@ -64,6 +79,13 @@ public class ServerUtils {
         FailPacket fail = new FailPacket();
         fail.type = "connectFail";
         fail.cause = otherUser;
+        return fail;
+    }
+
+    public static FailPacket createChangeNameWrongCredentialsPacket(){
+        FailPacket fail = new FailPacket();
+        fail.type = "changeNameFail";
+        fail.cause = "Wrong credentials";
         return fail;
     }
 

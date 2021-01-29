@@ -27,7 +27,7 @@ public class PublicKeyPacket extends BTMPacket {
     public void handleOnClient(Connection connection) {
         BTMLogger.trace("MessagingClient", "received Server login response");
         ByteThrowClient.messagingClient.setPublicKey(encodedKey);
-        ByteThrowClient.messagingClient.login(connection);
+        ByteThrowClient.messagingClient.login(connection, "", "");
     }
 
     @Override

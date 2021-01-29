@@ -224,12 +224,12 @@ public class MessagingClient extends Listener {
     /**
      * Logs the Client in
      */
-    public void login(Connection connection) {
+    public void login(Connection connection, String username, String password) {
         if (!ByteThrowClient.getUsername().equals("") && !ByteThrowClient.getPassword().equals("")) {
             LoginPacket loginPacket = ClientUtils.createLoginPacket(ByteThrowClient.getUsername(), ByteThrowClient.getPassword(), serverConnection);
             connection.sendTCP(loginPacket);
         } else {
-            LoginDialog loginDialog = new LoginDialog();
+            LoginDialog loginDialog = new LoginDialog(username, password, "");
             loginDialog.addRegisterButtonActionListener(e -> register(connection));
             loginDialog.addConfirmButtonActionListener(e -> {
                 LoginPacket loginPacket = ClientUtils.createLoginPacket(loginDialog.getUsername(), loginDialog.getPassword(), serverConnection);
@@ -252,7 +252,7 @@ public class MessagingClient extends Listener {
      */
     public void register(Connection connection) {
         RegisterDialog registerDialog = new RegisterDialog(true);
-        registerDialog.addLoginButtonActionListener(e -> login(connection));
+        registerDialog.addLoginButtonActionListener(e -> login(connection, "", ""));
         registerDialog.addCancelListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
