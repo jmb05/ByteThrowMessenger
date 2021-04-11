@@ -2,6 +2,7 @@ package net.jmb19905.messenger.packets;
 
 import com.esotericsoftware.kryonet.Connection;
 import net.jmb19905.messenger.client.ByteThrowClient;
+import net.jmb19905.messenger.client.ClientSerializationUtils;
 import net.jmb19905.messenger.client.ui.Window;
 import net.jmb19905.messenger.packets.exception.UnsupportedSideException;
 
@@ -20,8 +21,8 @@ public class FailPacket extends BTMPacket {
         switch (type) {
             case "loginFail":
                 JOptionPane.showMessageDialog(ByteThrowClient.window, "Could not log in! " + (cause.equals("pw") ? "Password " : "Username ") + "was incorrect.", "Wrong credentials", JOptionPane.ERROR_MESSAGE);
-                ByteThrowClient.messagingClient.login(connection, ByteThrowClient.getUsername(), "");
-                ByteThrowClient.wipeUserData();
+                ByteThrowClient.messagingClient.login(connection, ByteThrowClient.getUserSession().username, "");
+                ClientSerializationUtils.wipeUserData(ByteThrowClient.getUserSession());
                 break;
             case "notRegistered":
                 int jop = JOptionPane.showConfirmDialog(ByteThrowClient.window, "Login failed. If you have no account you have to register.\nDo you want to register?", "Login failed", JOptionPane.YES_NO_CANCEL_OPTION);
@@ -35,18 +36,18 @@ public class FailPacket extends BTMPacket {
                 break;
             case "internal":
                 JOptionPane.showMessageDialog(ByteThrowClient.window,  message + ". Please again try later.", "Server Error", JOptionPane.ERROR_MESSAGE);
-                ByteThrowClient.messagingClient.login(connection, ByteThrowClient.getUsername(), ByteThrowClient.getPassword());
+                ByteThrowClient.messagingClient.login(connection, ByteThrowClient.getUserSession().username, ByteThrowClient.getUserSession().password);
                 if(cause.equals("change")){
-                    ByteThrowClient.setLoggedIn(true);
+                    ByteThrowClient.setSessionLogIn(true);
                 }else if(cause.equals("register")){
-                    ByteThrowClient.wipeUserData();
-                    ByteThrowClient.setLoggedIn(false);
+                    ClientSerializationUtils.wipeUserData(ByteThrowClient.getUserSession());
+                    ByteThrowClient.setSessionLogIn(false);
                 }
                 break;
             case "usernameTaken":
                 if(cause.equals("initial")) {
-                    ByteThrowClient.setUserData("", "");
-                    ByteThrowClient.setLoggedIn(false);
+                    ByteThrowClient.setUserSession("", "");
+                    ByteThrowClient.setSessionLogIn(false);
                     ByteThrowClient.messagingClient.register(connection);
                 }else if(cause.equals("change")){
                     JOptionPane.showMessageDialog(ByteThrowClient.window, "Error changing username. Username is taken.", "Error", JOptionPane.ERROR_MESSAGE);

@@ -15,10 +15,7 @@ public class ByteThrowClient {
 
     public static String version;
 
-    private static String username = "";
-    private static String password = "";
-
-    private static boolean loggedIn = false;
+    private static UserSession userSession;
 
     public static MessagingClient messagingClient;
     public static Window window;
@@ -33,9 +30,13 @@ public class ByteThrowClient {
      */
     public static void main(String[] args) {
         arguments = args;
+        if (System.getProperty("btm.launch.type").equals("devenv")) {
+            Variables.dataDirectory = "";
+            System.out.println("Detected Dev Environment - ignoring home Directory");
+        }
         startUp();
         if (clientConfig.autoLogin) {
-            readUserData();
+            userSession = ClientSerializationUtils.readUserData();
         }
         window = new Window();
         messagingClient = new MessagingClient(clientConfig.server, clientConfig.port);
@@ -47,99 +48,41 @@ public class ByteThrowClient {
      * Initializes Variable, BTMLogger, Log, ClientConfig, LookAndFeel
      */
     private static void startUp() {
+        //Tell the Program we are starting the client
         Variables.currentSide = "client";
+        //Init Logger
         BTMLogger.setLevel(BTMLogger.LEVEL_INFO);
         Log.set(Log.LEVEL_INFO);
         BTMLogger.init();
+        //Get the version
         version = Util.readVersion();
-        clientConfig = ConfigManager.loadClientConfigFile("config/client_config.json");
+        //create data Directory
+        FileUtility.createFolder(Variables.dataDirectory);
+        //Load configs
+        clientConfig = ConfigManager.loadClientConfigFile(Variables.dataDirectory + "config/client_config.json");
+        //Set LaF
         SettingsWindow.setLookAndFeel(clientConfig.theme);
+        //Initialize Fonts
         Variables.initFonts();
     }
 
-    /**
-     * Reads the user data from "/userdata/user.dat"
-     */
-    private static void readUserData() {
-        try {
-            File file = new File("userdata/user.dat");
-            if (FileUtility.createFile(file)) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                try {
-                    if (!reader.readLine().equals("UserData:")) {
-                        return;
-                    }
-                    username = reader.readLine();
-                    password = reader.readLine();
-                    reader.close();
-                } catch (NullPointerException e) {
-                    BTMLogger.warn("MessagingClient", "No UserData found in file user.dat - login required");
-                }
-            }else {
-                BTMLogger.warn("MessagingClient", "Error creating userdata file");
-            }
-        } catch (IOException e) {
-            BTMLogger.warn("MessagingClient", "Error reading userdata", e);
-        }
+    public static void setUserSession(String username, String password) {
+        ByteThrowClient.userSession.username = username;
+        ByteThrowClient.userSession.password = password;
     }
 
-    public static void setUserData(String username, String password) {
-        ByteThrowClient.username = username;
-        ByteThrowClient.password = password;
-    }
-
-    public static void setLoggedIn(boolean loggedIn) {
-        ByteThrowClient.loggedIn = loggedIn;
+    public static void setSessionLogIn(boolean loggedIn) {
+        userSession.loggedIn = loggedIn;
         if(loggedIn){
-            window.setTitle(Window.APPLICATION_NAME + " - " + username);
+            window.setTitle(Window.APPLICATION_NAME + " - " + userSession.username);
         }
     }
 
     public static boolean isLoggedIn() {
-        return loggedIn;
+        return userSession.loggedIn;
     }
 
-    /**
-     * Writes the userdata to "/userdata/user.dat"
-     */
-    public static void writeUserData() {
-        if (!username.equals("") && !password.equals("")) {
-            try {
-                File file = new File("userdata/user.dat");
-                if(FileUtility.createFile(file)) {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                    writer.write("UserData:\n");
-                    writer.write(username + "\n");
-                    writer.write(password + "\n");
-                    writer.close();
-                }else{
-                    BTMLogger.warn("MessagingClient", "Error creating userdata file");
-                }
-            } catch (IOException e) {
-                BTMLogger.info("MessagingClient", "Error writing userdata", e);
-            }
-        } else {
-            BTMLogger.warn("MessagingClient", "Can't write UserData to file 'user.dat'! Incomplete data");
-        }
-    }
-
-    /**
-     * Deletes the userdata
-     */
-    public static void wipeUserData() {
-        username = "";
-        password = "";
-        try {
-            File userDat = new File("userdata/user.dat");
-            if (userDat.exists()) {
-                userDat.delete();
-                userDat.createNewFile();
-            }
-        } catch (IOException e) {
-            BTMLogger.warn("MessagingClient", "Cannot wipe userdata (user.dat)");
-        }
-    }
-
+    //TODO: test
     public static void restartApplication(){
         final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
         File currentJar = null;
@@ -167,11 +110,7 @@ public class ByteThrowClient {
         System.exit(0);
     }
 
-    public static String getUsername() {
-        return username;
-    }
-
-    public static String getPassword() {
-        return password;
+    public static UserSession getUserSession(){
+        return userSession;
     }
 }

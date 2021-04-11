@@ -3,13 +3,12 @@ package net.jmb19905.messenger.client;
 import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.packets.*;
 import net.jmb19905.messenger.util.EncryptionUtility;
-import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.FormattedImage;
 import net.jmb19905.messenger.util.ImageUtility;
 
 import java.nio.charset.StandardCharsets;
 
-public class ClientUtils {
+public class ClientNetworkingUtils {
 
     public static DataPacket createDataPacket(String username, String message, EncryptedConnection clientToServerConnection, EncryptedConnection endToEndConnection){
         DataPacket dataPacket = new DataPacket();
@@ -72,8 +71,8 @@ public class ClientUtils {
 
     public static ChangePacket createChangeUsernamePacket(String newUsername){
         ChangePacket changePacket = new ChangePacket();
-        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUsername());
-        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getPassword());
+        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUserSession().username);
+        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUserSession().password);
         changePacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, "name");
         changePacket.change = EncryptionUtility.encryptString(MessagingClient.serverConnection, newUsername);
         return changePacket;
@@ -81,8 +80,8 @@ public class ClientUtils {
 
     public static ChangePacket createChangePasswordPacket(String newPassword){
         ChangePacket changePacket = new ChangePacket();
-        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUsername());
-        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getPassword());
+        changePacket.user = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUserSession().username);
+        changePacket.password = EncryptionUtility.encryptString(MessagingClient.serverConnection, ByteThrowClient.getUserSession().password);
         changePacket.type = EncryptionUtility.encryptString(MessagingClient.serverConnection, "pw");
         changePacket.change = EncryptionUtility.encryptString(MessagingClient.serverConnection, newPassword);
         return changePacket;

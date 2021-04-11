@@ -55,7 +55,7 @@ public class UserConnection {
     }
 
     public void close(){
-        File connectionFile = new File("userdata/" + ByteThrowClient.getUsername() + "/" + name + ".json");
+        File connectionFile = new File("userdata/" + ByteThrowClient.getUserSession().username + "/" + name + ".json");
         if(connectionFile.exists()){
             connectionFile.delete();
         }

@@ -1,7 +1,7 @@
 package net.jmb19905.messenger.client.ui;
 
 import net.jmb19905.messenger.client.ByteThrowClient;
-import net.jmb19905.messenger.client.ClientUtils;
+import net.jmb19905.messenger.client.ClientNetworkingUtils;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.client.ui.conversation.MessageFrame;
@@ -17,7 +17,6 @@ import net.jmb19905.messenger.util.FormattedImage;
 import net.jmb19905.messenger.util.ImageUtility;
 import net.jmb19905.messenger.util.Variables;
 import net.jmb19905.messenger.util.logging.BTMLogger;
-import org.checkerframework.checker.units.qual.A;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -27,7 +26,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -116,7 +114,7 @@ public class Window extends JFrame {
 
                     JMenuItem requestRefreshMenuItem = new JMenuItem();
                     popupMenu.add(requestRefreshMenuItem);
-                    requestRefreshMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.client.sendTCP(ClientUtils.createHistoryRequest(MessagingClient.serverConnection, connectedUsers.getSelectedValue())));
+                    requestRefreshMenuItem.addActionListener(ae -> ByteThrowClient.messagingClient.client.sendTCP(ClientNetworkingUtils.createHistoryRequest(MessagingClient.serverConnection, connectedUsers.getSelectedValue())));
                     popupMenu.show(connectedUsers, e.getX(), e.getY());
                 }else{
                     if(connectedUsers.getSelectedValue() != null) {
@@ -215,7 +213,7 @@ public class Window extends JFrame {
             menu.add(settings);
             JMenuItem account = new JMenuItem("My Account");
             account.addActionListener(ae -> {
-                accountSettings = new AccountSettings(new ImageIcon(ImageUtility.resizeImage(FileUtility.getImageResource("icon.png"), 150, 150)), ByteThrowClient.getUsername());
+                accountSettings = new AccountSettings(new ImageIcon(ImageUtility.resizeImage(FileUtility.getImageResource("icon.png"), 150, 150)), ByteThrowClient.getUserSession().username);
                 accountSettings.showDialog();
             });
             menu.add(account);
@@ -311,7 +309,7 @@ public class Window extends JFrame {
     private void send(){
         String message = inputField.getText();
         if (ByteThrowClient.messagingClient.sendToOtherUser(connectedUsers.getSelectedValue(), message)) {
-            addMessage(new TextMessage(ByteThrowClient.getUsername(), message), ConversationPane.RIGHT);
+            addMessage(new TextMessage(ByteThrowClient.getUserSession().username, message), ConversationPane.RIGHT);
         } else {
             JOptionPane.showMessageDialog(this, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
@@ -321,7 +319,7 @@ public class Window extends JFrame {
 
     private void sendImages(String caption, FormattedImage... images){
         if(ByteThrowClient.messagingClient.sendImagesToOtherUser(connectedUsers.getSelectedValue(), caption, images)){
-            addMessage(new ImageMessage(ByteThrowClient.getUsername(), caption, images), ConversationPane.RIGHT);
+            addMessage(new ImageMessage(ByteThrowClient.getUserSession().username, caption, images), ConversationPane.RIGHT);
         }else{
             JOptionPane.showMessageDialog(this, "Error processing message", "ERROR", JOptionPane.ERROR_MESSAGE);
         }

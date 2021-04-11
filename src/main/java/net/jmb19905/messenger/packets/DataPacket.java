@@ -8,7 +8,6 @@ import net.jmb19905.messenger.client.ui.conversation.ConversationPane;
 import net.jmb19905.messenger.crypto.EncryptedConnection;
 import net.jmb19905.messenger.messages.EncryptedMessage;
 import net.jmb19905.messenger.messages.ImageMessage;
-import net.jmb19905.messenger.messages.Message;
 import net.jmb19905.messenger.messages.TextMessage;
 import net.jmb19905.messenger.server.E2EConnection;
 import net.jmb19905.messenger.server.MessagingServer;
@@ -109,11 +108,11 @@ public class DataPacket extends BTMPacket implements IQueueable {
             int nameIndex = 0;
             String currentTime = new SimpleDateFormat("yyyy-MM.dd-HH-mm-ss").format(new Date());
             String fileName = username + "-" + currentTime + "_" + nameIndex;
-            File outputFile = new File("userdata/" + ByteThrowClient.getUsername() + "/media/" + fileName + "." + format);
+            File outputFile = new File("userdata/" + ByteThrowClient.getUserSession().username + "/media/" + fileName + "." + format);
             while (outputFile.exists()){
                 nameIndex++;
                 fileName = username + "-" + currentTime + "_" + nameIndex;
-                outputFile = new File("userdata/" + ByteThrowClient.getUsername() + "/media/" + fileName + "." + format);
+                outputFile = new File("userdata/" + ByteThrowClient.getUserSession().username + "/media/" + fileName + "." + format);
             }
             FormattedImage formattedImage = new FormattedImage(fileName, format, image);
             formattedImage.writeWithNewName(outputFile, true);

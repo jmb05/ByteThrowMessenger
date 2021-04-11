@@ -19,6 +19,7 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+    exclude('java/net/jmb19905/messenger/server/**')//TODO: test if this works
 }
 
 repositories {

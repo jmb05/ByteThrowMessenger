@@ -17,6 +17,9 @@ public class ByteThrowServer {
      * @param args the Program arguments
      */
     public static void main(String[] args) {
+        if (System.getProperty("btm.launch.type").equals("devenv")) {
+            System.out.println("Detected Dev Environment");
+        }
         startUp();
         messagingServer = new MessagingServer();
         messagingServer.start();

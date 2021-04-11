@@ -11,12 +11,7 @@ import net.jmb19905.messenger.util.Variables;
 import javax.swing.*;
 import javax.swing.plaf.InternalFrameUI;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -124,7 +119,7 @@ public class MessageFrame extends JInternalFrame {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     try {
-                        Desktop.getDesktop().open(new File("userdata/" + ByteThrowClient.getUsername() + "/media/" + image.name + "." + image.format));
+                        Desktop.getDesktop().open(new File("userdata/" + ByteThrowClient.getUserSession().username + "/media/" + image.name + "." + image.format));
                     } catch (IOException ioException) {
                         JOptionPane.showMessageDialog(ByteThrowClient.window, "Could not open file", "", JOptionPane.ERROR_MESSAGE);
                     }

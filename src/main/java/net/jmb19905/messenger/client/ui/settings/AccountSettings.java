@@ -1,13 +1,10 @@
 package net.jmb19905.messenger.client.ui.settings;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
 import java.awt.*;
 
 import net.jmb19905.messenger.client.ByteThrowClient;
-import net.jmb19905.messenger.client.ClientUtils;
-import net.jmb19905.messenger.client.MessagingClient;
+import net.jmb19905.messenger.client.ClientNetworkingUtils;
 import net.jmb19905.messenger.client.ui.util.dialoges.LoginDialog;
 import net.jmb19905.messenger.util.FileUtility;
 
@@ -57,8 +54,8 @@ public class AccountSettings extends JDialog {
             LoginDialog loginDialog = new LoginDialog("", "", "Please verify your identity:");
             loginDialog.addConfirmButtonActionListener(ae -> {
                 String newUsername = JOptionPane.showInputDialog(loginDialog, "New Username: ");
-                ByteThrowClient.messagingClient.client.sendTCP(ClientUtils.createChangeUsernamePacket(newUsername));
-                ByteThrowClient.setLoggedIn(false);
+                ByteThrowClient.messagingClient.client.sendTCP(ClientNetworkingUtils.createChangeUsernamePacket(newUsername));
+                ByteThrowClient.setSessionLogIn(false);
                 loginDialog.dispose();
             });
             loginDialog.showDialog();
@@ -74,8 +71,8 @@ public class AccountSettings extends JDialog {
             LoginDialog loginDialog = new LoginDialog("", "", "Please verify your identity:");
             loginDialog.addConfirmButtonActionListener(ae -> {
                 String newPassword = JOptionPane.showInputDialog(loginDialog, "New Password: ");
-                ByteThrowClient.messagingClient.client.sendTCP(ClientUtils.createChangePasswordPacket(newPassword));
-                ByteThrowClient.setLoggedIn(false);
+                ByteThrowClient.messagingClient.client.sendTCP(ClientNetworkingUtils.createChangePasswordPacket(newPassword));
+                ByteThrowClient.setSessionLogIn(false);
                 loginDialog.dispose();
             });
             loginDialog.showDialog();

@@ -88,7 +88,7 @@ public class SQLiteManager {
     /**
      * Gets the data of a user by using the username
      * @param username the username
-     * @return the UserData
+     * @return the UserSession
      */
     public static UserData getUserByName(String username) {
         Connection connection = connect("database/users.db");
@@ -115,7 +115,7 @@ public class SQLiteManager {
         } catch (SQLException | NullPointerException e) {
             BTMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
-        BTMLogger.trace("SQLiteManager", "No UserData for Username: " + username + " found");
+        BTMLogger.trace("SQLiteManager", "No UserSession for Username: " + username + " found");
         BTMLogger.trace("SQLiteManager", "Closed database successfully");
         return null;
     }
@@ -123,7 +123,7 @@ public class SQLiteManager {
     /**
      * Gets the data of a user by using the User uuid
      * @param uuid the User UUID
-     * @return the UserData
+     * @return the UserSession
      */
     @Deprecated
     public static UserData getUserByID(UUID uuid) {
@@ -149,7 +149,7 @@ public class SQLiteManager {
         } catch (SQLException | NullPointerException e) {
             BTMLogger.error("SQLiteManager", "Error retrieving user data from database", e);
         }
-        BTMLogger.trace("SQLiteManager", "No UserData for User UUID: " + uuid + " found");
+        BTMLogger.trace("SQLiteManager", "No UserSession for User UUID: " + uuid + " found");
         BTMLogger.trace("SQLiteManager", "Closed database successfully");
         return null;
     }

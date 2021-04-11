@@ -38,6 +38,8 @@ public class MessagingClient extends Listener {
     @Deprecated
     public static final List<String> connectionToBeVerified = new ArrayList<>();
 
+    private boolean stopping = false;
+
     private boolean keepAliveRequired = false;
     public final Thread keepAlive = new Thread("KeepAlive"){
         @SuppressWarnings("BusyWait")
@@ -99,14 +101,20 @@ public class MessagingClient extends Listener {
      * @param code the exit code
      */
     public void stop(int code) {
+        stopping = true;
         BTMLogger.trace("MessagingClient", "Stopping Client");
         for(java.awt.Window w : java.awt.Window.getWindows()){
             w.setVisible(false);
             w.dispose();
         }
         BTMLogger.info("MessagingClient", "Stopped Client");
-        if (!ByteThrowClient.getUsername().equals("") && ByteThrowClient.getUsername() != null) {
-            FileUtility.saveUserConnections(otherUsers);
+        BTMLogger.info("MessagingClient", "Saving Data");
+        try {
+            if (!ByteThrowClient.getUserSession().username.equals("") && ByteThrowClient.getUserSession().username != null) {
+                FileUtility.saveUserConnections(otherUsers);
+            }
+        }catch (NullPointerException e){
+            BTMLogger.warn("MessagingClient", "Data not initialized - skipping");
         }
         client.stop();
         BTMLogger.close();
@@ -119,7 +127,7 @@ public class MessagingClient extends Listener {
     @Override
     public void connected(Connection connection) {
         BTMLogger.info("MessagingClient", "Connection established with: " + connection.getRemoteAddressTCP(), null);
-        PublicKeyPacket publicKeyPacket = ClientUtils.createPubicKeyPacket(ByteThrowClient.version, serverConnection);
+        PublicKeyPacket publicKeyPacket = ClientNetworkingUtils.createPubicKeyPacket(ByteThrowClient.version, serverConnection);
         connection.sendTCP(publicKeyPacket);
     }
 
@@ -128,9 +136,13 @@ public class MessagingClient extends Listener {
      */
     @Override
     public void disconnected(Connection connection) {
-        BTMLogger.info("MessagingClient", "Lost Connection");
         connection.close();
-        stop(0);
+        if(!stopping) {
+            BTMLogger.info("MessagingClient", "Lost Connection");
+            stop(0);
+        }else {
+            BTMLogger.info("MessagingClient", "Closed Connection");
+        }
     }
 
     /**
@@ -153,7 +165,7 @@ public class MessagingClient extends Listener {
      */
     public void connectWithOtherUser(String username) {
         EncryptedConnection endToEndConnection = new EncryptedConnection();
-        StartEndToEndConnectionPacket connectPacket = ClientUtils.createStartEndToEndConnectionPacket(username, serverConnection, endToEndConnection);
+        StartEndToEndConnectionPacket connectPacket = ClientNetworkingUtils.createStartEndToEndConnectionPacket(username, serverConnection, endToEndConnection);
         client.sendTCP(connectPacket);
         UserConnection userConnection = new UserConnection(username, endToEndConnection);
         otherUsers.put(username, userConnection);
@@ -169,13 +181,13 @@ public class MessagingClient extends Listener {
         }
         ByteThrowClient.window.removeConnectedUser(username);
         EncryptedConnection otherUser = otherUsers.get(username).getEncryptedConnection();
-        E2EInfoPacket closePacket = ClientUtils.createCloseConnectionPacket(username, otherUser);
+        E2EInfoPacket closePacket = ClientNetworkingUtils.createCloseConnectionPacket(username, otherUser);
         ByteThrowClient.messagingClient.client.sendTCP(closePacket);
         MessagingClient.otherUsers.remove(username);
     }
 
     public static void forceClose(String username){
-        File connectionFile = new File("userdata/" + ByteThrowClient.getUsername() + "/" + username + ".json");
+        File connectionFile = new File("userdata/" + ByteThrowClient.getUserSession().username + "/" + username + ".json");
         if(connectionFile.exists()){
             connectionFile.delete();
         }
@@ -192,8 +204,8 @@ public class MessagingClient extends Listener {
         UserConnection userConnection = otherUsers.get(username);
         if (userConnection != null && userConnection.getEncryptedConnection() != null) {
             if (userConnection.getEncryptedConnection().getSharedSecret() != null) {
-                client.sendTCP(ClientUtils.createDataPacket(username, message, serverConnection, userConnection.getEncryptedConnection()));
-                userConnection.addMessage(new TextMessage(ByteThrowClient.getUsername(), message));
+                client.sendTCP(ClientNetworkingUtils.createDataPacket(username, message, serverConnection, userConnection.getEncryptedConnection()));
+                userConnection.addMessage(new TextMessage(ByteThrowClient.getUserSession().username, message));
                 return true;
             } else {
                 BTMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
@@ -208,9 +220,9 @@ public class MessagingClient extends Listener {
         UserConnection userConnection = otherUsers.get(username);
         if (userConnection != null && userConnection.getEncryptedConnection() != null) {
             if (userConnection.getEncryptedConnection().getSharedSecret() != null) {
-                DataPacket dataPacket = ClientUtils.createDataPacket(username, caption, images, serverConnection, userConnection.getEncryptedConnection());
+                DataPacket dataPacket = ClientNetworkingUtils.createDataPacket(username, caption, images, serverConnection, userConnection.getEncryptedConnection());
                 client.sendTCP(dataPacket);
-                userConnection.addMessage(new ImageMessage(ByteThrowClient.getUsername(), caption, images));
+                userConnection.addMessage(new ImageMessage(ByteThrowClient.getUserSession().username, caption, images));
                 return true;
             } else {
                 BTMLogger.warn("MessagingClient", "Cannot send to " + username + ". No SharedSecret Key.");
@@ -225,16 +237,16 @@ public class MessagingClient extends Listener {
      * Logs the Client in
      */
     public void login(Connection connection, String username, String password) {
-        if (!ByteThrowClient.getUsername().equals("") && !ByteThrowClient.getPassword().equals("")) {
-            LoginPacket loginPacket = ClientUtils.createLoginPacket(ByteThrowClient.getUsername(), ByteThrowClient.getPassword(), serverConnection);
+        if (ByteThrowClient.getUserSession() != null && ByteThrowClient.getUserSession().isInitialized()) {
+            LoginPacket loginPacket = ClientNetworkingUtils.createLoginPacket(ByteThrowClient.getUserSession().username, ByteThrowClient.getUserSession().password, serverConnection);
             connection.sendTCP(loginPacket);
         } else {
             LoginDialog loginDialog = new LoginDialog(username, password, "");
             loginDialog.addRegisterButtonActionListener(e -> register(connection));
             loginDialog.addConfirmButtonActionListener(e -> {
-                LoginPacket loginPacket = ClientUtils.createLoginPacket(loginDialog.getUsername(), loginDialog.getPassword(), serverConnection);
+                LoginPacket loginPacket = ClientNetworkingUtils.createLoginPacket(loginDialog.getUsername(), loginDialog.getPassword(), serverConnection);
                 connection.sendTCP(loginPacket);
-                ByteThrowClient.setUserData(loginDialog.getUsername(), loginDialog.getPassword());
+                ByteThrowClient.setUserSession(loginDialog.getUsername(), loginDialog.getPassword());
             });
             loginDialog.addCancelListener(new WindowAdapter() {
                 @Override
@@ -261,9 +273,9 @@ public class MessagingClient extends Listener {
             }
         });
         registerDialog.addConfirmButtonActionListener(e -> {
-            RegisterPacket registerPacket = ClientUtils.createRegisterPacket(registerDialog.getUsername(), registerDialog.getPassword(), serverConnection);
+            RegisterPacket registerPacket = ClientNetworkingUtils.createRegisterPacket(registerDialog.getUsername(), registerDialog.getPassword(), serverConnection);
             client.sendTCP(registerPacket);
-            ByteThrowClient.setUserData(registerDialog.getUsername(), registerDialog.getPassword());
+            ByteThrowClient.setUserSession(registerDialog.getUsername(), registerDialog.getPassword());
             BTMLogger.trace("MessagingClient", "Sent Registering Data... Waiting for response");
         });
         registerDialog.showDialog();
@@ -287,7 +299,7 @@ public class MessagingClient extends Listener {
      */
     public static void addUserConnectionToConversation(UserConnection userConnection) {
         for (Message message : userConnection.getMessages()) {
-            ByteThrowClient.window.addMessage(message, (message.sender.equals(ByteThrowClient.getUsername())) ? ConversationPane.RIGHT : ConversationPane.LEFT);
+            ByteThrowClient.window.addMessage(message, (message.sender.equals(ByteThrowClient.getUserSession().username)) ? ConversationPane.RIGHT : ConversationPane.LEFT);
         }
         System.out.println("Added user: " + userConnection.getName() + " to conversation panel");
     }

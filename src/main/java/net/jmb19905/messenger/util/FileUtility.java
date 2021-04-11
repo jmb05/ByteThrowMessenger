@@ -3,14 +3,13 @@ package net.jmb19905.messenger.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jmb19905.messenger.client.ByteThrowClient;
-import net.jmb19905.messenger.client.ClientUtils;
+import net.jmb19905.messenger.client.ClientNetworkingUtils;
 import net.jmb19905.messenger.client.MessagingClient;
 import net.jmb19905.messenger.client.UserConnection;
-import net.jmb19905.messenger.client.seralisation.ChatSerializer;
+import net.jmb19905.messenger.client.ClientSerializationUtils;
 import net.jmb19905.messenger.util.logging.BTMLogger;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
@@ -25,25 +24,25 @@ public class FileUtility {
      */
     public static HashMap<String, UserConnection> loadUserConnections(){
         HashMap<String, UserConnection> map = new HashMap<>();
-        File parentDirectory = new File("userdata/" + ByteThrowClient.getUsername() + "/");
+        File parentDirectory = new File(Variables.dataDirectory + "userdata/" + ByteThrowClient.getUserSession().username + "/");
         if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
             parentDirectory.mkdirs();
-        }
-        for (File file : parentDirectory.listFiles()) {
-            if(file.isDirectory()) {
-                ChatSerializer serializer = new ChatSerializer(file.getName(), file);
-                List<String> names = new ArrayList<>();
-                try {
-                    map.put(serializer.getName(), serializer.deserializeUserConnection());
-                }catch (FileNotFoundException e){
-                    BTMLogger.warn("ChatSerializer", "Error deserializing data... File not found. Fetching data from server", e);
-                    names.add(serializer.getName());
-                }catch (IOException e){
-                    BTMLogger.warn("ChatSerializer", "Error deserializing data... Error reading. Fetching data from server", e);
-                    names.add(serializer.getName());
-                }
-                for(String name : names){
-                    ByteThrowClient.messagingClient.client.sendTCP(ClientUtils.createHistoryRequest(MessagingClient.serverConnection, name));
+        }else {
+            for (File file : parentDirectory.listFiles()) {
+                if (file.isDirectory()) {
+                    List<String> names = new ArrayList<>();
+                    try {
+                        map.put(file.getName(), ClientSerializationUtils.deserializeUserConnection(file.getName(), file));
+                    } catch (FileNotFoundException e) {
+                        BTMLogger.warn("ClientSerializingUtils", "Error deserializing data... File not found. Fetching data from server", e);
+                        names.add(file.getName());
+                    } catch (IOException e) {
+                        BTMLogger.warn("ClientSerializingUtils", "Error deserializing data... Error reading. Fetching data from server", e);
+                        names.add(file.getName());
+                    }
+                    for (String name : names) {
+                        ByteThrowClient.messagingClient.client.sendTCP(ClientNetworkingUtils.createHistoryRequest(MessagingClient.serverConnection, name));
+                    }
                 }
             }
         }
@@ -58,9 +57,8 @@ public class FileUtility {
     public static void saveUserConnections(HashMap<String, UserConnection> userConnectionHashMap) {
         if(userConnectionHashMap != null) {
             for (String name : userConnectionHashMap.keySet()) {
-                File chatDirectory = new File("/userdata/" + ByteThrowClient.getUsername() + "/" + name + "/");
-                ChatSerializer serializer = new ChatSerializer(name, chatDirectory);
-                serializer.serializeUserConnection(userConnectionHashMap.get(name));
+                File chatDirectory = new File("/userdata/" + ByteThrowClient.getUserSession().username + "/" + name + "/");
+                ClientSerializationUtils.serializeUserConnection(name, chatDirectory, userConnectionHashMap.get(name));
             }
         }
         // FIXME: 24/01/2021 
@@ -116,6 +114,16 @@ public class FileUtility {
             BTMLogger.warn(FileUtility.class.getName(), "Error creating file: " + file.getAbsolutePath());
         }
         return false;
+    }
+
+    public static void createFolder(String folder){
+        createFolder(new File(folder));
+    }
+
+    public static void createFolder(File folder){
+        if(!folder.exists()) {
+            folder.mkdirs();
+        }
     }
 
     /**

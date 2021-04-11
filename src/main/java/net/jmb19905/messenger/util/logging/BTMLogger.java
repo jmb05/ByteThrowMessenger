@@ -5,7 +5,7 @@ import net.jmb19905.messenger.util.FileUtility;
 import net.jmb19905.messenger.util.Variables;
 
 import java.io.*;
-import java.util.Date;
+import java.util.*;
 
 public class BTMLogger extends Log.Logger {
 
@@ -34,6 +34,7 @@ public class BTMLogger extends Log.Logger {
      *  -> initializes the File Writer (BufferedWriter)
      */
     public static void init() {
+        cleanOldLogFiles();
         logFile = new File("logs/" + Variables.startupTime + "_" + Variables.currentSide + ".log");
         if (!FileUtility.createFile(logFile)) {
             Log.error("BTMLogger", "Error creating log file");
@@ -45,6 +46,14 @@ public class BTMLogger extends Log.Logger {
             Log.error("BTMLogger", "Error creating File Writer for the Log File", e);
         }
         instance = new BTMLogger();
+    }
+
+    public static void cleanOldLogFiles(){
+        Arrays.stream(new File("logs/").listFiles())
+                .filter((File p) -> p.getName().endsWith(Variables.currentSide + ".log"))
+                .sorted(Comparator.comparing(File::lastModified).reversed())
+                .skip(9)
+                .forEach(File::delete);
     }
 
     /**
@@ -125,7 +134,7 @@ public class BTMLogger extends Log.Logger {
         }
         if (logFile.exists() && writer != null) {
             try {
-                writer.write(builder.toString() + "\n");
+                writer.write(builder + "\n");
                 writer.flush();
             } catch (IOException e) {
                 Log.error("BTMLogger", "Error writing to log file", e);
