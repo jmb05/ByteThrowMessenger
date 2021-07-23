@@ -1,6 +1,6 @@
 package net.jmb19905.crypto;
 
-import net.jmb19905.crypto.exception.InvalidEncryptionException;
+import net.jmb19905.exception.InvalidEncryptionException;
 import net.jmb19905.util.EncryptionUtility;
 import net.jmb19905.util.Logger;
 
@@ -97,9 +97,6 @@ public class EncryptedConnection {
             return Base64.getEncoder().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             Logger.log(e, "Error encrypting", Logger.Level.ERROR);
-            //if (ByteThrowClient.messagingClient != null) {
-            //    ByteThrowClient.messagingClient.stop(-1);
-            //}
         } catch (IllegalArgumentException e) {
             Logger.log(e, "Error encrypting! Tried to encrypt without other PublicKey", Logger.Level.WARN);
         }

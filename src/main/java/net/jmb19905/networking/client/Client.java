@@ -14,13 +14,19 @@ import net.jmb19905.networking.packets.MessagePacket;
 import net.jmb19905.util.EncryptionUtility;
 import net.jmb19905.util.Logger;
 
+/**
+ * The Client
+ */
 public record Client(String name, String host, int port) {
 
-    public static String otherName = "";
-    public static EncryptedConnection otherConnection = new EncryptedConnection();
+    public static String peerName = "";
+    public static EncryptedConnection peerConnection = new EncryptedConnection();
     private static SocketChannel toServerChannel;
     private static ClientHandler handler;
 
+    /**
+     * Starts the Client
+     */
     public void start() {
         EventLoopGroup group = new NioEventLoopGroup();
 
@@ -46,9 +52,13 @@ public record Client(String name, String host, int port) {
         }
     }
 
+    /**
+     * Sends a message to the peer
+     * @param message the message as String
+     */
     public static void sendMessage(String message){
         MessagePacket packet = new MessagePacket();
-        packet.message = EncryptionUtility.encryptString(otherConnection, message);
+        packet.message = EncryptionUtility.encryptString(peerConnection, message);
         ByteBuf buffer = toServerChannel.alloc().buffer();
         buffer.writeBytes(handler.getConnection().encrypt(packet.deconstruct()));
         toServerChannel.writeAndFlush(buffer);

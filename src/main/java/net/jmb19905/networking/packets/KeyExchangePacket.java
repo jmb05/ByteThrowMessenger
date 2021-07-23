@@ -10,6 +10,9 @@ import java.util.Arrays;
  */
 public class KeyExchangePacket extends Packet{
 
+    /**
+     * Tells the recipient if the key is meant for the Server or the Peer
+     */
     public String type = "Server";
     public byte[] key;
 

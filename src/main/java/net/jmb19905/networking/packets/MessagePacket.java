@@ -2,6 +2,9 @@ package net.jmb19905.networking.packets;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * A Message from a client to his peer. Usually encrypted (E2EE).
+ */
 public class MessagePacket extends Packet{
 
     public String message;

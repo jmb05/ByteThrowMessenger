@@ -12,10 +12,19 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The Server
+ */
 public record Server(int port) {
 
+    /**
+     * The Handlers for all connected clients and their addresses
+     */
     public static final Map<ServerHandler, SocketChannel> connections = new HashMap<>();
 
+    /**
+     * Starts the Server
+     */
     public void run() throws Exception{
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();

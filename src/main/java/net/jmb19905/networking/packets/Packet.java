@@ -1,5 +1,7 @@
 package net.jmb19905.networking.packets;
 
+import net.jmb19905.exception.InvalidUsernameException;
+
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -13,7 +15,7 @@ public abstract class Packet {
         this.id = id;
     }
 
-    public static Packet constructPacket(byte[] data){
+    public static Packet constructPacket(byte[] data) throws InvalidUsernameException {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         Packet packet;
@@ -28,7 +30,11 @@ public abstract class Packet {
             }
             case "login" -> {
                 packet = new LoginPacket();
-                packet.construct(data);
+                try {
+                    packet.construct(data);
+                }catch (ArrayIndexOutOfBoundsException e){
+                    throw new InvalidUsernameException("Invalid Username");
+                }
             }
             case "message" -> {
                 packet = new MessagePacket();

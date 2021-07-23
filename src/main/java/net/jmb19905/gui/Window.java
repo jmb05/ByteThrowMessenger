@@ -1,15 +1,22 @@
 package net.jmb19905.gui;
 
 import net.jmb19905.networking.client.Client;
+import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * The Window the Client sees
+ */
 public class Window extends JFrame {
 
     private final JTextArea area;
     private final JTextField field;
 
+    /**
+     * Initializes the components
+     */
     public Window(){
         this.area = new JTextArea();
         this.field = new JTextField();
@@ -41,8 +48,13 @@ public class Window extends JFrame {
         pack();
     }
 
+    /**
+     * Appends a String to the Window's TextArea and logs it
+     * @param line the String that is appended
+     */
     public void appendLine(String line){
         area.append(line + "\n");
+        Logger.log(line, Logger.Level.INFO);
     }
 
 
