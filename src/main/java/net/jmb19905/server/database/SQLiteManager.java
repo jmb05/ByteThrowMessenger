@@ -6,7 +6,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
-import java.util.UUID;
 
 public class SQLiteManager {
 
@@ -30,8 +29,7 @@ public class SQLiteManager {
                         + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                         + "username VARCHAR(20) NOT NULL, "
                         + "password VARCHAR(1024) NOT NULL, "
-                        + "salt VARCHAR(1024) NOT NULL,"
-                        + "uuid VARCHAR(1024)"
+                        + "salt VARCHAR(1024) NOT NULL"
                         + ");";
                 stmt.executeUpdate(sql);
                 return conn;
@@ -51,11 +49,10 @@ public class SQLiteManager {
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt,uuid) VALUES (?,?,?,?);");
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt) VALUES (?,?,?);");
             statement.setString(1, user.username);
             statement.setString(2, user.password);
             statement.setString(3, user.salt);
-            statement.setString(4, user.uuid.toString());
             statement.execute();
             connection.close();
         } catch (SQLException | NullPointerException e) {
@@ -66,15 +63,14 @@ public class SQLiteManager {
         return true;
     }
 
-    public static boolean addUser(String username, String password, String salt){
+    private static boolean addUser(String username, String password, String salt){
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt,uuid) VALUES (?,?,?,?);");
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt) VALUES (?,?,?);");
             statement.setString(1, username);
             statement.setString(2, password);
             statement.setString(3, salt);
-            statement.setString(4, null);
             statement.execute();
             connection.close();
         } catch (SQLException | NullPointerException e) {
@@ -94,14 +90,13 @@ public class SQLiteManager {
         Connection connection = connect("database/users.db");
         try {
             assert connection != null;
-            PreparedStatement statement = connection.prepareStatement("SELECT password,salt,uuid FROM users WHERE username = ?");
+            PreparedStatement statement = connection.prepareStatement("SELECT password,salt FROM users WHERE username = ?");
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
-                String uuidAsString = resultSet.getString("uuid");
-                SQLiteManager.UserData user = new SQLiteManager.UserData(username, password, salt, UUID.fromString(uuidAsString));
+                SQLiteManager.UserData user = new SQLiteManager.UserData(username, password, salt);
                 connection.close();
                 Logger.log("Closed database successfully", Logger.Level.TRACE);
                 return user;
@@ -117,51 +112,17 @@ public class SQLiteManager {
     }
 
     /**
-     * Gets the data of a user by using the User uuid
-     * @param uuid the User UUID
-     * @return the UserSession
-     */
-    @Deprecated
-    public static UserData getUserByID(UUID uuid) {
-        Connection connection = connect("database/users.db");
-        try {
-            assert connection != null;
-            PreparedStatement statement = connection.prepareStatement("SELECT username,password,salt FROM users WHERE uuid = ?");
-            statement.setString(1, uuid.toString());
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                String username = resultSet.getString("username");
-                String password = resultSet.getString("password");
-                String salt = resultSet.getString("salt");
-                SQLiteManager.UserData user = new SQLiteManager.UserData(username, password, salt, uuid);
-                connection.close();
-                Logger.log("Closed database successfully", Logger.Level.TRACE);
-                return user;
-            }
-        } catch (SQLException | NullPointerException e) {
-            Logger.log(e, "Error retrieving user data from database", Logger.Level.ERROR);
-        }
-        Logger.log("No UserSession for User UUID: " + uuid + " found", Logger.Level.WARN);
-        Logger.log("Closed database successfully", Logger.Level.TRACE);
-        return null;
-    }
-
-    /**
      * Creates a new User and saves his data in the user Database
      * @param username the username of the user
      * @param password the password of the user
-     * @return the UUID of the User
+     * @return if creating the user succeeded
      */
-    public static UUID createUser(String username, String password) {
+    public static boolean createUser(String username, String password) {
         String salt = BCrypt.gensalt();
-        UUID uuid = UUID.randomUUID();
 
-        SQLiteManager.UserData userData = new SQLiteManager.UserData(username, password, salt, uuid);
+        SQLiteManager.UserData userData = new SQLiteManager.UserData(username, BCrypt.hashpw(password, salt), salt);
 
-        if (SQLiteManager.addUser(userData)) {
-            return uuid;
-        }
-        return null;
+        return SQLiteManager.addUser(userData);
     }
 
     public static boolean changeUserName(String oldUsername, String newUsername){
@@ -203,6 +164,10 @@ public class SQLiteManager {
         }
     }
 
-    public static record UserData(String username, String password, String salt, UUID uuid) {}
+    public static boolean hasUser(String username){
+        return SQLiteManager.getUserByName(username) != null;
+    }
+
+    public static record UserData(String username, String password, String salt) {}
 
 }

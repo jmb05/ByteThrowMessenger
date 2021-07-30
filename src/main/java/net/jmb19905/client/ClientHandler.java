@@ -6,7 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.client.gui.LoginDialog;
 import net.jmb19905.client.gui.RegisterDialog;
 import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.exception.InvalidUsernameException;
+import net.jmb19905.common.exception.InvalidLoginException;
 import net.jmb19905.common.packets.*;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
@@ -73,10 +73,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             Packet packet = Packet.constructPacket(array);
             Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
             if(packet instanceof KeyExchangePacket){
-                if(((KeyExchangePacket) packet).type.equals("Server")) {
+                if(((KeyExchangePacket) packet).recipient.equals("Server")) {
                     activateServerEncryption((KeyExchangePacket) packet);
                     login(ctx);
-                }else if(((KeyExchangePacket) packet).type.equals("Client")){
+                }else {
                     activatePeerEncryption((KeyExchangePacket) packet);
                 }
             }else if(packet instanceof LoginPacket){
@@ -94,7 +94,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 ClientMain.client.peerName = "";
                 ClientMain.client.peerConnection = new EncryptedConnection();
             }else if(packet instanceof MessagePacket){
-                ClientMain.window.appendLine("<" + ClientMain.client.peerName + "> " + new String(ClientMain.client.peerConnection.decrypt(((MessagePacket) packet).message.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+                ClientMain.window.appendLine("<" + ((MessagePacket) packet).message.sender() + "> " + new String(ClientMain.client.peerConnection.decrypt(((MessagePacket) packet).message.message().getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
             }else if(packet instanceof FailPacket){
                 JOptionPane.showMessageDialog(ClientMain.window, ((FailPacket) packet).message, "", JOptionPane.ERROR_MESSAGE);
                 if(((FailPacket) packet).cause.equals("login")){
@@ -106,7 +106,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         } catch (InvalidKeySpecException e) {
             Logger.log(e, Logger.Level.FATAL);
             System.exit(-1);
-        } catch (InvalidUsernameException e) {
+        } catch (InvalidLoginException e) {
             Logger.log(e, "Other User has invalid username", Logger.Level.WARN);
         } catch (IllegalStateException e){
             ClientMain.window.log("IllegalStateException: Unexpected Packet signature", Logger.Level.ERROR);
@@ -122,7 +122,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     private void initiatePeerEncryption(ChannelHandlerContext ctx) {
         Logger.log("Starting E2E Encryption", Logger.Level.DEBUG);
         KeyExchangePacket keyExchangePacket = new KeyExchangePacket();
-        keyExchangePacket.type = "Client";
+        keyExchangePacket.recipient = "";//TODO: make peer specific
         keyExchangePacket.key = ClientMain.client.peerConnection.getPublicKey().getEncoded();
 
         ByteBuf keyPackBuffer = ctx.alloc().buffer();

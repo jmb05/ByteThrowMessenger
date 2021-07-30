@@ -7,6 +7,9 @@ public class FailPacket extends Packet{
     public String cause;
     public String message;
 
+    /**
+     * A Packet that is sent from the server to a client to inform him that something went wrong
+     */
     public FailPacket() {
         super("fail");
     }

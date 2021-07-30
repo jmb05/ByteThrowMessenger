@@ -10,7 +10,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.BindException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +24,8 @@ public record Server(int port) {
      * The Handlers for all connected clients and their addresses
      */
     public static final Map<ServerHandler, SocketChannel> connections = new HashMap<>();
+
+    public static final List<Chat> chats = new ArrayList<>();
 
     /**
      * Starts the Server

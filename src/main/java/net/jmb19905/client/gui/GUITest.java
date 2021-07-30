@@ -13,10 +13,12 @@ public class GUITest {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatDarculaLaf());
-            setUIFont(new FontUIResource("Arial", FontUIResource.BOLD,17));
+            //setUIFont(new FontUIResource("Arial", FontUIResource.BOLD,17));
         } catch (UnsupportedLookAndFeelException e) {
             Logger.log(e, "GUI may not work correctly!", Logger.Level.ERROR);
         }
+        Window window = new Window();
+        window.appendLine("This is a GUI Test");
     }
 
     public static void setUIFont(FontUIResource f) {

@@ -10,7 +10,7 @@ import java.awt.event.*;
 public class LoginDialog extends JDialog {
 
     private final JTextField usernameInputField;
-    private final JPasswordField passwordInputField;
+    private JPasswordField passwordInputField = null;
 
     private ActionListener confirmListener = e -> {};
     private ActionListener registerListener = e -> {};
@@ -72,7 +72,13 @@ public class LoginDialog extends JDialog {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.insets = new Insets(5, 15, 5, 15);
-        usernameInputField.addActionListener(confirmAction);
+        usernameInputField.addActionListener(l -> {
+            if(passwordInputField.getPassword().length == 0){
+                passwordInputField.requestFocus();
+            }else {
+                confirmAction.actionPerformed(l);
+            }
+        });
         add(usernameInputField, constraints);
 
         passwordInputField = new HintPasswordField("Password");

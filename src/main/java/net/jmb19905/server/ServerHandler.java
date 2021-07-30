@@ -1,11 +1,12 @@
 package net.jmb19905.server;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.exception.InvalidUsernameException;
+import net.jmb19905.common.exception.InvalidLoginException;
 import net.jmb19905.common.packets.*;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
@@ -13,6 +14,8 @@ import net.jmb19905.common.util.SerializationUtility;
 import net.jmb19905.server.database.SQLiteManager;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.spec.InvalidKeySpecException;
 
@@ -22,14 +25,9 @@ import java.security.spec.InvalidKeySpecException;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     /**
-     * The Encryption to thw Server
+     * The connection details of the client
      */
-    private final EncryptedConnection connection = new EncryptedConnection();
-
-    /**
-     * Name of the client
-     */
-    private String name;
+    private ClientConnection connection;
 
     /**
      * Executes when the Connection to the Server starts
@@ -37,6 +35,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Logger.log("Client: \"" + ctx.channel().remoteAddress() + "\" is now connected", Logger.Level.INFO);
+        connection = new ClientConnection(ctx.channel(), new EncryptedConnection());
     }
 
     /**
@@ -46,18 +45,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         Logger.log("Client: \"" + ctx.channel().remoteAddress() + "\" is now disconnected", Logger.Level.INFO);
         Server.connections.remove(this);
-        try {
-            ServerHandler peerHandler = (ServerHandler) Server.connections.keySet().toArray()[0];
-            SocketChannel channel = (SocketChannel) Server.connections.values().toArray()[0];
-
-            final ByteBuf toOtherBuffer = channel.alloc().buffer();
-            DisconnectPacket packet = new DisconnectPacket();
-            toOtherBuffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
-            Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + channel.remoteAddress() , Logger.Level.TRACE);
-            channel.writeAndFlush(toOtherBuffer);
-        }catch (ArrayIndexOutOfBoundsException ignored){
-            //Last Client disconnected
-        }
+        notifyPeerOfDisconnect();
     }
 
     /**
@@ -68,46 +56,11 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf buffer = (ByteBuf) msg;
         try {
-            byte[] encryptedArray = new byte[buffer.readableBytes()];
-            buffer.readBytes(encryptedArray);
-            byte[] array;
-            if(connection.isUsable()){
-                array = connection.decrypt(encryptedArray);
-            }else {
-                array = encryptedArray;
-            }
-            Packet packet = Packet.constructPacket(array);
-            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
-            if(packet instanceof KeyExchangePacket){
-                handleKeyPacket(ctx, (KeyExchangePacket) packet);
-            }else if(packet instanceof LoginPacket){
-                System.out.println(new String(packet.deconstruct(), StandardCharsets.UTF_8));
-                if(((LoginPacket) packet).register){
-                    Logger.log("User is trying to register", Logger.Level.TRACE);
-                    if(SQLiteManager.addUser(((LoginPacket) packet).name, ((LoginPacket) packet).password, BCrypt.gensalt())){
-                        handleSuccessfulLogin(ctx, (LoginPacket) packet);
-                    }else {
-                        sendFail(ctx, "register", "Failed to Register!");
-                    }
-                }else {
-                    SQLiteManager.UserData userData = SQLiteManager.getUserByName(((LoginPacket) packet).name);
-                    if(userData != null){
-                        if(BCrypt.checkpw(((LoginPacket) packet).name, userData.password())){
-                            handleSuccessfulLogin(ctx, (LoginPacket) packet);
-                        }else {
-                            sendFail(ctx, "login", "Failed to Login! - wrong password");
-                        }
-                    }else {
-                        sendFail(ctx, "login", "Failed to Login! - User not found");
-                    }
-                }
-            }else if(packet instanceof MessagePacket){
-                forwardMessageToPeer((MessagePacket) packet);
-            }
+            Packet packet = getPacket(buffer);
+            handlePacket(ctx, packet);
         } catch (InvalidKeySpecException e) {
-            Logger.log(e, Logger.Level.FATAL);
-            System.exit(-1);
-        } catch (InvalidUsernameException e) {
+            Logger.log(e, Logger.Level.ERROR);
+        } catch (InvalidLoginException e) {
             Logger.log(e, "User has invalid username -> closing connection", Logger.Level.WARN);
             ctx.close();
         } finally {
@@ -115,22 +68,138 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    private Packet getPacket(ByteBuf buffer) throws InvalidLoginException {
+        byte[] encryptedData = new byte[buffer.readableBytes()];
+        buffer.readBytes(encryptedData);
+        byte[] data = decryptData(encryptedData);
+
+        Packet packet = Packet.constructPacket(data);
+        Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
+        return packet;
+    }
+
+    private byte[] decryptData(byte[] encryptedArray) {
+        byte[] array;
+        if(connection.encryption.isUsable()){
+            array = connection.encryption.decrypt(encryptedArray);
+        }else {
+            array = encryptedArray;
+        }
+        return array;
+    }
+
+    private void handlePacket(ChannelHandlerContext ctx, Packet packet) throws InvalidKeySpecException {
+        if(packet instanceof KeyExchangePacket){
+            handleKeyPacket(ctx, (KeyExchangePacket) packet);
+        }else if(packet instanceof LoginPacket){
+            handleLoginPacket(ctx, packet);
+        }else if(packet instanceof MessagePacket){
+            handleMessagePacket((MessagePacket) packet);
+        }else if(packet instanceof CreateChatPacket){
+            handleCreateChatPacket(ctx, (CreateChatPacket) packet);
+        }
+    }
+
+    private void handleCreateChatPacket(ChannelHandlerContext ctx, CreateChatPacket packet) {
+        if(!connection.name.isBlank()) {
+            if (SQLiteManager.hasUser(packet.name)) {
+                Chat chat = new Chat();
+                chat.addClient(connection.getName());
+                chat.addClient(packet.name);
+                Server.chats.add(chat);
+            } else {
+                sendFail(ctx, "chat", "No such User!");
+            }
+        }else {
+            Logger.log("Client is trying to communicate but isn't logged in!", Logger.Level.WARN);
+        }
+    }
+
+    private void handleMessagePacket(MessagePacket packet) {
+        if(!connection.name.isBlank()) {
+            forwardMessageToPeer(packet.message.sender(), packet);//TODO: implement with Chat
+        }else {
+            Logger.log("Client is trying to communicate but isn't logged in!", Logger.Level.WARN);
+        }
+    }
+
+    private void handleLoginPacket(ChannelHandlerContext ctx, Packet packet) {
+        System.out.println(new String(packet.deconstruct(), StandardCharsets.UTF_8));
+        if(((LoginPacket) packet).register){
+            handleRegister(ctx, (LoginPacket) packet);
+        }else {
+            handleLogin(ctx, (LoginPacket) packet);
+        }
+    }
+
+    private void handleLogin(ChannelHandlerContext ctx, LoginPacket packet) {
+        if(SQLiteManager.hasUser(packet.name)){
+            SQLiteManager.UserData userData = SQLiteManager.getUserByName(packet.name);
+            if(BCrypt.checkpw(packet.password, userData.password())){
+                handleSuccessfulLogin(ctx, packet);
+            }else {
+                sendFail(ctx, "login", "Failed to Login! - wrong password");
+            }
+        }else {
+            sendFail(ctx, "login", "Failed to Login! - User not found");
+        }
+    }
+
+    private void handleRegister(ChannelHandlerContext ctx, LoginPacket packet) {
+        Logger.log("User is trying to register", Logger.Level.TRACE);
+        if(SQLiteManager.createUser(packet.name, packet.password)){
+            handleSuccessfulLogin(ctx, packet);
+        }else {
+            sendFail(ctx, "register", "Failed to Register!");
+        }
+    }
+
+    /**
+     * Send a Packet to the client to tell him that something failed
+     * @param cause the cause of the fail e.g. login or register
+     * @param message the message displayed to the client
+     */
     private void sendFail(ChannelHandlerContext ctx, String cause, String message) {
         FailPacket failPacket = new FailPacket();
         failPacket.cause = cause;
         failPacket.message = message;
         ByteBuf failBuffer = ctx.alloc().buffer();
-        failBuffer.writeBytes(connection.encrypt(failPacket.deconstruct()));
+        failBuffer.writeBytes(connection.encryption.encrypt(failPacket.deconstruct()));
         ctx.writeAndFlush(failBuffer);
     }
 
+    /**
+     * Things to do when a client logs in: -> set the client name -> create client file if it doesn't exist yet ->
+     * tell the Client that the login succeeded -> tell the client which conversations he has started
+     * @param packet the login packet containing the login packet of the client
+     */
     private void handleSuccessfulLogin(ChannelHandlerContext ctx, LoginPacket packet) {
-        name = packet.name;
-        Logger.log("Client: " + ctx.channel().remoteAddress() + " now uses name: " + name, Logger.Level.INFO);
+        connection.setName(packet.name);
+        Logger.log("Client: " + ctx.channel().remoteAddress() + " now uses name: " + connection.getName(), Logger.Level.INFO);
+
+        createClientFile();
+
+        DataPacket dataPacket = new DataPacket();
+        dataPacket.type = "response";
 
         replyToLogin(ctx, packet); // confirms the login to the current client
-        forwardNameToPeer(packet);//send the peer the name of the current client
-        sendPeerInformation(ctx);// send the current client the name of the peer
+        //forwardNameToPeer(packet);//send the peer the name of the current client TODO: look at this
+        //sendPeerInformation(ctx);// send the current client the name of the peer
+    }
+
+    /**
+     * creates the client file if it doesn't exist yet
+     */
+    private void createClientFile() {
+        try {
+            File clientFile = new File("clientData/" + connection.getName() + ".dat");
+            if(!clientFile.exists()){
+                clientFile.createNewFile();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -139,10 +208,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @throws InvalidKeySpecException if the Key is invalid
      */
     private void handleKeyPacket(ChannelHandlerContext ctx, KeyExchangePacket packet) throws InvalidKeySpecException {
-        if(packet.type.equals("Server")) {
+        if(packet.recipient.equals("Server")) {
             activateEncryptionAndReply(packet, ctx);
-        }else if(packet.type.equals("Client")){
-            forwardKeyToPeer(packet);
+        }else{
+            connectClientWithPeer(connection.getName(), packet);//TODO: check if this is the correct name
         }
     }
 
@@ -150,21 +219,26 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * Sends message to the current client's peer
      * @param packet the MessagePacket
      */
-    private void forwardMessageToPeer(MessagePacket packet) {
-        sendPacketToPeer(packet);
+    private void forwardMessageToPeer(String name, MessagePacket packet) {
+        sendPacketToPeer(name, packet);
         Logger.log("Sent message to recipient", Logger.Level.TRACE);
     }
 
+    /*
     /**
      * Sends LoginPacket to peer to inform him about the client's name
      * @param packet the LoginPacket
-     */
+     *
     private void forwardNameToPeer(LoginPacket packet) {
         sendPacketToPeer(packet);
-    }
+    }*/
 
+    /*
+    /**
+     * Tells the client the name of the current peer
+     *
     private void sendPeerInformation(ChannelHandlerContext ctx){
-        ServerHandler peerHandler = getOtherHandler();
+        ServerHandler peerHandler = getPeerHandler();
         final ByteBuf replyBuffer = ctx.alloc().buffer();
         LoginPacket packet = new LoginPacket();
         packet.name = peerHandler.name;
@@ -172,7 +246,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         replyBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
         Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + ctx.channel().remoteAddress() , Logger.Level.TRACE);
         ctx.writeAndFlush(replyBuffer);
-    }
+    }*/
 
     /**
      * Sends LoginPacket to client to confirm login
@@ -180,7 +254,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      */
     private void replyToLogin(ChannelHandlerContext ctx, LoginPacket packet) {
         ByteBuf replyBuffer = ctx.alloc().buffer();
-        replyBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
+        replyBuffer.writeBytes(connection.encryption.encrypt(packet.deconstruct()));
         Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + ctx.channel().remoteAddress() , Logger.Level.TRACE);
         ctx.writeAndFlush(replyBuffer);
     }
@@ -189,8 +263,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * Sends KeyExchangePacket to peer
      * @param packet the KeyExchangePacket
      */
-    private void forwardKeyToPeer(KeyExchangePacket packet) {
-        sendPacketToPeer(packet);
+    private void connectClientWithPeer(String name, KeyExchangePacket packet) {
+        sendPacketToPeer(name, packet);
     }
 
     /**
@@ -199,9 +273,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @throws InvalidKeySpecException if the PublicKey of the client is invalid
      */
     private void activateEncryptionAndReply(KeyExchangePacket packet, ChannelHandlerContext ctx) throws InvalidKeySpecException {
-        connection.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(packet.key));
-        Logger.log("SharedSecret: " + SerializationUtility.encodeBinary(connection.getSharedSecret()), Logger.Level.TRACE);
-        packet.key = connection.getPublicKey().getEncoded();
+        connection.encryption.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(packet.key));
+        Logger.log("SharedSecret: " + SerializationUtility.encodeBinary(connection.encryption.getSharedSecret()), Logger.Level.TRACE);
+        packet.key = connection.encryption.getPublicKey().getEncoded();
 
         final ByteBuf replyBuffer = ctx.alloc().buffer();
         replyBuffer.writeBytes(packet.deconstruct());
@@ -209,10 +283,13 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ctx.writeAndFlush(replyBuffer);
     }
 
-    private ServerHandler getOtherHandler(){
+    /**
+     * @return the ServerHandler of the current peer
+     */
+    private ServerHandler getPeerHandler(String name){
         for(ServerHandler peerHandler : Server.connections.keySet()) {
             if (peerHandler != this) {
-                if (!peerHandler.name.isEmpty()) {
+                if (peerHandler.connection.name.equals(name) && !peerHandler.connection.name.isBlank()) {
                     return peerHandler;
                 }
             }
@@ -220,14 +297,33 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         return null;
     }
 
-    private void sendPacketToPeer(Packet packet){
-        ServerHandler peerHandler = getOtherHandler();
+    /**
+     * Sends a packet to the peer of this client
+     * @param packet the packet to be sent
+     */
+    private void sendPacketToPeer(String name, Packet packet){
+        ServerHandler peerHandler = getPeerHandler(name);
         SocketChannel channel = Server.connections.get(peerHandler);
         if(peerHandler != null) {
             final ByteBuf buffer = channel.alloc().buffer();
-            buffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
+            buffer.writeBytes(peerHandler.connection.encryption.encrypt(packet.deconstruct()));
             Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + channel.remoteAddress() , Logger.Level.TRACE);
             channel.writeAndFlush(buffer);
+        }
+    }
+
+    private void notifyPeerOfDisconnect() {
+        try {
+            ServerHandler peerHandler = (ServerHandler) Server.connections.keySet().toArray()[0];
+            SocketChannel channel = (SocketChannel) Server.connections.values().toArray()[0];
+
+            final ByteBuf toOtherBuffer = channel.alloc().buffer();
+            DisconnectPacket packet = new DisconnectPacket();
+            toOtherBuffer.writeBytes(peerHandler.connection.encryption.encrypt(packet.deconstruct()));
+            Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + channel.remoteAddress() , Logger.Level.TRACE);
+            channel.writeAndFlush(toOtherBuffer);
+        }catch (ArrayIndexOutOfBoundsException ignored){
+            //Last Client disconnected
         }
     }
 
@@ -239,4 +335,25 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Logger.log(cause, Logger.Level.ERROR);
     }
+
+    public static class ClientConnection {
+
+        private String name;
+        private final Channel channel;
+        private final EncryptedConnection encryption;
+
+        public ClientConnection(Channel channel, EncryptedConnection encryption){
+            this.channel = channel;
+            this.encryption = encryption;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
 }

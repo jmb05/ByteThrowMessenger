@@ -10,9 +10,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import net.jmb19905.common.crypto.EncryptedConnection;
+import net.jmb19905.common.packets.CreateChatPacket;
 import net.jmb19905.common.packets.MessagePacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.server.Chat;
 
 /**
  * The Client
@@ -60,13 +62,22 @@ public class Client {
         }
     }
 
+    public void connectToPeer(String peerName){
+        CreateChatPacket createChatPacket = new CreateChatPacket();
+        createChatPacket.name = peerName;
+        ByteBuf buffer = toServerChannel.alloc().buffer();
+        buffer.writeBytes(handler.getConnection().encrypt(createChatPacket.deconstruct()));
+        toServerChannel.writeAndFlush(buffer);
+        Logger.log("Connecting with peer: " + peerName, Logger.Level.TRACE);
+    }
+
     /**
      * Sends a message to the peer
      * @param message the message as String
      */
-    public void sendMessage(String message){
+    public void sendMessage(String recipient, String message){
         MessagePacket packet = new MessagePacket();
-        packet.message = EncryptionUtility.encryptString(peerConnection, message);
+        packet.message = new Chat.Message(recipient, EncryptionUtility.encryptString(peerConnection, message));
         ByteBuf buffer = toServerChannel.alloc().buffer();
         buffer.writeBytes(handler.getConnection().encrypt(packet.deconstruct()));
         toServerChannel.writeAndFlush(buffer);
