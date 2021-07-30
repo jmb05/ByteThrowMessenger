@@ -101,11 +101,7 @@ public class SQLiteManager {
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
                 String uuidAsString = resultSet.getString("uuid");
-                UserData user = new UserData();
-                user.username = username;
-                user.password = password;
-                user.salt = salt;
-                user.uuid = UUID.fromString(uuidAsString);
+                SQLiteManager.UserData user = new SQLiteManager.UserData(username, password, salt, UUID.fromString(uuidAsString));
                 connection.close();
                 Logger.log("Closed database successfully", Logger.Level.TRACE);
                 return user;
@@ -137,11 +133,7 @@ public class SQLiteManager {
                 String username = resultSet.getString("username");
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
-                UserData user = new UserData();
-                user.username = username;
-                user.password = password;
-                user.salt = salt;
-                user.uuid = uuid;
+                SQLiteManager.UserData user = new SQLiteManager.UserData(username, password, salt, uuid);
                 connection.close();
                 Logger.log("Closed database successfully", Logger.Level.TRACE);
                 return user;
@@ -164,11 +156,7 @@ public class SQLiteManager {
         String salt = BCrypt.gensalt();
         UUID uuid = UUID.randomUUID();
 
-        SQLiteManager.UserData userData = new SQLiteManager.UserData();
-        userData.username = username;
-        userData.salt = salt;
-        userData.password = BCrypt.hashpw(password, salt);
-        userData.uuid = uuid;
+        SQLiteManager.UserData userData = new SQLiteManager.UserData(username, password, salt, uuid);
 
         if (SQLiteManager.addUser(userData)) {
             return uuid;
@@ -215,11 +203,6 @@ public class SQLiteManager {
         }
     }
 
-    public static class UserData {
-        public String username;
-        public String password;
-        public String salt;
-        public UUID uuid;
-    }
+    public static record UserData(String username, String password, String salt, UUID uuid) {}
 
 }

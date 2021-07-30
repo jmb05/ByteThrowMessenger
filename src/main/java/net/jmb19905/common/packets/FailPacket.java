@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 public class FailPacket extends Packet{
 
     public String cause;
+    public String message;
 
     public FailPacket() {
         super("fail");
@@ -12,11 +13,14 @@ public class FailPacket extends Packet{
 
     @Override
     public void construct(byte[] data) {
-        cause = new String(data, StandardCharsets.UTF_8);
+        String dataAsString = new String(data, StandardCharsets.UTF_8);
+        String[] parts = dataAsString.split("\\|");
+        cause = parts[1];
+        message = parts[2];
     }
 
     @Override
     public byte[] deconstruct() {
-        return cause.getBytes(StandardCharsets.UTF_8);
+        return (getId() + "|" + cause + "|" + message).getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -10,6 +10,8 @@ import net.jmb19905.common.packets.*;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.SerializationUtility;
+import net.jmb19905.server.database.SQLiteManager;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.nio.charset.StandardCharsets;
 import java.security.spec.InvalidKeySpecException;
@@ -79,13 +81,26 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             if(packet instanceof KeyExchangePacket){
                 handleKeyPacket(ctx, (KeyExchangePacket) packet);
             }else if(packet instanceof LoginPacket){
-                name = ((LoginPacket) packet).name;
-                Logger.log("Client: " + ctx.channel().remoteAddress() + " now uses name: " + name, Logger.Level.INFO);
-
-                replyToLogin(ctx, (LoginPacket) packet); // confirms the login to the current client
-                forwardNameToPeer((LoginPacket) packet);//send the peer the name of the current client
-                sendPeerInformation(ctx);// send the current client the name of the peer
-
+                System.out.println(new String(packet.deconstruct(), StandardCharsets.UTF_8));
+                if(((LoginPacket) packet).register){
+                    Logger.log("User is trying to register", Logger.Level.TRACE);
+                    if(SQLiteManager.addUser(((LoginPacket) packet).name, ((LoginPacket) packet).password, BCrypt.gensalt())){
+                        handleSuccessfulLogin(ctx, (LoginPacket) packet);
+                    }else {
+                        sendFail(ctx, "register", "Failed to Register!");
+                    }
+                }else {
+                    SQLiteManager.UserData userData = SQLiteManager.getUserByName(((LoginPacket) packet).name);
+                    if(userData != null){
+                        if(BCrypt.checkpw(((LoginPacket) packet).name, userData.password())){
+                            handleSuccessfulLogin(ctx, (LoginPacket) packet);
+                        }else {
+                            sendFail(ctx, "login", "Failed to Login! - wrong password");
+                        }
+                    }else {
+                        sendFail(ctx, "login", "Failed to Login! - User not found");
+                    }
+                }
             }else if(packet instanceof MessagePacket){
                 forwardMessageToPeer((MessagePacket) packet);
             }
@@ -98,6 +113,24 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         } finally {
             buffer.release();
         }
+    }
+
+    private void sendFail(ChannelHandlerContext ctx, String cause, String message) {
+        FailPacket failPacket = new FailPacket();
+        failPacket.cause = cause;
+        failPacket.message = message;
+        ByteBuf failBuffer = ctx.alloc().buffer();
+        failBuffer.writeBytes(connection.encrypt(failPacket.deconstruct()));
+        ctx.writeAndFlush(failBuffer);
+    }
+
+    private void handleSuccessfulLogin(ChannelHandlerContext ctx, LoginPacket packet) {
+        name = packet.name;
+        Logger.log("Client: " + ctx.channel().remoteAddress() + " now uses name: " + name, Logger.Level.INFO);
+
+        replyToLogin(ctx, packet); // confirms the login to the current client
+        forwardNameToPeer(packet);//send the peer the name of the current client
+        sendPeerInformation(ctx);// send the current client the name of the peer
     }
 
     /**
@@ -206,11 +239,4 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Logger.log(cause, Logger.Level.ERROR);
     }
-
-    private interface IAction{
-
-        void execute();
-
-    }
-
 }

@@ -17,7 +17,6 @@ public class GUITest {
         } catch (UnsupportedLookAndFeelException e) {
             Logger.log(e, "GUI may not work correctly!", Logger.Level.ERROR);
         }
-
     }
 
     public static void setUIFont(FontUIResource f) {

@@ -49,7 +49,7 @@ public class RegisterDialog extends JDialog {
                 String newPassword = new String(passwordInputField1.getPassword());
                 if(!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())){
                     showPasswordsDoNotMatchPane();
-                }else if(!useStandardPasswordRules || Util.checkPasswordRules(password)){
+                }else if(!useStandardPasswordRules || Util.checkPasswordRules(newPassword)){
                     username = usernameInputField.getText();
                     password = newPassword;
                     dispose();

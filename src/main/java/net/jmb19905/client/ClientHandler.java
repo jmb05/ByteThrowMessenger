@@ -12,6 +12,7 @@ import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.SerializationUtility;
 
+import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.charset.StandardCharsets;
@@ -94,6 +95,13 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 ClientMain.client.peerConnection = new EncryptedConnection();
             }else if(packet instanceof MessagePacket){
                 ClientMain.window.appendLine("<" + ClientMain.client.peerName + "> " + new String(ClientMain.client.peerConnection.decrypt(((MessagePacket) packet).message.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+            }else if(packet instanceof FailPacket){
+                JOptionPane.showMessageDialog(ClientMain.window, ((FailPacket) packet).message, "", JOptionPane.ERROR_MESSAGE);
+                if(((FailPacket) packet).cause.equals("login")){
+                    login(ctx);
+                }else if(((FailPacket) packet).cause.equals("register")){
+                    register(ctx);
+                }
             }
         } catch (InvalidKeySpecException e) {
             Logger.log(e, Logger.Level.FATAL);

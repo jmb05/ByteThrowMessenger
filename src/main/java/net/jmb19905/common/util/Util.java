@@ -5,6 +5,15 @@ import java.util.regex.Pattern;
 
 public class Util {
 
+    /*public static boolean isStrong(String password){
+        return password.matches("^(?=.*[A-Z])" +
+                                      "(?=.*[!@#$&*.])" +
+                                      "(?=.*[0-9])" +
+                                      "(?=.*[a-z])" +
+                                      ".{8}$");
+    }*/
+
+
     /**
      * Checks if the provided String is at least 8 characters long, contains at least one Upper and one Lowercase letter, at least one digit and at least one symbol
      * @param password the provided Password as String
