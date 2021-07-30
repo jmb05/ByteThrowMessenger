@@ -14,11 +14,10 @@ public class MessagePacket extends Packet{
     }
 
     @Override
-    public Packet construct(byte[] data) {
+    public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         message = parts[1];
-        return this;
     }
 
     @Override

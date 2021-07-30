@@ -42,12 +42,16 @@ public abstract class Packet {
                 packet = new MessagePacket();
                 packet.construct(data);
             }
+            case "fail" -> {
+                packet = new FailPacket();
+                packet.construct(data);
+            }
             default -> throw new IllegalStateException("Unexpected value: " + parts[0]);
         }
         return packet;
     }
 
-    public abstract Packet construct(byte[] data);
+    public abstract void construct(byte[] data);
 
     public abstract byte[] deconstruct();
 

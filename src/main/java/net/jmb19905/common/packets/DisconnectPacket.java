@@ -11,8 +11,7 @@ public class DisconnectPacket extends Packet{
     }
 
     @Override
-    public DisconnectPacket construct(byte[] data) {
-        return this;
+    public void construct(byte[] data) {
     }
 
     @Override

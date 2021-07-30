@@ -6,6 +6,7 @@ import net.jmb19905.common.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -18,6 +19,9 @@ public class RegisterDialog extends JDialog {
 
     private String username = "";
     private String password = "";
+    private final JTextField usernameInputField;
+    private JPasswordField passwordInputField1 = null;
+    private JPasswordField passwordInputField2 = null;
 
     public RegisterDialog(boolean useStandardPasswordRules){
         setModal(true);
@@ -37,54 +41,75 @@ public class RegisterDialog extends JDialog {
             }
         });
 
+        Action confirmAction = new AbstractAction("Confirm") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                username = "";
+                password = "";
+                String newPassword = new String(passwordInputField1.getPassword());
+                if(!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())){
+                    showPasswordsDoNotMatchPane();
+                }else if(!useStandardPasswordRules || Util.checkPasswordRules(password)){
+                    username = usernameInputField.getText();
+                    password = newPassword;
+                    dispose();
+                    confirmListener.actionPerformed(e);
+                }else{
+                    showPasswordCriteriaNotMetPane();
+                }
+            }
+        };
+
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weightx = 1;
         constraints.weighty = 1;
         constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets(5, 15, 5, 15);
 
-        JTextField usernameInputField = new HintTextField("Username");
+        usernameInputField = new HintTextField("Username");
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
+        usernameInputField.addActionListener(l -> {
+            if(passwordInputField1.getPassword().length == 0){
+                passwordInputField1.requestFocus();
+            }else if(passwordInputField2.getPassword().length == 0){
+                passwordInputField2.requestFocus();
+            }else {
+                confirmAction.actionPerformed(l);
+            }
+        });
         add(usernameInputField, constraints);
 
-        JPasswordField passwordInputField1 = new HintPasswordField("Password");
+        passwordInputField1 = new HintPasswordField("Password");
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
+        passwordInputField1.addActionListener(l -> {
+            if(passwordInputField2.getPassword().length == 0){
+                passwordInputField2.requestFocus();
+            }else {
+                confirmAction.actionPerformed(l);
+            }
+        });
         add(passwordInputField1, constraints);
 
-        JPasswordField passwordInputField2 = new HintPasswordField("Repeat Password");
+        passwordInputField2 = new HintPasswordField("Repeat Password");
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
+        passwordInputField2.addActionListener(confirmAction);
         add(passwordInputField2, constraints);
 
-        JButton confirm = new JButton("Confirm");
+        JButton confirm = new JButton(confirmAction);
         constraints.gridx = 0;
         constraints.gridy = 3;
         constraints.gridwidth = 1;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
-        confirm.addActionListener(e -> {
-            username = "";
-            password = "";
-            String password = new String(passwordInputField1.getPassword());
-            if(!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())){
-                JOptionPane.showMessageDialog(this, "Passwords do not match", "", JOptionPane.ERROR_MESSAGE);
-            }else if(!useStandardPasswordRules || Util.checkPasswordRules(password)){
-                this.username = usernameInputField.getText();
-                this.password = password;
-                dispose();
-                confirmListener.actionPerformed(e);
-            }else{
-                JOptionPane.showMessageDialog(this, "Password does not meet the right criteria.\n Password should:\n   - Have at least 8 characters\n   - at least one upper and one lowercase letter\n   - at least one digit\n   - at least one symbol (e.g.: . ! # - _)", "", JOptionPane.ERROR_MESSAGE);
-            }
-        });
         add(confirm, constraints);
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
@@ -136,6 +161,14 @@ public class RegisterDialog extends JDialog {
 
     public void showDialog(){
         setVisible(true);
+    }
+
+    private void showPasswordsDoNotMatchPane(){
+        JOptionPane.showMessageDialog(this, "Passwords do not match", "", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showPasswordCriteriaNotMetPane(){
+        JOptionPane.showMessageDialog(this, "Password does not meet the right criteria.\n Password should:\n   - Have at least 8 characters\n   - at least one upper and one lowercase letter\n   - at least one digit\n   - at least one symbol (e.g.: . ! # - _)", "", JOptionPane.ERROR_MESSAGE);
     }
 
 }

@@ -58,5 +58,9 @@ public class Window extends JFrame {
         Logger.log(line, Logger.Level.INFO);
     }
 
+    public void log(String line, Logger.Level level){
+        area.append(line + "\n");
+        Logger.log(line, level);
+    }
 
 }

@@ -40,7 +40,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         final ByteBuf buffer = ctx.alloc().buffer();
         buffer.writeBytes(packet.deconstruct());
 
-        Logger.log("Sending buffer:" + buffer, Logger.Level.TRACE);
+        Logger.log("Sending packet:" + new String(packet.deconstruct(), StandardCharsets.UTF_8), Logger.Level.TRACE);
         ctx.writeAndFlush(buffer);
     }
 
@@ -70,6 +70,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 array = encryptedArray;
             }
             Packet packet = Packet.constructPacket(array);
+            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
             if(packet instanceof KeyExchangePacket){
                 if(((KeyExchangePacket) packet).type.equals("Server")) {
                     activateServerEncryption((KeyExchangePacket) packet);
@@ -78,7 +79,6 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                     activatePeerEncryption((KeyExchangePacket) packet);
                 }
             }else if(packet instanceof LoginPacket){
-                Logger.log(new String(packet.deconstruct(), StandardCharsets.UTF_8), Logger.Level.DEBUG);
                 String name = ((LoginPacket) packet).name;
                 if(name.equals(ClientMain.client.name)){
                     ClientMain.window.appendLine("Login successful");
@@ -100,7 +100,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             System.exit(-1);
         } catch (InvalidUsernameException e) {
             Logger.log(e, "Other User has invalid username", Logger.Level.WARN);
-        } finally {
+        } catch (IllegalStateException e){
+            ClientMain.window.log("IllegalStateException: Unexpected Packet signature", Logger.Level.ERROR);
+        }
+        finally {
             buffer.release();
         }
     }
@@ -109,12 +112,14 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
      * Sends the PublicKey for the peer to the server to be forwarded
      */
     private void initiatePeerEncryption(ChannelHandlerContext ctx) {
+        Logger.log("Starting E2E Encryption", Logger.Level.DEBUG);
         KeyExchangePacket keyExchangePacket = new KeyExchangePacket();
         keyExchangePacket.type = "Client";
         keyExchangePacket.key = ClientMain.client.peerConnection.getPublicKey().getEncoded();
 
         ByteBuf keyPackBuffer = ctx.alloc().buffer();
         keyPackBuffer.writeBytes(connection.encrypt(keyExchangePacket.deconstruct()));
+        Logger.log("Sending packet:" + new String(keyExchangePacket.deconstruct(), StandardCharsets.UTF_8), Logger.Level.TRACE);
         ctx.writeAndFlush(keyPackBuffer);
     }
 
@@ -154,6 +159,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             registerPacket.register = true;
             ByteBuf registerBuffer = ctx.alloc().buffer();
             registerBuffer.writeBytes(connection.encrypt(registerPacket.deconstruct()));
+            Logger.log("Sending packet:" + new String(registerPacket.deconstruct(), StandardCharsets.UTF_8), Logger.Level.TRACE);
             ctx.writeAndFlush(registerBuffer);
         });
         registerDialog.addCancelListener(new WindowAdapter() {
@@ -179,6 +185,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             loginPacket.password = loginDialog.getPassword();
             ByteBuf loginBuffer = ctx.alloc().buffer();
             loginBuffer.writeBytes(connection.encrypt(loginPacket.deconstruct()));
+            Logger.log("Sending packet:" + new String(loginPacket.deconstruct(), StandardCharsets.UTF_8), Logger.Level.TRACE);
             ctx.writeAndFlush(loginBuffer);
         });
         loginDialog.addCancelListener(new WindowAdapter() {

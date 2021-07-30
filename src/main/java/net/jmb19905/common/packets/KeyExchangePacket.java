@@ -20,12 +20,11 @@ public class KeyExchangePacket extends Packet{
     }
 
     @Override
-    public Packet construct(byte[] data) {
+    public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         type = parts[1];
         key = SerializationUtility.decodeBinary(parts[2]);
-        return this;
     }
 
     @Override

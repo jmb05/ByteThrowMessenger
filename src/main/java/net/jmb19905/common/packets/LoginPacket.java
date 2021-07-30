@@ -16,13 +16,12 @@ public class LoginPacket extends Packet{
     }
 
     @Override
-    public LoginPacket construct(byte[] data) throws ArrayIndexOutOfBoundsException {
+    public void construct(byte[] data) throws ArrayIndexOutOfBoundsException {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         register = Boolean.getBoolean(parts[1]);
         name = parts[2];
         password = parts[3];
-        return this;
     }
 
     @Override

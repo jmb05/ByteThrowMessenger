@@ -59,7 +59,6 @@ public class Logger {
      */
     public static void log(Throwable cause, String message, Level level){
         log(message, level);
-        log(cause.getMessage(), level);
         cause.printStackTrace();
     }
 

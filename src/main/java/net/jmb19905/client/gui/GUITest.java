@@ -1,14 +1,11 @@
 package net.jmb19905.client.gui;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
-import io.netty.util.HashingStrategy;
 import net.jmb19905.common.util.Logger;
-import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
-import java.security.MessageDigest;
 import java.util.Enumeration;
 
 public class GUITest {
@@ -20,9 +17,7 @@ public class GUITest {
         } catch (UnsupportedLookAndFeelException e) {
             Logger.log(e, "GUI may not work correctly!", Logger.Level.ERROR);
         }
-        //Window window = new Window();
-        LoginDialog dialog = new LoginDialog("Username101", "Password101", "Extra");
-        dialog.showDialog();
+
     }
 
     public static void setUIFont(FontUIResource f) {

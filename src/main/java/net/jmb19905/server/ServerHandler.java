@@ -11,6 +11,7 @@ import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.SerializationUtility;
 
+import java.nio.charset.StandardCharsets;
 import java.security.spec.InvalidKeySpecException;
 
 /**
@@ -48,7 +49,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             SocketChannel channel = (SocketChannel) Server.connections.values().toArray()[0];
 
             final ByteBuf toOtherBuffer = channel.alloc().buffer();
-            toOtherBuffer.writeBytes(peerHandler.connection.encrypt(new DisconnectPacket().deconstruct()));
+            DisconnectPacket packet = new DisconnectPacket();
+            toOtherBuffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
+            Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + channel.remoteAddress() , Logger.Level.TRACE);
             channel.writeAndFlush(toOtherBuffer);
         }catch (ArrayIndexOutOfBoundsException ignored){
             //Last Client disconnected
@@ -63,8 +66,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf buffer = (ByteBuf) msg;
         try {
-            Logger.log("Received: " + buffer, Logger.Level.TRACE);
-
             byte[] encryptedArray = new byte[buffer.readableBytes()];
             buffer.readBytes(encryptedArray);
             byte[] array;
@@ -74,13 +75,17 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 array = encryptedArray;
             }
             Packet packet = Packet.constructPacket(array);
+            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
             if(packet instanceof KeyExchangePacket){
                 handleKeyPacket(ctx, (KeyExchangePacket) packet);
             }else if(packet instanceof LoginPacket){
                 name = ((LoginPacket) packet).name;
                 Logger.log("Client: " + ctx.channel().remoteAddress() + " now uses name: " + name, Logger.Level.INFO);
-                forwardNameToPeer(ctx, (LoginPacket) packet);
-                replyToLogin(ctx, (LoginPacket) packet);
+
+                replyToLogin(ctx, (LoginPacket) packet); // confirms the login to the current client
+                forwardNameToPeer((LoginPacket) packet);//send the peer the name of the current client
+                sendPeerInformation(ctx);// send the current client the name of the peer
+
             }else if(packet instanceof MessagePacket){
                 forwardMessageToPeer((MessagePacket) packet);
             }
@@ -113,39 +118,27 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @param packet the MessagePacket
      */
     private void forwardMessageToPeer(MessagePacket packet) {
-        for(ServerHandler peerHandler : Server.connections.keySet()) {
-            if (peerHandler != this) {
-                if (!peerHandler.name.isEmpty()) {
-                    SocketChannel channel = Server.connections.get(peerHandler);
-                    final ByteBuf toOtherBuffer = channel.alloc().buffer();
-                    toOtherBuffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
-                    channel.writeAndFlush(toOtherBuffer);
-                    Logger.log("Sent message to recipient", Logger.Level.TRACE);
-                }
-            }
-        }
+        sendPacketToPeer(packet);
+        Logger.log("Sent message to recipient", Logger.Level.TRACE);
     }
 
     /**
      * Sends LoginPacket to peer to inform him about the client's name
      * @param packet the LoginPacket
      */
-    private void forwardNameToPeer(ChannelHandlerContext ctx, LoginPacket packet) {
-        for(ServerHandler peerHandler : Server.connections.keySet()){
-            if(peerHandler != this){
-                if(!peerHandler.name.isEmpty()){
-                    SocketChannel channel = Server.connections.get(peerHandler);
-                    final ByteBuf toOtherBuffer = channel.alloc().buffer();
-                    toOtherBuffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
-                    channel.writeAndFlush(toOtherBuffer);
+    private void forwardNameToPeer(LoginPacket packet) {
+        sendPacketToPeer(packet);
+    }
 
-                    final ByteBuf replyBuffer = ctx.alloc().buffer();
-                    packet.name = peerHandler.name;
-                    replyBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
-                    ctx.writeAndFlush(replyBuffer);
-                }
-            }
-        }
+    private void sendPeerInformation(ChannelHandlerContext ctx){
+        ServerHandler peerHandler = getOtherHandler();
+        final ByteBuf replyBuffer = ctx.alloc().buffer();
+        LoginPacket packet = new LoginPacket();
+        packet.name = peerHandler.name;
+        packet.password = "null";
+        replyBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
+        Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + ctx.channel().remoteAddress() , Logger.Level.TRACE);
+        ctx.writeAndFlush(replyBuffer);
     }
 
     /**
@@ -153,10 +146,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @param packet the LoginPacket
      */
     private void replyToLogin(ChannelHandlerContext ctx, LoginPacket packet) {
-        final ByteBuf toOtherBuffer = ctx.alloc().buffer();
-        packet.password = " ";
-        toOtherBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
-        ctx.writeAndFlush(toOtherBuffer);
+        ByteBuf replyBuffer = ctx.alloc().buffer();
+        replyBuffer.writeBytes(connection.encrypt(packet.deconstruct()));
+        Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + ctx.channel().remoteAddress() , Logger.Level.TRACE);
+        ctx.writeAndFlush(replyBuffer);
     }
 
     /**
@@ -164,16 +157,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      * @param packet the KeyExchangePacket
      */
     private void forwardKeyToPeer(KeyExchangePacket packet) {
-        for(ServerHandler peerHandler : Server.connections.keySet()){
-            if(peerHandler != this){
-                if(!peerHandler.name.isEmpty()){
-                    SocketChannel channel = Server.connections.get(peerHandler);
-                    final ByteBuf toOtherBuffer = channel.alloc().buffer();
-                    toOtherBuffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
-                    channel.writeAndFlush(toOtherBuffer);
-                }
-            }
-        }
+        sendPacketToPeer(packet);
     }
 
     /**
@@ -188,7 +172,30 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
         final ByteBuf replyBuffer = ctx.alloc().buffer();
         replyBuffer.writeBytes(packet.deconstruct());
+        Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + ctx.channel().remoteAddress() , Logger.Level.TRACE);
         ctx.writeAndFlush(replyBuffer);
+    }
+
+    private ServerHandler getOtherHandler(){
+        for(ServerHandler peerHandler : Server.connections.keySet()) {
+            if (peerHandler != this) {
+                if (!peerHandler.name.isEmpty()) {
+                    return peerHandler;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void sendPacketToPeer(Packet packet){
+        ServerHandler peerHandler = getOtherHandler();
+        SocketChannel channel = Server.connections.get(peerHandler);
+        if(peerHandler != null) {
+            final ByteBuf buffer = channel.alloc().buffer();
+            buffer.writeBytes(peerHandler.connection.encrypt(packet.deconstruct()));
+            Logger.log("Sending packet " + new String(packet.deconstruct(), StandardCharsets.UTF_8) + " to " + channel.remoteAddress() , Logger.Level.TRACE);
+            channel.writeAndFlush(buffer);
+        }
     }
 
     /**
@@ -199,4 +206,11 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Logger.log(cause, Logger.Level.ERROR);
     }
+
+    private interface IAction{
+
+        void execute();
+
+    }
+
 }

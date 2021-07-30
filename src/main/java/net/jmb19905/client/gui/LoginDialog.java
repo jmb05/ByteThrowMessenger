@@ -4,14 +4,14 @@ import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
 
 import javax.swing.*;
-import javax.swing.plaf.FontUIResource;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Enumeration;
+import java.awt.event.*;
 
 public class LoginDialog extends JDialog {
+
+    private final JTextField usernameInputField;
+    private final JPasswordField passwordInputField;
+
     private ActionListener confirmListener = e -> {};
     private ActionListener registerListener = e -> {};
     private WindowAdapter cancelListener = new WindowAdapter() {};
@@ -38,6 +38,16 @@ public class LoginDialog extends JDialog {
             }
         });
 
+        Action confirmAction = new AbstractAction("Confirm") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                username = usernameInputField.getText();
+                password = new String(passwordInputField.getPassword());
+                dispose();
+                confirmListener.actionPerformed(e);
+            }
+        };
+
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weightx = 1;
         constraints.weighty = 1;
@@ -54,7 +64,7 @@ public class LoginDialog extends JDialog {
         }
         add(extraInformationLabel, constraints);
 
-        JTextField usernameInputField = new HintTextField("Username");
+        usernameInputField = new HintTextField("Username");
         usernameInputField.setText(usernameText);
         constraints.gridx = 0;
         constraints.gridy = 1;
@@ -62,29 +72,25 @@ public class LoginDialog extends JDialog {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.insets = new Insets(5, 15, 5, 15);
+        usernameInputField.addActionListener(confirmAction);
         add(usernameInputField, constraints);
 
-        JPasswordField passwordInputField = new HintPasswordField("Password");
+        passwordInputField = new HintPasswordField("Password");
         passwordInputField.setText(passwordText);
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
+        passwordInputField.addActionListener(confirmAction);
         add(passwordInputField, constraints);
 
-        JButton confirm = new JButton("Confirm");
+        JButton confirm = new JButton(confirmAction);
         constraints.gridx = 0;
         constraints.gridy = 3;
         constraints.gridwidth = 3;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
-        confirm.addActionListener(e -> {
-            username = usernameInputField.getText();
-            password = new String(passwordInputField.getPassword());
-            dispose();
-            confirmListener.actionPerformed(e);
-        });
         add(confirm, constraints);
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
