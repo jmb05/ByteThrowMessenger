@@ -40,7 +40,6 @@ public class Window extends JFrame {
 
         DefaultListModel<String> listModel = new DefaultListModel<>();
         list = new JList<>(listModel);
-        listModel.add(0, "Jared");
 
         list.addListSelectionListener(e -> {
 
@@ -72,14 +71,21 @@ public class Window extends JFrame {
         messagingPanel.add(field, constraints);
 
         field.addActionListener(l ->  {
-            try {
-                String text = field.getText();
-                ClientMain.client.sendMessage(getSelectedPeer(), text);
-                appendLine("<You> " + text);
-            }catch (NullPointerException ex){
-                appendLine("Cannot send message! This is a GUI Test!");
+            if(getSelectedPeer() != null) {
+                try {
+                    String text = field.getText();
+                    if(ClientMain.client.sendMessage(getSelectedPeer(), text)) {
+                        appendLine("<You to " + getSelectedPeer() + "> " + text);
+                    }else {
+                        JOptionPane.showMessageDialog(this, "Cannot send message! Peer not connected!");
+                    }
+                } catch (NullPointerException ex) {
+                    appendLine("Cannot send message! This is a GUI Test!");
+                }
+                field.setText("");
+            }else {
+                appendLine("Please select a peer to send the message to!");
             }
-            field.setText("");
         });
 
         setVisible(true);
@@ -122,11 +128,31 @@ public class Window extends JFrame {
         listModel.addAll(java.util.List.of(names));
     }
 
+    public void addPeer(String peerName){
+        DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
+        listModel.addElement(peerName);
+    }
+
+    public void setPeerStatus(String name, boolean status){
+        DefaultListModel<String> listModel = ((DefaultListModel<String>) list.getModel());
+        try {
+            int index;
+            String modifiedName = name;
+            if (status) {
+                modifiedName = name + " ✓";
+                index = listModel.indexOf(name);
+            } else {
+                index = listModel.indexOf(name + " ✓");
+            }
+            listModel.set(index, modifiedName);
+        }catch (IndexOutOfBoundsException ignored){}
+    }
+
     /**
      * @return the current selected peer name
      */
     public String getSelectedPeer(){
-        return list.getSelectedValue();
+        return list.getSelectedValue().replace("✓", "").strip();
     }
 
 }

@@ -2,7 +2,7 @@ package net.jmb19905.common.packets;
 
 import java.nio.charset.StandardCharsets;
 
-public class DataPacket extends Packet{
+public class ChatsPacket extends Packet{
 
     public String type;
     public String[] names;
@@ -10,8 +10,8 @@ public class DataPacket extends Packet{
     /**
      * Contains all the names of the peers of a client
      */
-    public DataPacket() {
-        super("data");
+    public ChatsPacket() {
+        super("chats");
     }
 
     @Override

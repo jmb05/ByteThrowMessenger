@@ -8,8 +8,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import net.jmb19905.common.Chat;
+import net.jmb19905.common.util.Logger;
 
-import java.net.BindException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,36 @@ public record Server(int port) {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public static Chat getChat(String user1, String user2){
+        for(Chat chat : chats){
+            List<String> users = chat.getClients();
+            if(users.contains(user1) && users.contains(user2)){
+                return chat;
+            }
+        }
+        return null;
+    }
+
+    public static List<Chat> getChat(String user){
+        List<Chat> chatsContainingUser = new ArrayList<>();
+        for(Chat chat : chats){
+            List<String> users = chat.getClients();
+            if(users.contains(user)){
+                chatsContainingUser.add(chat);
+            }
+        }
+        return chatsContainingUser;
+    }
+
+    public static boolean isClientOnline(String name){
+        for(ServerHandler handler : connections.keySet()){
+            if (handler.getConnection().getName().equals(name)){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

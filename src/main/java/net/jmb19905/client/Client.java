@@ -9,12 +9,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.packets.CreateChatPacket;
+import net.jmb19905.common.packets.ConnectPacket;
 import net.jmb19905.common.packets.MessagePacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
-import net.jmb19905.server.Chat;
+import net.jmb19905.common.Chat;
+
+import javax.swing.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Client
@@ -23,17 +27,16 @@ public class Client {
 
     private final String host;
     private final int port;
+    public String name = "";
+    private SocketChannel toServerChannel;
+    private ClientHandler handler;
+
+    public List<Chat> chats = new ArrayList<>();
 
     public Client(String host, int port){
         this.host = host;
         this.port = port;
     }
-
-    public String name = "";
-    public String peerName = "";
-    public EncryptedConnection peerConnection = new EncryptedConnection();
-    private SocketChannel toServerChannel;
-    private ClientHandler handler;
 
     /**
      * Starts the Client
@@ -63,24 +66,59 @@ public class Client {
     }
 
     public void connectToPeer(String peerName){
-        CreateChatPacket createChatPacket = new CreateChatPacket();
-        createChatPacket.name = peerName;
+        if(getChat(peerName) != null){
+            JOptionPane.showMessageDialog(null, "You have already started a conversation with this peer.", "", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Chat chat = createNewChat(peerName);
+
+        ConnectPacket connectPacket = new ConnectPacket();
+        connectPacket.name = peerName;
+        connectPacket.key = chat.encryption.getPublicKey().getEncoded();
+        connectPacket.firstConnect = true;
+
         ByteBuf buffer = toServerChannel.alloc().buffer();
-        buffer.writeBytes(handler.getConnection().encrypt(createChatPacket.deconstruct()));
+        buffer.writeBytes(handler.getConnection().encrypt(connectPacket.deconstruct()));
         toServerChannel.writeAndFlush(buffer);
         Logger.log("Connecting with peer: " + peerName, Logger.Level.TRACE);
+    }
+
+    private Chat createNewChat(String peerName) {
+        Chat chat = new Chat();
+        chat.initClient();
+        chat.addClient(name);
+        chat.addClient(peerName);
+        chats.add(chat);
+        ClientMain.window.addPeer(peerName);
+        return chat;
     }
 
     /**
      * Sends a message to the peer
      * @param message the message as String
      */
-    public void sendMessage(String recipient, String message){
+    public boolean sendMessage(String recipient, String message){
         MessagePacket packet = new MessagePacket();
-        packet.message = new Chat.Message(recipient, EncryptionUtility.encryptString(peerConnection, message));
-        ByteBuf buffer = toServerChannel.alloc().buffer();
-        buffer.writeBytes(handler.getConnection().encrypt(packet.deconstruct()));
-        toServerChannel.writeAndFlush(buffer);
-        Logger.log("Sent Message: " + message, Logger.Level.TRACE);
+        Chat chat = getChat(recipient);
+        if(chat != null && chat.isActive()) {
+            packet.message = new Chat.Message(name, recipient, EncryptionUtility.encryptString(chat.encryption, message));
+            ByteBuf buffer = toServerChannel.alloc().buffer();
+            buffer.writeBytes(handler.getConnection().encrypt(packet.deconstruct()));
+            toServerChannel.writeAndFlush(buffer);
+            Logger.log("Sent Message: " + message, Logger.Level.TRACE);
+            return true;
+        }
+        return false;
     }
+
+    public Chat getChat(String peerName){
+        for(Chat chat : chats){
+            if(chat.getClients().contains(peerName)){
+                return chat;
+            }
+        }
+        return null;
+    }
+
 }

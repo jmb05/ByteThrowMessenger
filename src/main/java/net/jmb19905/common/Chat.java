@@ -1,5 +1,6 @@
-package net.jmb19905.server;
+package net.jmb19905.common;
 
+import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.util.Logger;
 
 import java.util.ArrayList;
@@ -17,7 +18,22 @@ public class Chat {
      */
     private final List<Message> messages = new ArrayList<>();
 
-    public Chat(){}
+    /**
+     * Is true when both participants are online
+     */
+    private boolean active = false;
+
+    /**
+     * Only used on the client
+     */
+    public EncryptedConnection encryption;
+
+    /**
+     * Initializes the EncryptedConnection for the client
+     */
+    public void initClient(){
+        encryption = new EncryptedConnection();
+    }
 
     public void addClient(String name){
         if(clients.size() < 2) {
@@ -39,6 +55,14 @@ public class Chat {
         return messages;
     }
 
-    public static record Message(String sender, String message){}
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public static record Message(String sender, String receiver, String message){}
 
 }

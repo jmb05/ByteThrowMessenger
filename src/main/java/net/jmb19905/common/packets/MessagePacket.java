@@ -1,6 +1,6 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.server.Chat;
+import net.jmb19905.common.Chat;
 
 import java.nio.charset.StandardCharsets;
 
@@ -19,11 +19,11 @@ public class MessagePacket extends Packet{
     public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
-        message = new Chat.Message(parts[1], parts[2]);
+        message = new Chat.Message(parts[1], parts[2], parts[3]);
     }
 
     @Override
     public byte[] deconstruct() {
-        return (getId() + "|" + message.sender() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
+        return (getId() + "|" + message.sender() + "|" + message.receiver() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
     }
 }

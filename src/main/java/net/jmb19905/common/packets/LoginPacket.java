@@ -7,37 +7,24 @@ import java.nio.charset.StandardCharsets;
  */
 public class LoginPacket extends Packet{
 
-    public boolean register = false;
     public String name;
-    public String password;
+    public String password = " ";
 
-    public LoginPacket() {
-        super("login");
+    public LoginPacket(boolean register) {
+        super(register ? "register" : "login");
     }
 
     @Override
     public void construct(byte[] data) throws ArrayIndexOutOfBoundsException {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
-        register = Boolean.parseBoolean(parts[1]);
-        name = parts[2];
-        password = parts[3];
-        System.out.println(parts[1]);
-        System.out.println("Constructed LoginPacket:" + this);
+        name = parts[1];
+        password = parts[2];
     }
 
     @Override
     public byte[] deconstruct() {
-        String dataString = getId() + "|" + register + "|" + name + "|" + password;
+        String dataString = getId() + "|" + name + "|" + password;
         return dataString.getBytes(StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public String toString() {
-        return "LoginPacket{" +
-                "register=" + register +
-                ", name='" + name + '\'' +
-                ", password='" + password + '\'' +
-                '}';
     }
 }

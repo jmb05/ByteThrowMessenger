@@ -20,9 +20,8 @@ public abstract class Packet {
      * constructs a Packet from a byte-array
      * @param data the raw Packet as a byte-array
      * @return the Packet
-     * @throws InvalidLoginException if the Packet is a LoginPacket and the username is invalid
      */
-    public static Packet constructPacket(byte[] data) throws InvalidLoginException {
+    public static Packet constructPacket(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         Packet packet;
@@ -36,13 +35,12 @@ public abstract class Packet {
                 packet.construct(data);
             }
             case "login" -> {
-                packet = new LoginPacket();
-                try {
-                    packet.construct(data);
-                }catch (ArrayIndexOutOfBoundsException e){
-                    Logger.log("Error constructing packet: " + new String(packet.deconstruct(), StandardCharsets.UTF_8), Logger.Level.ERROR);
-                    throw new InvalidLoginException("Invalid Username");
-                }
+                packet = new LoginPacket(false);
+                packet.construct(data);
+            }
+            case "register" -> {
+                packet = new LoginPacket(true);
+                packet.construct(data);
             }
             case "message" -> {
                 packet = new MessagePacket();
@@ -52,12 +50,16 @@ public abstract class Packet {
                 packet = new FailPacket();
                 packet.construct(data);
             }
-            case "data" -> {
-                packet = new DataPacket();
+            case "chats" -> {
+                packet = new ChatsPacket();
                 packet.construct(data);
             }
-            case "create_chat" -> {
-                packet = new CreateChatPacket();
+            case "connect" -> {
+                packet = new ConnectPacket();
+                packet.construct(data);
+            }
+            case "success" -> {
+                packet = new SuccessPacket();
                 packet.construct(data);
             }
             default -> throw new IllegalStateException("Unexpected value: " + parts[0]);
@@ -81,5 +83,10 @@ public abstract class Packet {
      */
     public String getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "Packet{" + new String(deconstruct(), StandardCharsets.UTF_8) + '}';
     }
 }
