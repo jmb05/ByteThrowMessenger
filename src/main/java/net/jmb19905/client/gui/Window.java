@@ -1,18 +1,12 @@
 package net.jmb19905.client.gui;
 
-import net.jmb19905.client.Client;
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.common.util.Logger;
 
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  * The Window the Client sees
@@ -20,7 +14,6 @@ import java.awt.event.WindowEvent;
 public class Window extends JFrame {
 
     private final JList<String> list;
-    private final JButton addPeer;
 
     private final JTextArea area;
     private final JTextField field;
@@ -40,13 +33,14 @@ public class Window extends JFrame {
 
         DefaultListModel<String> listModel = new DefaultListModel<>();
         list = new JList<>(listModel);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         list.addListSelectionListener(e -> {
 
         });
         peerPanel.add(list, BorderLayout.CENTER);
 
-        addPeer = new JButton("Add Peer...");
+        JButton addPeer = new JButton("Add Peer...");
         addPeer.addActionListener(l -> {
             String name = JOptionPane.showInputDialog("Name of the Peer:");
             ClientMain.client.connectToPeer(name);
@@ -71,7 +65,7 @@ public class Window extends JFrame {
         messagingPanel.add(field, constraints);
 
         field.addActionListener(l ->  {
-            if(getSelectedPeer() != null) {
+            if(list.getSelectedValue() != null) {
                 try {
                     String text = field.getText();
                     if(ClientMain.client.sendMessage(getSelectedPeer(), text)) {
@@ -125,23 +119,26 @@ public class Window extends JFrame {
     public void setPeers(String[] names){
         DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
         listModel.removeAllElements();
-        listModel.addAll(java.util.List.of(names));
+        for(String name : names) {
+            listModel.addElement(name + " ✗");
+        }
     }
 
     public void addPeer(String peerName){
         DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
-        listModel.addElement(peerName);
+        listModel.addElement(peerName + " ✗");
     }
 
     public void setPeerStatus(String name, boolean status){
         DefaultListModel<String> listModel = ((DefaultListModel<String>) list.getModel());
         try {
             int index;
-            String modifiedName = name;
+            String modifiedName;
             if (status) {
                 modifiedName = name + " ✓";
-                index = listModel.indexOf(name);
+                index = listModel.indexOf(name + " ✗");
             } else {
+                modifiedName = name + " ✗";
                 index = listModel.indexOf(name + " ✓");
             }
             listModel.set(index, modifiedName);
@@ -152,7 +149,7 @@ public class Window extends JFrame {
      * @return the current selected peer name
      */
     public String getSelectedPeer(){
-        return list.getSelectedValue().replace("✓", "").strip();
+        return list.getSelectedValue().replace("✓", "").replace("✗", "").strip();
     }
 
 }

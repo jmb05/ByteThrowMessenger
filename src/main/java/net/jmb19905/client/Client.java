@@ -1,7 +1,6 @@
 package net.jmb19905.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -14,9 +13,9 @@ import net.jmb19905.common.packets.MessagePacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.Chat;
+import net.jmb19905.common.util.NetworkingUtility;
 
 import javax.swing.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,11 +75,9 @@ public class Client {
         ConnectPacket connectPacket = new ConnectPacket();
         connectPacket.name = peerName;
         connectPacket.key = chat.encryption.getPublicKey().getEncoded();
-        connectPacket.firstConnect = true;
+        connectPacket.connectType = ConnectPacket.ConnectType.FIRST_CONNECT;
 
-        ByteBuf buffer = toServerChannel.alloc().buffer();
-        buffer.writeBytes(handler.getConnection().encrypt(connectPacket.deconstruct()));
-        toServerChannel.writeAndFlush(buffer);
+        NetworkingUtility.sendPacket(connectPacket, toServerChannel, handler.getEncryption());
         Logger.log("Connecting with peer: " + peerName, Logger.Level.TRACE);
     }
 
@@ -103,9 +100,7 @@ public class Client {
         Chat chat = getChat(recipient);
         if(chat != null && chat.isActive()) {
             packet.message = new Chat.Message(name, recipient, EncryptionUtility.encryptString(chat.encryption, message));
-            ByteBuf buffer = toServerChannel.alloc().buffer();
-            buffer.writeBytes(handler.getConnection().encrypt(packet.deconstruct()));
-            toServerChannel.writeAndFlush(buffer);
+            NetworkingUtility.sendPacket(packet, toServerChannel, handler.getEncryption());
             Logger.log("Sent Message: " + message, Logger.Level.TRACE);
             return true;
         }

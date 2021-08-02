@@ -1,10 +1,11 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.ChatsPacketHandler;
+
 import java.nio.charset.StandardCharsets;
 
 public class ChatsPacket extends Packet{
 
-    public String type;
     public String[] names;
 
     /**
@@ -18,18 +19,24 @@ public class ChatsPacket extends Packet{
     public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
-        type = parts[1];
-        names = new String[parts.length - 2];
-        System.arraycopy(parts, 2, names, 0, parts.length - 2);
+        names = new String[parts.length - 1];
+        System.arraycopy(parts, 1, names, 0, parts.length - 1);
     }
 
     @Override
     public byte[] deconstruct() {
-        String firstPart = getId() + "|" + type;
         StringBuilder namesBuilder = new StringBuilder();
-        for(String name : names){
-            namesBuilder.append("|").append(name);
+        for (String name : names) {
+            if(name != null) {
+                namesBuilder.append("|").append(name);
+            }
         }
-        return (firstPart + namesBuilder).getBytes(StandardCharsets.UTF_8);
+        return (getId() + namesBuilder).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public ChatsPacketHandler getPacketHandler() {
+        return new ChatsPacketHandler();
     }
 }

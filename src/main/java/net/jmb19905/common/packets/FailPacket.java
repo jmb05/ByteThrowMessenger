@@ -1,5 +1,7 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.FailPacketHandler;
+
 import java.nio.charset.StandardCharsets;
 
 public class FailPacket extends Packet{
@@ -25,5 +27,11 @@ public class FailPacket extends Packet{
     @Override
     public byte[] deconstruct() {
         return (getId() + "|" + cause + "|" + message).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public FailPacketHandler getPacketHandler() {
+        return new FailPacketHandler();
     }
 }

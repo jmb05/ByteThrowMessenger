@@ -1,5 +1,7 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.DisconnectPacketHandler;
+
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -23,5 +25,11 @@ public class DisconnectPacket extends Packet{
     @Override
     public byte[] deconstruct() {
         return (getId() + "|" + name).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public DisconnectPacketHandler getPacketHandler() {
+        return new DisconnectPacketHandler();
     }
 }

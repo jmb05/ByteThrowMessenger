@@ -1,5 +1,6 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.KeyExchangePacketHandler;
 import net.jmb19905.common.util.SerializationUtility;
 
 import java.nio.charset.StandardCharsets;
@@ -27,5 +28,11 @@ public class KeyExchangePacket extends Packet{
         String encodedKey = SerializationUtility.encodeBinary(key);
         String data = getId() + "|" + encodedKey;
         return data.getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public KeyExchangePacketHandler getPacketHandler() {
+        return new KeyExchangePacketHandler();
     }
 }

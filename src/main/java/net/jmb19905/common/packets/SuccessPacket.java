@@ -1,5 +1,7 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.SuccessPacketHandler;
+
 import java.nio.charset.StandardCharsets;
 
 public class SuccessPacket extends Packet{
@@ -21,5 +23,11 @@ public class SuccessPacket extends Packet{
     public byte[] deconstruct() {
         String dataString = getId() + "|" + type;
         return dataString.getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public SuccessPacketHandler getPacketHandler() {
+        return new SuccessPacketHandler();
     }
 }

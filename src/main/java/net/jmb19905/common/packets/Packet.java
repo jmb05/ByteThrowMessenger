@@ -1,7 +1,6 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.exception.InvalidLoginException;
-import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.packets.handlers.PacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -77,6 +76,8 @@ public abstract class Packet {
      * @return a byte-array the contains all the data of the Packet
      */
     public abstract byte[] deconstruct();
+
+    public abstract <T extends Packet> PacketHandler<T> getPacketHandler();
 
     /**
      * @return the identifier that tells the receiver what the packet type is

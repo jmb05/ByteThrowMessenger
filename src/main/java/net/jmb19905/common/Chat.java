@@ -63,6 +63,24 @@ public class Chat {
         return active;
     }
 
+    public boolean hasClient(String name){
+        return clients.contains(name);
+    }
+
+    @Override
+    public String toString() {
+        return "Chat{" +
+                "clients=" + clients +
+                ", messages=" + messages +
+                ", active=" + active +
+                ", encryption=" + encryption +
+                '}';
+    }
+
+    public boolean clientsEquals(Chat chat){
+        return chat.getClients().containsAll(clients);
+    }
+
     public static record Message(String sender, String receiver, String message){}
 
 }

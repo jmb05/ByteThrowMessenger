@@ -1,5 +1,7 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.packets.handlers.LoginPacketHandler;
+
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -26,5 +28,11 @@ public class LoginPacket extends Packet{
     public byte[] deconstruct() {
         String dataString = getId() + "|" + name + "|" + password;
         return dataString.getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public LoginPacketHandler getPacketHandler() {
+        return new LoginPacketHandler();
     }
 }

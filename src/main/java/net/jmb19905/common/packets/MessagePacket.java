@@ -1,6 +1,7 @@
 package net.jmb19905.common.packets;
 
 import net.jmb19905.common.Chat;
+import net.jmb19905.common.packets.handlers.MessagePacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -25,5 +26,11 @@ public class MessagePacket extends Packet{
     @Override
     public byte[] deconstruct() {
         return (getId() + "|" + message.sender() + "|" + message.receiver() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public MessagePacketHandler getPacketHandler() {
+        return new MessagePacketHandler();
     }
 }

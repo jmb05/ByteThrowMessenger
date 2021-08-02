@@ -32,6 +32,7 @@ public record Server(int port) {
      * Starts the Server
      */
     public void run() throws Exception{
+        ClientFileManager.loadAllClientFiles();
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -60,7 +61,7 @@ public record Server(int port) {
         }
     }
 
-    public static Chat getChat(String user1, String user2){
+    public static Chat getChats(String user1, String user2){
         for(Chat chat : chats){
             List<String> users = chat.getClients();
             if(users.contains(user1) && users.contains(user2)){
@@ -70,7 +71,7 @@ public record Server(int port) {
         return null;
     }
 
-    public static List<Chat> getChat(String user){
+    public static List<Chat> getChats(String user){
         List<Chat> chatsContainingUser = new ArrayList<>();
         for(Chat chat : chats){
             List<String> users = chat.getClients();

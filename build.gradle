@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.2-MVP'
+version '1.0.3-MVP'
 
 jar {
     duplicatesStrategy = 'exclude'
@@ -19,7 +19,7 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
-    exclude('java/net/jmb19905/networking/server/**')//TODO: test if this works
+    exclude('src/main/java/net/jmb19905/networking/server/**')//TODO: fix this
 }
 
 repositories {
