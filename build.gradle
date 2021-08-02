@@ -12,7 +12,7 @@ jar {
     archiveName "ByteThrowMessenger-${project.version}-Client.jar"
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.networking.client.ClientMain'
+        attributes 'Main-Class': 'net.jmb19905.client.ClientMain'
     }
     from {
         compileJava.classpath.collect {
@@ -52,7 +52,7 @@ task serverJar(type: Jar) {
     archiveName "ByteThrowMessenger-${project.version}-Server.jar"
     baseName "ByteThrowMessenger-${project.version}-Server"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.networking.server.StartServer'
+        attributes 'Main-Class': 'net.jmb19905.server.StartServer'
     }
     with jar
 }

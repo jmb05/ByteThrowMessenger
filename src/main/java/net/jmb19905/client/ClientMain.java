@@ -22,7 +22,7 @@ public class ClientMain {
         }
         try {
             window = new Window();
-            client = new Client("localhost", 10101);
+            client = new Client("btm.bennettcraft.com", 10101);
             client.start();
         }catch (Exception e){
             window.appendLine("Error: " + e.getMessage());
