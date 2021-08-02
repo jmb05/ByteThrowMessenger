@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.3-MVP'
+version '1.0.3-netty-alpha'
 
 jar {
     duplicatesStrategy = 'exclude'
