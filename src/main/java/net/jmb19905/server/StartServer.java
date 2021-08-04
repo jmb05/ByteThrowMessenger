@@ -20,7 +20,7 @@ public class StartServer {
             file.mkdir();
         }
         try {
-            server = new Server(10101);
+            server = new Server(10102);
             server.run();
         }catch (BindException e){
             Logger.log(e, "Could not bind port! Is a server already running?", Logger.Level.FATAL);

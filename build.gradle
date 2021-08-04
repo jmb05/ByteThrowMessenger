@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.3-netty-alpha'
+version '1.0.4-netty-alpha-dev'
 
 jar {
     duplicatesStrategy = 'exclude'
@@ -32,6 +32,7 @@ dependencies {
     implementation('com.formdev:flatlaf:1.4')
     implementation('org.xerial:sqlite-jdbc:3.36.0.1')
     implementation('org.mindrot:jbcrypt:0.4')
+    implementation('es.nitaur.markdown:txtmark:0.16')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
@@ -39,10 +40,10 @@ dependencies {
 launch4j {
     outfile = "ByteThrowMessenger-${project.version}-Client.exe"
     mainClassName = 'net.jmb19905.networking.client.ClientMain'
-    //icon = "${projectDir}/build/libs/icon.ico"
+    icon = "${projectDir}/build/libs/icon.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
-    textVersion = '1.0.0-MVP'
+    textVersion = '1.0.0-netty-alpha'
     internalName = 'ByteThrowMessenger'
     productName = "ByteThrowMessenger-${project.version}"
 }

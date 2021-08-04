@@ -2,6 +2,7 @@ package net.jmb19905.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.*;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
@@ -21,7 +22,11 @@ public class ServerPacketHandler {
      * @param packet the Packet
      */
     public void handlePacket(ChannelHandlerContext ctx, Packet packet){
-        packet.getPacketHandler().handleOnServer(packet, serverHandler, connection, ctx.channel());
+        try {
+            packet.getPacketHandler().handleOnServer(packet, serverHandler, connection, ctx.channel());
+        } catch (IllegalSideException e) {
+            Logger.log(e, Logger.Level.WARN);
+        }
     }
 
     /**

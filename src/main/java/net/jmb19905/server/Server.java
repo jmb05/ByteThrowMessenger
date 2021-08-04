@@ -45,7 +45,7 @@ public record Server(int port) {
                             if(connections.size() < 2) {
                                 ServerHandler handler = new ServerHandler();
                                 connections.put(handler, ch);
-                                ch.pipeline().addLast(handler);
+                                ch.pipeline().addLast(new ServerDecoder(handler), handler);
                             }else {
                                 ch.close();
                             }

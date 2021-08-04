@@ -21,6 +21,8 @@ public class Logger {
 
     private Level level = Level.TRACE;
 
+    private static boolean isOnNewLine = true;
+
     public void setLevel(Level level) {
         this.level = level;
     }
@@ -35,10 +37,28 @@ public class Logger {
      * @param level the Level of the message
      */
     public static void log(String message, Level level){
-        Calendar calendar = new GregorianCalendar();
-        String compactDate = "[" + calendar.get(Calendar.DAY_OF_MONTH) + "." + calendar.get(Calendar.MONTH) + "." + calendar.get(Calendar.YEAR) + " " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + "] ";
+        if(!isOnNewLine){
+            System.out.println("\n");
+        }
+        System.out.println(level.getColor() + Util.getCompactDate(true) + "[" + level + "] " + message + ANSI_RESET);
+        isOnNewLine = true;
+    }
 
-        System.out.println(level.getColor() + compactDate + "[" + level + "] " + message + ANSI_RESET);
+    public static void logPart(String message, Level level){
+        if(isOnNewLine){
+            Calendar calendar = new GregorianCalendar();
+            String compactDate = "[" + calendar.get(Calendar.DAY_OF_MONTH) + "." + calendar.get(Calendar.MONTH) + "." + calendar.get(Calendar.YEAR) + " " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + "] ";
+
+            System.out.print(level.getColor() + compactDate + "[" + level + "] " + message + ANSI_RESET);
+            isOnNewLine = false;
+        }else {
+            System.out.print(level.getColor() + message + ANSI_RESET);
+        }
+    }
+
+    public static void finishLine(){
+        System.out.println("\n");
+        isOnNewLine = true;
     }
 
     /**

@@ -49,7 +49,7 @@ public class MessagePacketHandler extends PacketHandler<MessagePacket>{
             if (chat != null) {
                 String decryptedMessage = EncryptionUtility.decryptString(chat.encryption, encryptedMessage);
                 chat.addMessage(new Chat.Message(sender, receiver, decryptedMessage));
-                ClientMain.window.appendLine("<" + sender + "> " + decryptedMessage);
+                ClientMain.window.appendMessage(sender, decryptedMessage);
             }else {
                 Logger.log("Received Packet from unknown user", Logger.Level.WARN);
             }

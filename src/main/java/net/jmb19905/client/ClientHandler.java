@@ -7,6 +7,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.client.gui.LoginDialog;
 import net.jmb19905.client.gui.RegisterDialog;
 import net.jmb19905.common.crypto.EncryptedConnection;
+import net.jmb19905.common.exception.IllegalPacketSignatureException;
+import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.exception.InvalidLoginException;
 import net.jmb19905.common.packets.KeyExchangePacket;
 import net.jmb19905.common.packets.LoginPacket;
@@ -16,6 +18,7 @@ import net.jmb19905.common.util.NetworkingUtility;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The client-side Handler for the client-server connection
@@ -60,36 +63,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ByteBuf buffer = (ByteBuf) msg;
-        try {
-            Packet packet = getPacket(buffer);
-            packetHandler.handlePacket(ctx, packet);
-        } catch (InvalidLoginException e) {
-            Logger.log(e, "Other User has invalid username", Logger.Level.WARN);
-        } catch (IllegalStateException e){
-            ClientMain.window.log("IllegalStateException: Unexpected Packet signature", Logger.Level.ERROR);
-        }
-        finally {
-            buffer.release();
-        }
-    }
-
-    private Packet getPacket(ByteBuf buffer) throws InvalidLoginException {
-        byte[] encryptedData = new byte[buffer.readableBytes()];
-        buffer.readBytes(encryptedData);
-        byte[] data = decryptData(encryptedData);
-
-        return Packet.constructPacket(data);
-    }
-
-    private byte[] decryptData(byte[] encryptedData) {
-        byte[] data;
-        if(encryption.isUsable()){
-            data = encryption.decrypt(encryptedData);
-        }else {
-            data = encryptedData;
-        }
-        return data;
+        packetHandler.handlePacket(ctx, (Packet) msg);
     }
 
     /**
@@ -111,6 +85,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             @Override
             public void windowClosing(WindowEvent e) {
                 ClientMain.window.dispose();
+                ClientMain.client.stop();
             }
         });
         registerDialog.addLoginButtonActionListener(l -> login(channel, encryption));
@@ -136,6 +111,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             @Override
             public void windowClosing(WindowEvent e) {
                 ClientMain.window.dispose();
+                ClientMain.client.stop();
             }
         });
         loginDialog.addRegisterButtonActionListener(l -> register(channel, encryption));

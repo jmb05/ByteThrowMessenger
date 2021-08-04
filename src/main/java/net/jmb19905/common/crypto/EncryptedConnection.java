@@ -96,7 +96,7 @@ public class EncryptedConnection {
             Cipher c = Cipher.getInstance(ALGO);
             c.init(Cipher.ENCRYPT_MODE, key);
             byte[] encVal = c.doFinal(in);
-            return Base64.getEncoder().encode(encVal);
+            return Base64.getEncoder().withoutPadding().encode(encVal);
         } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             Logger.log(e, "Error encrypting", Logger.Level.ERROR);
         } catch (IllegalArgumentException e) {

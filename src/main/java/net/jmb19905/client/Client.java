@@ -16,6 +16,7 @@ import net.jmb19905.common.Chat;
 import net.jmb19905.common.util.NetworkingUtility;
 
 import javax.swing.*;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,8 @@ import java.util.List;
  * The Client
  */
 public class Client {
+
+    private EventLoopGroup group;
 
     private final String host;
     private final int port;
@@ -40,8 +43,8 @@ public class Client {
     /**
      * Starts the Client
      */
-    public void start() {
-        EventLoopGroup group = new NioEventLoopGroup();
+    public void start() throws ConnectException {
+        group = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group);
@@ -51,7 +54,7 @@ public class Client {
                 protected void initChannel(SocketChannel ch) {
                     toServerChannel = ch;
                     handler = new ClientHandler();
-                    ch.pipeline().addLast(handler);
+                    ch.pipeline().addLast(new ClientDecoder(handler), handler);
                 }
             });
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -62,6 +65,11 @@ public class Client {
         } finally {
             group.shutdownGracefully();
         }
+    }
+
+    public void stop(){
+        group.shutdownGracefully();
+        System.exit(0);
     }
 
     public void connectToPeer(String peerName){

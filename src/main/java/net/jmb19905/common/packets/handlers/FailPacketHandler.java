@@ -5,6 +5,7 @@ import net.jmb19905.client.ClientHandler;
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
+import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.FailPacket;
 import net.jmb19905.server.ServerHandler;
 
@@ -13,8 +14,8 @@ import javax.swing.*;
 public class FailPacketHandler extends PacketHandler<FailPacket> {
 
     @Override
-    public void handleOnServer(FailPacket packet, ServerHandler handler, ServerHandler.ClientConnection connection, Channel channel) {
-
+    public void handleOnServer(FailPacket packet, ServerHandler handler, ServerHandler.ClientConnection connection, Channel channel) throws IllegalSideException {
+        throw new IllegalSideException("Received FailPacket on the Server");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.jmb19905.common.packets;
 
+import net.jmb19905.common.exception.IllegalPacketSignatureException;
 import net.jmb19905.common.packets.handlers.PacketHandler;
 
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,7 @@ public abstract class Packet {
      * @param data the raw Packet as a byte-array
      * @return the Packet
      */
-    public static Packet constructPacket(byte[] data) {
+    public static Packet constructPacket(byte[] data) throws IllegalPacketSignatureException {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         Packet packet;
@@ -61,7 +62,7 @@ public abstract class Packet {
                 packet = new SuccessPacket();
                 packet.construct(data);
             }
-            default -> throw new IllegalStateException("Unexpected value: " + parts[0]);
+            default -> throw new IllegalPacketSignatureException("Unexpected value: " + parts[0]);
         }
         return packet;
     }

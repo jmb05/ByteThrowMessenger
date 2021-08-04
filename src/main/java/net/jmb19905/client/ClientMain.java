@@ -5,6 +5,7 @@ import net.jmb19905.client.gui.Window;
 import net.jmb19905.common.util.Logger;
 
 import javax.swing.*;
+import java.net.ConnectException;
 
 public class ClientMain {
 
@@ -22,8 +23,11 @@ public class ClientMain {
         }
         try {
             window = new Window();
-            client = new Client("btm.bennettcraft.com", 10101);
+            client = new Client("192.168.178.10", 10102);
             client.start();
+        }catch (ConnectException e) {
+            JOptionPane.showMessageDialog(ClientMain.window, "Could not connect to Server! Check your Internet Connection!", "", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }catch (Exception e){
             window.appendLine("Error: " + e.getMessage());
         }

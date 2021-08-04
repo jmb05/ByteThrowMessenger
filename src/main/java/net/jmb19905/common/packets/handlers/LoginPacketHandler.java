@@ -1,10 +1,8 @@
 package net.jmb19905.common.packets.handlers;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.SocketChannel;
-import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
+import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.ChatsPacket;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.packets.SuccessPacket;
@@ -115,7 +113,7 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket>{
     }
 
     @Override
-    public void handleOnClient(LoginPacket packet, EncryptedConnection encryption, Channel channel) {
-
+    public void handleOnClient(LoginPacket packet, EncryptedConnection encryption, Channel channel) throws IllegalSideException {
+        throw new IllegalSideException("Received LoginPacket on the Client");
     }
 }
