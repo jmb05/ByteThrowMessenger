@@ -30,6 +30,11 @@ public class FailPacketHandler extends PacketHandler<FailPacket> {
             String peerName = cause.split(":")[1];
             Chat chat = ClientMain.client.getChat(peerName);
             ClientMain.client.chats.remove(chat);
+            ClientMain.window.removePeer(peerName);
+        }else if(cause.startsWith("version")){
+            ClientMain.window.setEnabled(false);
+            ClientMain.window.appendLine("Disconnected from Server");
+            ClientMain.window.appendLine("Could not connect to server: Client is outdated!");
         }
     }
 }

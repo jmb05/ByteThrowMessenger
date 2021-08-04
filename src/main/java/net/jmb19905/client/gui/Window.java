@@ -62,7 +62,7 @@ public class Window extends JFrame {
         JButton addPeer = new JButton("Add Peer...");
         addPeer.addActionListener(l -> {
             String name = JOptionPane.showInputDialog("Name of the Peer:");
-            if(ClientMain.client != null) {
+            if(ClientMain.client != null && name != null && !name.equals("")) {
                 ClientMain.client.connectToPeer(name);
             }
         });
@@ -103,6 +103,7 @@ public class Window extends JFrame {
             field.setText("");
         });
 
+        setTitle("ByteThrow Messenger - " + ClientMain.version);
         setVisible(true);
         pack();
 
@@ -211,6 +212,12 @@ public class Window extends JFrame {
     public void addPeer(String peerName){
         DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
         listModel.addElement(peerName + " ✗");
+    }
+
+    public void removePeer(String peerName){
+        DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
+        listModel.removeElement(peerName + " ✗");
+        listModel.removeElement(peerName + " ✓");
     }
 
     public void setPeerStatus(String name, boolean status){

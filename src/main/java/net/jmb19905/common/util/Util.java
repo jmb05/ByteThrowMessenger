@@ -1,5 +1,9 @@
 package net.jmb19905.common.util;
 
+import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.ResourceUtility;
+import net.jmb19905.common.Version;
+
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
@@ -8,10 +12,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -164,6 +165,48 @@ public class Util {
             e.printStackTrace();
         }
         return lineCount;
+    }
+
+    /**
+     * Loads the version from the version.properties file if the instance is running in a development environment and
+     * from the jars manifest if the instance is running as standalone program
+     * @param isDev if the instance is running in a development environment
+     * @return the version
+     */
+    public static Version loadVersion(boolean isDev){
+        String versionAsString;
+        if(isDev){
+            versionAsString = ResourceUtility.readResourceProperties("version.properties").getProperty("version");
+        }else {
+            versionAsString = ClientMain.class.getPackage().getImplementationVersion();
+        }
+        return getVersionFromString(versionAsString);
+    }
+
+    public static Version getVersionFromString(String versionString){
+        String[] parts = versionString.split("-");
+        String[] semanticParts = parts[0].split("\\.");
+        int major = Integer.parseInt(semanticParts[0]);
+        int minor = Integer.parseInt(semanticParts[1]);
+        int patch = Integer.parseInt(semanticParts[2]);
+
+        Version.Type type = Version.Type.STABLE;
+        int typeVersion = 0;
+        try {
+            if (parts[1].startsWith("alpha")) {
+                type = Version.Type.ALPHA;
+                parts[1] = parts[1].replaceAll("alpha", "");
+            } else if (parts[1].startsWith("beta")) {
+                type = Version.Type.BETA;
+                parts[1] = parts[1].replaceAll("beta", "");
+            } else if (parts[1].startsWith("rc")) {
+                type = Version.Type.RELEASE_CANDIDATE;
+                parts[1] = parts[1].replaceAll("rc", "");
+            }
+            typeVersion = Integer.parseInt(parts[1]);
+        }catch (ArrayIndexOutOfBoundsException e){/*Version is Stable*/}
+
+        return new Version(major, minor, patch, type, typeVersion);
     }
 
 }

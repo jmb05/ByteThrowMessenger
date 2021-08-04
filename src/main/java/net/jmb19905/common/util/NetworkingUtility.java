@@ -13,7 +13,7 @@ public class NetworkingUtility {
     public static void sendPacket(Packet packet, Channel channel, EncryptedConnection encryption){
         final ByteBuf buffer = channel.alloc().buffer();
         byte[] data;
-        if(encryption == null) {
+        if(encryption == null || !encryption.isUsable()) {
             data = packet.deconstruct();
         }else {
             data = encryption.encrypt(packet.deconstruct());

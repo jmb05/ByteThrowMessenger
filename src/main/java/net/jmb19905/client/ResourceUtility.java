@@ -4,10 +4,24 @@ import net.jmb19905.common.util.Logger;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Properties;
 
 public class ResourceUtility {
+
+    public static Properties readResourceProperties(String s){
+        Properties prop = new Properties();
+        try {
+            InputStream stream = getResource(s);
+            prop.load(stream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return prop;
+    }
 
     /**
      * Loads an image from the classpath

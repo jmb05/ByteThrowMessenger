@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.0-alpha4'
+version '1.0.0-alpha5-dev'
 
 repositories {
     mavenCentral()
@@ -32,9 +32,11 @@ task clientJar(type: Jar) {
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
         attributes 'Main-Class': 'net.jmb19905.client.ClientMain'
+        attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
         exclude 'net/jmb19905/server**'
+        exclude 'version.properties'
         zipTree(it)
     }
     with jar
@@ -46,9 +48,11 @@ task serverJar(type: Jar) {
     baseName "ByteThrowMessenger-${project.version}-Server"
     manifest {
         attributes 'Main-Class': 'net.jmb19905.server.StartServer'
+        attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
         exclude 'net/jmb19905/client**'
+        exclude 'version.properties'
         zipTree(it)
     }
     with jar
@@ -60,7 +64,7 @@ launch4j {
     icon = "${projectDir}/build/libs/icon.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
-    textVersion = '1.0.0-netty-alpha'
+    textVersion = project.version
     internalName = 'ByteThrowMessenger'
     productName = "ByteThrowMessenger-${project.version}"
     jarTask = clientJar
@@ -76,6 +80,20 @@ task createExecutableFiles {
 }
 
 build.finalizedBy(createExecutableFiles)
+
+task createProperties(dependsOn: processResources) {
+    doLast {
+        new File("$buildDir/resources/main/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createProperties
+}
 
 test {
     useJUnitPlatform()

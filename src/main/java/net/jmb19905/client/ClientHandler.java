@@ -1,15 +1,11 @@
 package net.jmb19905.client;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.client.gui.LoginDialog;
 import net.jmb19905.client.gui.RegisterDialog;
 import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.exception.IllegalPacketSignatureException;
-import net.jmb19905.common.exception.IllegalSideException;
-import net.jmb19905.common.exception.InvalidLoginException;
 import net.jmb19905.common.packets.KeyExchangePacket;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.packets.Packet;
@@ -18,7 +14,6 @@ import net.jmb19905.common.util.NetworkingUtility;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.charset.StandardCharsets;
 
 /**
  * The client-side Handler for the client-server connection
@@ -40,6 +35,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         ClientMain.window.appendLine("Connected to Server");
 
         KeyExchangePacket packet = new KeyExchangePacket();
+        packet.version = ClientMain.version.toString();
         packet.key = encryption.getPublicKey().getEncoded();
 
         Logger.log("Sending packet:" + packet, Logger.Level.TRACE);
