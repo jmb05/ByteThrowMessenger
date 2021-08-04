@@ -23,7 +23,7 @@ public class ClientMain {
         }
         try {
             window = new Window();
-            client = new Client("192.168.178.10", 10102);
+            client = new Client("btm.bennettcraft.com", 10101);
             client.start();
         }catch (ConnectException e) {
             JOptionPane.showMessageDialog(ClientMain.window, "Could not connect to Server! Check your Internet Connection!", "", JOptionPane.ERROR_MESSAGE);

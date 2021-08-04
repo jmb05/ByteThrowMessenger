@@ -5,36 +5,53 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.4-netty-alpha-dev'
+version '1.0.0-alpha4'
 
-jar {
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+    // Make compile extend from our provided configuration so that things added to bundled end up on the compile classpath
+    implementation.extendsFrom(provided)
+}
+
+dependencies {
+    provided 'io.netty:netty-all:4.1.66.Final'
+    provided 'com.formdev:flatlaf:1.4'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.1'
+    provided 'org.mindrot:jbcrypt:0.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+}
+
+task clientJar(type: Jar) {
     duplicatesStrategy = 'exclude'
     archiveName "ByteThrowMessenger-${project.version}-Client.jar"
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
         attributes 'Main-Class': 'net.jmb19905.client.ClientMain'
     }
-    from {
-        compileJava.classpath.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/server**'
+        zipTree(it)
     }
-    exclude('src/main/java/net/jmb19905/networking/server/**')//TODO: fix this
+    with jar
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'io.netty:netty-all:4.1.66.Final'
-    implementation 'com.esotericsoftware:kryo:5.1.1'
-    implementation('com.formdev:flatlaf:1.4')
-    implementation('org.xerial:sqlite-jdbc:3.36.0.1')
-    implementation('org.mindrot:jbcrypt:0.4')
-    implementation('es.nitaur.markdown:txtmark:0.16')
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+task serverJar(type: Jar) {
+    duplicatesStrategy = 'exclude'
+    archiveName "ByteThrowMessenger-${project.version}-Server.jar"
+    baseName "ByteThrowMessenger-${project.version}-Server"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.server.StartServer'
+    }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/client**'
+        zipTree(it)
+    }
+    with jar
 }
 
 launch4j {
@@ -46,17 +63,19 @@ launch4j {
     textVersion = '1.0.0-netty-alpha'
     internalName = 'ByteThrowMessenger'
     productName = "ByteThrowMessenger-${project.version}"
+    jarTask = clientJar
 }
 
-task serverJar(type: Jar) {
-    duplicatesStrategy = 'exclude'
-    archiveName "ByteThrowMessenger-${project.version}-Server.jar"
-    baseName "ByteThrowMessenger-${project.version}-Server"
-    manifest {
-        attributes 'Main-Class': 'net.jmb19905.server.StartServer'
-    }
-    with jar
+//Don't create the default jar
+jar.onlyIf { false }
+
+task createExecutableFiles {
+    dependsOn clientJar
+    dependsOn serverJar
+    dependsOn createAllExecutables
 }
+
+build.finalizedBy(createExecutableFiles)
 
 test {
     useJUnitPlatform()
