@@ -22,6 +22,9 @@ dependencies {
     provided 'com.formdev:flatlaf:1.4'
     provided 'org.xerial:sqlite-jdbc:3.36.0.1'
     provided 'org.mindrot:jbcrypt:0.4'
+    implementation('com.fasterxml.jackson.core:jackson-core:2.12.4')
+    implementation('com.fasterxml.jackson.core:jackson-annotations:2.12.4')
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.12.4')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
@@ -81,7 +84,7 @@ task createExecutableFiles {
 
 build.finalizedBy(createExecutableFiles)
 
-task createProperties(dependsOn: processResources) {
+task createVersionFile(dependsOn: processResources) {
     doLast {
         new File("$buildDir/resources/main/version.properties").withWriter { w ->
             Properties p = new Properties()
@@ -92,7 +95,7 @@ task createProperties(dependsOn: processResources) {
 }
 
 classes {
-    dependsOn createProperties
+    dependsOn createVersionFile
 }
 
 test {

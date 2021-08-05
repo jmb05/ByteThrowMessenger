@@ -21,5 +21,6 @@ public class SuccessPacketHandler extends PacketHandler<SuccessPacket> {
         }else if(packet.type.equals("register")){
             ClientMain.window.appendLine("Register successful");
         }
+        ClientMain.window.showLoading(false);
     }
 }

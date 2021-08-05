@@ -3,13 +3,17 @@ package net.jmb19905.client;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import net.jmb19905.client.gui.Window;
 import net.jmb19905.common.Version;
+import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.Util;
 
 import javax.swing.*;
+import java.awt.*;
 import java.net.ConnectException;
 
 public class ClientMain {
+
+    public static ConfigManager.ClientConfig config;
 
     public static Client client;
     public static Window window;
@@ -21,19 +25,18 @@ public class ClientMain {
      */
     public static void main(String[] args) {
         version = Util.loadVersion(args[0].equals("dev"));
-        try {
-            UIManager.setLookAndFeel(new FlatDarculaLaf());
-        } catch (UnsupportedLookAndFeelException e) {
-            Logger.log(e, "GUI may not work correctly!", Logger.Level.ERROR);
-        }
+        Logger.log("Starting ByteThrow Messenger Client - Version: " + version, Logger.Level.INFO);
+        config = ConfigManager.loadClientConfigFile("config/client_config.json");
+        Logger.log("Loaded configs", Logger.Level.INFO);
+        FlatDarculaLaf.setup();
         try {
             window = new Window();
-            client = new Client("localhost", 10101);
+            client = new Client(config.server, config.port);
             client.start();
-        }catch (ConnectException e) {
+        }/*catch (ConnectException e) {
             JOptionPane.showMessageDialog(ClientMain.window, "Could not connect to Server! Check your Internet Connection!", "", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
-        }catch (Exception e){
+        }*/catch (Exception e){
             window.appendLine("Error: " + e.getMessage());
         }
     }

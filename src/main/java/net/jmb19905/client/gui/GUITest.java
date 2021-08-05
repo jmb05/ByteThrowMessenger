@@ -1,7 +1,11 @@
 package net.jmb19905.client.gui;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
+import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.gui.components.PicturePanel;
+import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.util.Util;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -11,26 +15,17 @@ import java.util.Enumeration;
 public class GUITest {
 
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(new FlatDarculaLaf());
-            //setUIFont(new FontUIResource("Arial", FontUIResource.BOLD,17));
-        } catch (UnsupportedLookAndFeelException e) {
-            Logger.log(e, "GUI may not work correctly!", Logger.Level.ERROR);
-        }
+        ClientMain.version = Util.loadVersion(args[0].equals("dev"));
+        FlatDarculaLaf.setup();
         Window window = new Window();
         window.appendLine("This is a GUI Test");
-    }
+        window.showLoading(true);
 
-    public static void setUIFont(FontUIResource f) {
-        Enumeration<Object> keys = UIManager.getDefaults().keys();
-        while (keys.hasMoreElements()) {
-            Object key = keys.nextElement();
-            Object value = UIManager.get(key);
-            if (value instanceof FontUIResource orig) {
-                Font font = new Font(f.getFontName(), orig.getStyle(), f.getSize());
-                UIManager.put(key, new FontUIResource(font));
-            }
-        }
-    }
+        /*JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.add(new PicturePanel(new ImageIcon("/home/jmb05/IdeaProjects/ByteThrowMessenger/src/main/resources/spinner.gif")));
+        frame.setVisible(true);
+        frame.pack();*/
 
+    }
 }

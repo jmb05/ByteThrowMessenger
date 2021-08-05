@@ -1,5 +1,6 @@
 package net.jmb19905.client.gui;
 
+import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
 import net.jmb19905.common.util.Util;
@@ -104,9 +105,15 @@ public class RegisterDialog extends JDialog {
         passwordInputField2.addActionListener(confirmAction);
         add(passwordInputField2, constraints);
 
+        JCheckBox rememberLogin = new JCheckBox("Automatically Login");
+        rememberLogin.setSelected(ClientMain.config.autoLogin);
+        constraints.gridy = 3;
+        rememberLogin.addActionListener(l -> ClientMain.config.autoLogin = true);
+        add(rememberLogin, constraints);
+
         JButton confirm = new JButton(confirmAction);
         constraints.gridx = 0;
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.gridwidth = 1;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
@@ -114,7 +121,7 @@ public class RegisterDialog extends JDialog {
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         constraints.gridx = 0;
-        constraints.gridy = 4;
+        constraints.gridy = 5;
         constraints.gridwidth = 1;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;

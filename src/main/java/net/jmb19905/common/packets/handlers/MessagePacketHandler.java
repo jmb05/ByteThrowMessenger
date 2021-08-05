@@ -50,6 +50,7 @@ public class MessagePacketHandler extends PacketHandler<MessagePacket>{
                 String decryptedMessage = EncryptionUtility.decryptString(chat.encryption, encryptedMessage);
                 chat.addMessage(new Chat.Message(sender, receiver, decryptedMessage));
                 ClientMain.window.appendMessage(sender, decryptedMessage);
+                //Notify.create().title("ByteThrow Messenger").text("[" + sender + "] " + decryptedMessage).darkStyle().show();
             }else {
                 Logger.log("Received Packet from unknown user", Logger.Level.WARN);
             }

@@ -9,7 +9,6 @@ import net.jmb19905.common.packets.KeyExchangePacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
-import net.jmb19905.common.util.Util;
 import net.jmb19905.server.ServerHandler;
 import net.jmb19905.server.StartServer;
 
@@ -21,7 +20,7 @@ public class KeyExchangePacketHandler extends PacketHandler<KeyExchangePacket>{
 
     @Override
     public void handleOnServer(KeyExchangePacket packet, ServerHandler handler, ServerHandler.ClientConnection connection, Channel channel) {
-        Version packetVersion = Util.getVersionFromString(packet.version);
+        Version packetVersion = new Version(packet.version);
         if(packetVersion.isInCompatible(StartServer.version)){
             sendFail(channel, "version", "Client is outdated!", connection);
             Logger.log("Client tried to connect with outdated version: " + packet.version + " current version: " + StartServer.version, Logger.Level.WARN);
@@ -49,7 +48,7 @@ public class KeyExchangePacketHandler extends PacketHandler<KeyExchangePacket>{
 
     @Override
     public void handleOnClient(KeyExchangePacket packet, EncryptedConnection encryption, Channel channel) {
-        Version packetVersion = Util.getVersionFromString(packet.version);
+        Version packetVersion = new Version(packet.version);
         if(packetVersion.isInCompatible(ClientMain.version)){
             JOptionPane.showMessageDialog(ClientMain.window,"Client is outdated!", "", JOptionPane.ERROR_MESSAGE);
             return;

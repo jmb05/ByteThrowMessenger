@@ -2,14 +2,17 @@ package net.jmb19905.client.gui;
 
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.ResourceUtility;
+import net.jmb19905.client.gui.components.PicturePanel;
+import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
-import net.jmb19905.common.util.Util;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 /**
@@ -17,11 +20,12 @@ import java.awt.image.BufferedImage;
  */
 public class Window extends JFrame {
 
-    private final JList<String> list;
+    private final PeerList list;
 
     private final JTextPane area;
     private final StyledDocument document;
     private final JTextField field;
+    private final PicturePanel loadingPanel;
 
     private final SimpleAttributeSet bold;
     private final SimpleAttributeSet italic;
@@ -34,6 +38,9 @@ public class Window extends JFrame {
         this.area = new JTextPane();
         this.document = area.getStyledDocument();
         this.field = new JTextField();
+        this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("spinner.gif")));
+        setGlassPane(loadingPanel);
+        loadingPanel.setVisible(true);
 
         bold = new SimpleAttributeSet();
         bold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
@@ -50,13 +57,7 @@ public class Window extends JFrame {
         JPanel messagingPanel = new JPanel(new GridBagLayout());
         JPanel peerPanel = new JPanel(new BorderLayout(0,0));
 
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        list = new JList<>(listModel);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        list.addListSelectionListener(e -> {
-
-        });
+        list = new PeerList();
         peerPanel.add(list, BorderLayout.CENTER);
 
         JButton addPeer = new JButton("Add Peer...");
@@ -106,6 +107,13 @@ public class Window extends JFrame {
         setTitle("ByteThrow Messenger - " + ClientMain.version);
         setVisible(true);
         pack();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
+            }
+        });
 
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -202,49 +210,34 @@ public class Window extends JFrame {
      * @param names the names to be put into the list
      */
     public void setPeers(String[] names){
-        DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
-        listModel.removeAllElements();
-        for(String name : names) {
-            listModel.addElement(name + " ✗");
-        }
+        list.setPeers(names);
     }
 
     public void addPeer(String peerName){
-        DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
-        listModel.addElement(peerName + " ✗");
+        list.addPeer(peerName);
     }
 
     public void removePeer(String peerName){
-        DefaultListModel<String> listModel = (DefaultListModel<String>) list.getModel();
-        listModel.removeElement(peerName + " ✗");
-        listModel.removeElement(peerName + " ✓");
+        list.removePeer(peerName);
     }
 
     public void setPeerStatus(String name, boolean status){
-        DefaultListModel<String> listModel = ((DefaultListModel<String>) list.getModel());
-        try {
-            int index;
-            String modifiedName;
-            if (status) {
-                modifiedName = name + " ✓";
-                index = listModel.indexOf(name + " ✗");
-            } else {
-                modifiedName = name + " ✗";
-                index = listModel.indexOf(name + " ✓");
-            }
-            listModel.set(index, modifiedName);
-        }catch (IndexOutOfBoundsException ignored){}
+        list.setPeerStatus(name, status);
     }
 
     public SimpleAttributeSet getBold() {
         return bold;
     }
 
+    public void showLoading(boolean loading){
+        loadingPanel.setVisible(loading);
+    }
+
     /**
      * @return the current selected peer name
      */
     public String getSelectedPeer(){
-        return list.getSelectedValue().replace("✓", "").replace("✗", "").strip();
+        return list.getSelectedValue();
     }
 
 }

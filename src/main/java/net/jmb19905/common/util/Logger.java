@@ -40,16 +40,13 @@ public class Logger {
         if(!isOnNewLine){
             System.out.println("\n");
         }
-        System.out.println(level.getColor() + Util.getCompactDate(true) + "[" + level + "] " + message + ANSI_RESET);
+        System.out.println(level.getColor() + "[" + Util.getCompactDate(true) + "] [" + level + "] " + message + ANSI_RESET);
         isOnNewLine = true;
     }
 
     public static void logPart(String message, Level level){
         if(isOnNewLine){
-            Calendar calendar = new GregorianCalendar();
-            String compactDate = "[" + calendar.get(Calendar.DAY_OF_MONTH) + "." + calendar.get(Calendar.MONTH) + "." + calendar.get(Calendar.YEAR) + " " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + "] ";
-
-            System.out.print(level.getColor() + compactDate + "[" + level + "] " + message + ANSI_RESET);
+            System.out.print(level.getColor() + "[" + Util.getCompactDate(true) + "] [" + level + "] " + message + ANSI_RESET);
             isOnNewLine = false;
         }else {
             System.out.print(level.getColor() + message + ANSI_RESET);

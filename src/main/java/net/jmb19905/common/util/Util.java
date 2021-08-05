@@ -180,33 +180,6 @@ public class Util {
         }else {
             versionAsString = ClientMain.class.getPackage().getImplementationVersion();
         }
-        return getVersionFromString(versionAsString);
+        return new Version(versionAsString);
     }
-
-    public static Version getVersionFromString(String versionString){
-        String[] parts = versionString.split("-");
-        String[] semanticParts = parts[0].split("\\.");
-        int major = Integer.parseInt(semanticParts[0]);
-        int minor = Integer.parseInt(semanticParts[1]);
-        int patch = Integer.parseInt(semanticParts[2]);
-
-        Version.Type type = Version.Type.STABLE;
-        int typeVersion = 0;
-        try {
-            if (parts[1].startsWith("alpha")) {
-                type = Version.Type.ALPHA;
-                parts[1] = parts[1].replaceAll("alpha", "");
-            } else if (parts[1].startsWith("beta")) {
-                type = Version.Type.BETA;
-                parts[1] = parts[1].replaceAll("beta", "");
-            } else if (parts[1].startsWith("rc")) {
-                type = Version.Type.RELEASE_CANDIDATE;
-                parts[1] = parts[1].replaceAll("rc", "");
-            }
-            typeVersion = Integer.parseInt(parts[1]);
-        }catch (ArrayIndexOutOfBoundsException e){/*Version is Stable*/}
-
-        return new Version(major, minor, patch, type, typeVersion);
-    }
-
 }

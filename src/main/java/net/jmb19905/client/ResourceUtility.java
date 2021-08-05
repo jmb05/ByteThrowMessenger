@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Properties;
 
 public class ResourceUtility {
@@ -45,6 +46,10 @@ public class ResourceUtility {
      */
     public static InputStream getResource(String s) {
         return ResourceUtility.class.getClassLoader().getResourceAsStream(s);
+    }
+
+    public static URL getResourceAsURL(String s){
+        return ResourceUtility.class.getClassLoader().getResource(s);
     }
 
 }

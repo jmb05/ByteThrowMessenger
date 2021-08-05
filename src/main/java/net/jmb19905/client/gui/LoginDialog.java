@@ -1,5 +1,6 @@
 package net.jmb19905.client.gui;
 
+import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
 
@@ -91,9 +92,15 @@ public class LoginDialog extends JDialog {
         passwordInputField.addActionListener(confirmAction);
         add(passwordInputField, constraints);
 
+        JCheckBox rememberLogin = new JCheckBox("Automatically Login");
+        rememberLogin.setSelected(ClientMain.config.autoLogin);
+        constraints.gridy = 3;
+        rememberLogin.addActionListener(l -> ClientMain.config.autoLogin = true);
+        add(rememberLogin, constraints);
+
         JButton confirm = new JButton(confirmAction);
         constraints.gridx = 0;
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.gridwidth = 3;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
@@ -101,7 +108,7 @@ public class LoginDialog extends JDialog {
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         constraints.gridx = 0;
-        constraints.gridy = 4;
+        constraints.gridy = 5;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         Dimension dimension = separator.getPreferredSize();
@@ -111,7 +118,7 @@ public class LoginDialog extends JDialog {
 
         JButton register = new JButton("Register instead");
         constraints.gridx = 0;
-        constraints.gridy = 5;
+        constraints.gridy = 6;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
         register.addActionListener(e -> {
