@@ -33,10 +33,10 @@ public class ClientMain {
             window = new Window();
             client = new Client(config.server, config.port);
             client.start();
-        }/*catch (ConnectException e) {
+        }catch (ConnectException e) {
             JOptionPane.showMessageDialog(ClientMain.window, "Could not connect to Server! Check your Internet Connection!", "", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
-        }*/catch (Exception e){
+        }catch (Exception e){
             window.appendLine("Error: " + e.getMessage());
         }
     }

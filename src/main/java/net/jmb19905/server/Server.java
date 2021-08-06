@@ -9,7 +9,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.jmb19905.common.Chat;
-import net.jmb19905.common.util.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,13 +41,9 @@ public record Server(int port) {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) {
-                            if(connections.size() < 2) {
-                                ServerHandler handler = new ServerHandler();
-                                connections.put(handler, ch);
-                                ch.pipeline().addLast(new ServerDecoder(handler), handler);
-                            }else {
-                                ch.close();
-                            }
+                            ServerHandler handler = new ServerHandler();
+                            connections.put(handler, ch);
+                            ch.pipeline().addLast(new ServerDecoder(handler), handler);
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)

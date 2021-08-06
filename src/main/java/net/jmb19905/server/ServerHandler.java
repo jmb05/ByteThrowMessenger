@@ -1,18 +1,13 @@
 package net.jmb19905.server;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.exception.IllegalPacketSignatureException;
 import net.jmb19905.common.packets.DisconnectPacket;
 import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 /**
