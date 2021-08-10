@@ -1,7 +1,9 @@
 package net.jmb19905.common.packets;
 
 import net.jmb19905.common.exception.IllegalPacketSignatureException;
-import net.jmb19905.common.packets.handlers.PacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerPacketHandler;
+import net.jmb19905.common.util.Logger;
 
 import java.nio.charset.StandardCharsets;
 
@@ -35,11 +37,15 @@ public abstract class Packet {
             case "chats" -> packet = new ChatsPacket();
             case "connect" -> packet = new ConnectPacket();
             case "success" -> packet = new SuccessPacket();
-            case "file_meta" -> packet = new FileMetaPacket();
+            case "chats_request" -> packet = new ChatsRequestPacket();
             default -> throw new IllegalPacketSignatureException("Unexpected value: " + parts[0]);
         }
         if(packet != null) {
-            packet.construct(data);
+            try {
+                packet.construct(data);
+            }catch (ArrayIndexOutOfBoundsException e){
+                Logger.log(e, Logger.Level.ERROR);
+            }
         }
         return packet;
     }
@@ -55,7 +61,13 @@ public abstract class Packet {
      */
     public abstract byte[] deconstruct();
 
-    public abstract <T extends Packet> PacketHandler<T> getPacketHandler();
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler(){
+        return null;
+    }
+
+    public ServerPacketHandler<? extends Packet> getServerPacketHandler(){
+        return null;
+    }
 
     /**
      * @return the identifier that tells the receiver what the packet type is

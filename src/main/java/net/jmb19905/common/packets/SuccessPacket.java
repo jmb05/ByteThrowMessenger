@@ -1,12 +1,14 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.SuccessPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.client.SuccessPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
 public class SuccessPacket extends Packet{
 
     public String type;
+    public boolean confirmIdentity = false;
 
     public SuccessPacket() {
         super("success");
@@ -17,17 +19,17 @@ public class SuccessPacket extends Packet{
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         type = parts[1];
+        confirmIdentity = Boolean.parseBoolean(parts[2]);
     }
 
     @Override
     public byte[] deconstruct() {
-        String dataString = getId() + "|" + type;
+        String dataString = getId() + "|" + type + "|" + confirmIdentity;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public SuccessPacketHandler getPacketHandler() {
-        return new SuccessPacketHandler();
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler() {
+        return new SuccessPacketHandler(this);
     }
 }

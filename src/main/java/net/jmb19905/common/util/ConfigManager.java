@@ -1,6 +1,7 @@
 package net.jmb19905.common.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.jmb19905.client.ClientMain;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,9 +18,11 @@ public class ConfigManager {
         try {
             return objectMapper.readValue(new File(configFilePath), ClientConfig.class);
         } catch (IOException e) {
-            Logger.log(e, "Error loading config file. Using Default", Logger.Level.WARN);
-            return new ClientConfig();
+            if(saveClientConfig(new ClientConfig(), configFilePath)){
+                return loadClientConfigFile(configFilePath);
+            }
         }
+        return new ClientConfig();
     }
 
     /**
@@ -27,7 +30,7 @@ public class ConfigManager {
      * @param config the Config that will be saved
      * @param configFilePath the path to the config file
      */
-    public static void saveClientConfig(ClientConfig config, String configFilePath) {
+    public static boolean saveClientConfig(ClientConfig config, String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             File file = new File(configFilePath);
@@ -38,7 +41,9 @@ public class ConfigManager {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
         } catch (IOException e) {
             Logger.log(e, "Error saving config file.", Logger.Level.WARN);
+            return false;
         }
+        return true;
     }
 
     /**
@@ -51,9 +56,11 @@ public class ConfigManager {
         try {
             return objectMapper.readValue(new File(configFilePath), ServerConfig.class);
         } catch (IOException e) {
-            Logger.log(e, "Error loading config file. Using Default", Logger.Level.WARN);
-            return new ServerConfig();
+            if(saveServerConfig(new ServerConfig(), configFilePath)){
+                return loadServerConfigFile(configFilePath);
+            }
         }
+        return new ServerConfig();
     }
 
     /**
@@ -61,7 +68,7 @@ public class ConfigManager {
      * @param config the Config that will be saved
      * @param configFilePath the path to the config file
      */
-    public static void saveServerConfig(ServerConfig config, String configFilePath) {
+    public static boolean saveServerConfig(ServerConfig config, String configFilePath) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             File file = new File(configFilePath);
@@ -72,18 +79,22 @@ public class ConfigManager {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
         } catch (IOException e) {
             Logger.log(e, "Error saving config file.", Logger.Level.WARN);
+            return false;
         }
+        return true;
     }
 
     public static class ClientConfig {
 
         public ClientConfig() {
+            server = ClientMain.isDevEnv ? "localhost" : "btm.bennettcraft.com";
         }
 
         public String theme = "Darcula";
-        public String server = "btm.bennettcraft.com";
+        public String server;
         public int port = 10101;
         public boolean autoLogin = false;
+        public String lang = "en_US";
 
     }
 

@@ -1,6 +1,7 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.FailPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.client.FailPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -8,6 +9,7 @@ public class FailPacket extends Packet{
 
     public String cause;
     public String message;
+    public String extra;
 
     /**
      * A Packet that is sent from the server to a client to inform him that something went wrong
@@ -22,16 +24,19 @@ public class FailPacket extends Packet{
         String[] parts = dataAsString.split("\\|");
         cause = parts[1];
         message = parts[2];
+        extra = parts[3];
     }
 
     @Override
     public byte[] deconstruct() {
-        return (getId() + "|" + cause + "|" + message).getBytes(StandardCharsets.UTF_8);
+        if(extra.equals("")){
+            extra = " ";
+        }
+        return (getId() + "|" + cause + "|" + message + "|" + extra).getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public FailPacketHandler getPacketHandler() {
-        return new FailPacketHandler();
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler() {
+        return new FailPacketHandler(this);
     }
 }

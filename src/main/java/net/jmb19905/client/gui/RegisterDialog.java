@@ -1,6 +1,7 @@
 package net.jmb19905.client.gui;
 
 import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.util.Localisation;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
 import net.jmb19905.common.util.Util;
@@ -30,7 +31,7 @@ public class RegisterDialog extends JDialog {
         setLayout(new GridBagLayout());
         setPreferredSize(new Dimension(250, 275));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle("Register");
+        setTitle(Localisation.get("register"));
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -42,7 +43,7 @@ public class RegisterDialog extends JDialog {
             }
         });
 
-        Action confirmAction = new AbstractAction("Confirm") {
+        Action confirmAction = new AbstractAction(Localisation.get("confirm")) {
             @Override
             public void actionPerformed(ActionEvent e) {
                 username = "";
@@ -67,7 +68,7 @@ public class RegisterDialog extends JDialog {
         constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets(5, 15, 5, 15);
 
-        usernameInputField = new HintTextField("Username");
+        usernameInputField = new HintTextField(Localisation.get("username"));
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -83,7 +84,7 @@ public class RegisterDialog extends JDialog {
         });
         add(usernameInputField, constraints);
 
-        passwordInputField1 = new HintPasswordField("Password");
+        passwordInputField1 = new HintPasswordField(Localisation.get("password"));
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -97,7 +98,7 @@ public class RegisterDialog extends JDialog {
         });
         add(passwordInputField1, constraints);
 
-        passwordInputField2 = new HintPasswordField("Repeat Password");
+        passwordInputField2 = new HintPasswordField(Localisation.get("repeat_password"));
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -105,7 +106,7 @@ public class RegisterDialog extends JDialog {
         passwordInputField2.addActionListener(confirmAction);
         add(passwordInputField2, constraints);
 
-        JCheckBox rememberLogin = new JCheckBox("Automatically Login");
+        JCheckBox rememberLogin = new JCheckBox(Localisation.get("automatic_login"));
         rememberLogin.setSelected(ClientMain.config.autoLogin);
         constraints.gridy = 3;
         rememberLogin.addActionListener(l -> ClientMain.config.autoLogin = true);
@@ -130,7 +131,7 @@ public class RegisterDialog extends JDialog {
         separator.setPreferredSize(dimension);
         add(separator, constraints);
 
-        JButton login = new JButton("Login instead");
+        JButton login = new JButton(Localisation.get("login_instead"));
         constraints.gridx = 0;
         constraints.gridy = 6;
         constraints.fill = GridBagConstraints.HORIZONTAL;
@@ -171,11 +172,11 @@ public class RegisterDialog extends JDialog {
     }
 
     private void showPasswordsDoNotMatchPane(){
-        JOptionPane.showMessageDialog(this, "Passwords do not match", "", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, Localisation.get("pw_no_match"), "", JOptionPane.ERROR_MESSAGE);
     }
 
     private void showPasswordCriteriaNotMetPane(){
-        JOptionPane.showMessageDialog(this, "Password does not meet the right criteria.\n Password should:\n   - Have at least 8 characters\n   - at least one upper and one lowercase letter\n   - at least one digit\n   - at least one symbol (e.g.: . ! # - _)", "", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
 
 }

@@ -1,8 +1,10 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.KeyExchangePacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientKeyExchangePacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerKeyExchangePacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerPacketHandler;
 import net.jmb19905.common.util.SerializationUtility;
-import net.jmb19905.common.util.Util;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,9 +35,13 @@ public class KeyExchangePacket extends Packet{
         return data.getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public KeyExchangePacketHandler getPacketHandler() {
-        return new KeyExchangePacketHandler();
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler() {
+        return new ClientKeyExchangePacketHandler(this);
+    }
+
+    @Override
+    public ServerPacketHandler<? extends Packet> getServerPacketHandler() {
+        return new ServerKeyExchangePacketHandler(this);
     }
 }

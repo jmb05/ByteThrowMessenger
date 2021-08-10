@@ -1,18 +1,20 @@
 package net.jmb19905.client.gui;
 
 import net.jmb19905.client.ClientMain;
-import net.jmb19905.client.ResourceUtility;
+import net.jmb19905.client.gui.settings.AccountSettings;
+import net.jmb19905.client.util.Localisation;
+import net.jmb19905.client.gui.settings.SettingsWindow;
+import net.jmb19905.common.util.ResourceUtility;
 import net.jmb19905.client.gui.components.PicturePanel;
+import net.jmb19905.client.util.ThemeManager;
 import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.util.Util;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -26,10 +28,16 @@ public class Window extends JFrame {
     private final StyledDocument document;
     private final JTextField field;
     private final PicturePanel loadingPanel;
+    private final JToolBar toolbar;
+    private final JPanel peerPanel;
+    private final JButton addPeer;
 
     private final SimpleAttributeSet bold;
     private final SimpleAttributeSet italic;
     private final SimpleAttributeSet underline;
+
+    private final SettingsWindow settingsWindow;
+    private final AccountSettings accountSettings;
 
     /**
      * Initializes the components
@@ -38,9 +46,9 @@ public class Window extends JFrame {
         this.area = new JTextPane();
         this.document = area.getStyledDocument();
         this.field = new JTextField();
-        this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("spinner.gif")));
+        this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("icons/spinner.gif")));
         setGlassPane(loadingPanel);
-        loadingPanel.setVisible(true);
+        setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
 
         bold = new SimpleAttributeSet();
         bold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
@@ -55,19 +63,29 @@ public class Window extends JFrame {
         setPreferredSize(new Dimension(750, 500));
 
         JPanel messagingPanel = new JPanel(new GridBagLayout());
-        JPanel peerPanel = new JPanel(new BorderLayout(0,0));
+        peerPanel = new JPanel(new GridBagLayout());
+
+        GridBagConstraints peerPanelConstraints = new GridBagConstraints();
 
         list = new PeerList();
-        peerPanel.add(list, BorderLayout.CENTER);
+        peerPanelConstraints.fill = GridBagConstraints.BOTH;
+        peerPanelConstraints.weightx = 1;
+        peerPanelConstraints.weighty = 1;
+        peerPanel.add(list, peerPanelConstraints);
 
-        JButton addPeer = new JButton("Add Peer...");
+        addPeer = new JButton(Localisation.get("add_peer"));
         addPeer.addActionListener(l -> {
-            String name = JOptionPane.showInputDialog("Name of the Peer:");
+            String name = JOptionPane.showInputDialog(Localisation.get("peer_name_input"));
             if(ClientMain.client != null && name != null && !name.equals("")) {
                 ClientMain.client.connectToPeer(name);
             }
         });
-        peerPanel.add(addPeer, BorderLayout.SOUTH);
+        peerPanelConstraints.gridy = 1;
+        peerPanelConstraints.weightx = 0;
+        peerPanelConstraints.weighty = 0;
+        peerPanelConstraints.insets = new Insets(5,0,5,0);
+        peerPanel.add(addPeer, peerPanelConstraints);
+
 
         JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, peerPanel, messagingPanel);
         pane.setDividerSize(0);
@@ -84,6 +102,7 @@ public class Window extends JFrame {
 
         constraints.gridy = 1;
         constraints.weighty = 0;
+        constraints.insets = new Insets(5,0,5,0);
         messagingPanel.add(field, constraints);
 
         field.addActionListener(l ->  {
@@ -93,16 +112,29 @@ public class Window extends JFrame {
                     if(ClientMain.client.sendMessage(getSelectedPeer(), text)) {
                         appendMessage("You", text);
                     }else {
-                        JOptionPane.showMessageDialog(this, "Cannot send message! Peer not connected!");
+                        JOptionPane.showMessageDialog(this, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
                     }
                 }else {
-                    appendLine("Please select a peer to send the message to!");
+                    appendLine(Localisation.get("select_peer"));
                 }
             } else {
-                appendMessage("You to GUITest", field.getText());
+                appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
             }
             field.setText("");
         });
+
+        toolbar = new JToolBar(JToolBar.VERTICAL);
+        toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        toolbar.setFloatable(false);
+        constraints.gridx = 1;
+        constraints.gridy = 0;
+        constraints.gridheight = 2;
+        constraints.weightx = 0;
+        constraints.weighty = 1;
+        constraints.insets = new Insets(0,0,0,0);
+        messagingPanel.add(toolbar, constraints);
+
+        initToolBar();
 
         setTitle("ByteThrow Messenger - " + ClientMain.version);
         setVisible(true);
@@ -121,6 +153,18 @@ public class Window extends JFrame {
                 pane.setDividerLocation(getSize().width / 4);
             }
         });
+
+        this.settingsWindow = new SettingsWindow();
+
+        BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/Me.png");
+        ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));
+        this.accountSettings = new AccountSettings(icon);
+        repaint();
+    }
+
+    private void reloadLang(){
+        addPeer.setText(Localisation.get("add_peer"));
+        settingsWindow.reloadLang();
     }
 
     public void appendMessage(String name, String messageText) {
@@ -238,6 +282,57 @@ public class Window extends JFrame {
      */
     public String getSelectedPeer(){
         return list.getSelectedValue();
+    }
+
+    public SettingsWindow getSettingsWindow() {
+        return settingsWindow;
+    }
+
+    public AccountSettings getAccountSettings() {
+        return accountSettings;
+    }
+
+    public void repaint(){
+        toolbar.setBackground(list.getBackground());
+        peerPanel.setBackground(list.getBackground());
+        reloadLang();
+        initActions();
+        initToolBar();
+    }
+
+    private void initToolBar(){
+        toolbar.removeAll();
+        toolbar.add(settingsAction);
+        toolbar.add(Box.createVerticalGlue());
+        toolbar.add(sendAction);
+    }
+
+    private Action settingsAction;
+
+    private Action sendAction;
+
+    private void initActions(){
+        settingsAction = new AbstractAction("", ThemeManager.getIcon("settings_wheel")) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JPopupMenu settingsMenu = new JPopupMenu("Settings");
+                JMenuItem settingsMenuItem = new JMenuItem("General Settings");
+                settingsMenuItem.addActionListener(l -> settingsWindow.setVisible(true));
+                settingsMenu.add(settingsMenuItem);
+
+                JMenuItem accountSettingsMenuItem = new JMenuItem("Account Settings");
+                accountSettingsMenuItem.addActionListener(l -> accountSettings.setVisible(true));
+                settingsMenu.add(accountSettingsMenuItem);
+
+                settingsMenu.show(toolbar.getComponentAtIndex(0), toolbar.getComponentAtIndex(0).getX(), toolbar.getComponentAtIndex(0).getY());
+            }
+        };
+        sendAction = new AbstractAction("", ThemeManager.getIcon("send")) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        };
     }
 
 }

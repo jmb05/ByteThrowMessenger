@@ -1,6 +1,6 @@
 package net.jmb19905.client.gui.components;
 
-import net.jmb19905.client.ResourceUtility;
+import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
 

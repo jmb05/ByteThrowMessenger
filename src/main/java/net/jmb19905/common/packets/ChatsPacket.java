@@ -1,6 +1,6 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.ChatsPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ChatsPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,9 +34,8 @@ public class ChatsPacket extends Packet{
         return (getId() + namesBuilder).getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public ChatsPacketHandler getPacketHandler() {
-        return new ChatsPacketHandler();
+    public ChatsPacketHandler getClientPacketHandler() {
+        return new ChatsPacketHandler(this);
     }
 }
