@@ -9,9 +9,6 @@ import net.jmb19905.common.util.NetworkingUtility;
 import net.jmb19905.server.networking.Server;
 import net.jmb19905.server.networking.ServerHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ChatsRequestPacketHandler extends ServerPacketHandler<ChatsRequestPacket> {
 
     public ChatsRequestPacketHandler(ChatsRequestPacket packet) {
@@ -27,7 +24,4 @@ public class ChatsRequestPacketHandler extends ServerPacketHandler<ChatsRequestP
         Logger.log("Sending packet " + packet + " to " + channel.remoteAddress(), Logger.Level.TRACE);
         NetworkingUtility.sendPacket(packet, channel, connection.encryption);
     }
-
-
-
 }

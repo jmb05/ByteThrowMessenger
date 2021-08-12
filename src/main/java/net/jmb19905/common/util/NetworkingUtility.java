@@ -6,7 +6,6 @@ import io.netty.channel.ChannelFuture;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.Packet;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class NetworkingUtility {

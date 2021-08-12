@@ -3,7 +3,7 @@ package net.jmb19905.server.networking;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.common.exception.IllegalSideException;
-import net.jmb19905.common.packets.*;
+import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
 

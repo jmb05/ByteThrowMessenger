@@ -17,7 +17,8 @@ public class ChatsPacketHandler extends ClientPacketHandler<ChatsPacket> {
 
     @Override
     public void handle(EncryptedConnection encryption, Channel channel) {
-        if(packet.update){
+        Logger.log(packet.toString(), Logger.Level.DEBUG);
+        if(packet.update) {
             ClientMain.client.chats.clear();
         }
         for(String name : packet.names){

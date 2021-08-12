@@ -2,10 +2,10 @@ package net.jmb19905.client.gui.settings;
 
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.util.Localisation;
-import net.jmb19905.common.util.ResourceUtility;
 import net.jmb19905.client.util.ThemeManager;
 import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
 import java.awt.*;

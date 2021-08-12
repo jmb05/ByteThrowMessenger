@@ -3,10 +3,10 @@ package net.jmb19905.client.gui.settings;
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.gui.ConfirmIdentityDialog;
 import net.jmb19905.common.packets.ChangeUserDataPacket;
-import net.jmb19905.common.util.ResourceUtility;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
+import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,12 +26,13 @@ public class AccountSettings extends JDialog {
         this.confirmIdentityDialog = new ConfirmIdentityDialog();
         setTitle("Account Settings");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setPreferredSize(new Dimension(450, 300));
+        //setPreferredSize(new Dimension(450, 300));
         setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
         setLayout(new GridBagLayout());
 
         GridBagConstraints constraints = new GridBagConstraints();
-        constraints.insets = new Insets(10, 10, 10, 10);
+        constraints.ipadx = 10;
+        constraints.ipady = 10;
         constraints.weightx = 1;
         constraints.weighty = 1;
 
@@ -39,23 +40,15 @@ public class AccountSettings extends JDialog {
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = 1;
-        constraints.gridheight = 2;
+        constraints.gridheight = 1;
         add(iconLabel, constraints);
 
         nameLabel = new JLabel(ClientMain.client.name);
-        constraints.gridx = 1;
-        constraints.gridy = 0;
-        constraints.gridwidth = 2;
-        constraints.gridheight = 1;
-        add(nameLabel, constraints);
-
-        JButton changeIconButton = new JButton("Change avatar");
-        changeIconButton.addActionListener(l -> changeAvatar());
         constraints.gridx = 0;
-        constraints.gridy = 2;
+        constraints.gridy = 1;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
-        add(changeIconButton, constraints);
+        add(nameLabel, constraints);
 
         JButton changeUsernameButton = new JButton("Change Username");
         changeUsernameButton.addActionListener(e -> {
@@ -67,9 +60,9 @@ public class AccountSettings extends JDialog {
                 confirmIdentityDialog.setVisible(true);
             }
         });
-        constraints.gridx = 1;
-        constraints.gridy = 1;
-        constraints.gridwidth = 2;
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
         constraints.gridheight = 1;
         add(changeUsernameButton, constraints);
 
@@ -83,11 +76,19 @@ public class AccountSettings extends JDialog {
                 confirmIdentityDialog.setVisible(true);
             }
         });
-        constraints.gridx = 1;
-        constraints.gridy = 2;
-        constraints.gridwidth = 2;
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
         constraints.gridheight = 1;
         add(changePasswordButton, constraints);
+
+        JButton changeIconButton = new JButton("Change avatar");
+        changeIconButton.addActionListener(l -> changeAvatar());
+        constraints.gridx = 0;
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        add(changeIconButton, constraints);
 
         pack();
     }

@@ -1,13 +1,16 @@
 package net.jmb19905.client.gui;
 
 import net.jmb19905.client.ClientMain;
-import net.jmb19905.client.util.Localisation;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
+import net.jmb19905.client.util.Localisation;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * Show a Login Dialog

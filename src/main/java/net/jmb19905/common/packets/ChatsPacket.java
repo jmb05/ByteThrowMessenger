@@ -20,7 +20,7 @@ public class ChatsPacket extends Packet{
     public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
-        names = new String[parts.length - 1];
+        names = new String[parts.length - 2];
         System.arraycopy(parts, 1, names, 0, parts.length - 2);
         update = Boolean.parseBoolean(parts[parts.length - 1]);
     }

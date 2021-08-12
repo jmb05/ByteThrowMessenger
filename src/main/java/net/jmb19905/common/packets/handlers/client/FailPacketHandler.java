@@ -1,9 +1,9 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.util.Localisation;
-import net.jmb19905.client.networking.ClientHandler;
 import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.networking.ClientHandler;
+import net.jmb19905.client.util.Localisation;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.FailPacket;

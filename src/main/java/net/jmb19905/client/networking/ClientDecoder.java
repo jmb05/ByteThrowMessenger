@@ -7,7 +7,6 @@ import net.jmb19905.common.exception.IllegalPacketSignatureException;
 import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 

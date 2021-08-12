@@ -1,9 +1,9 @@
 package net.jmb19905.client.gui;
 
 import net.jmb19905.client.ClientMain;
-import net.jmb19905.client.util.Localisation;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
+import net.jmb19905.client.util.Localisation;
 import net.jmb19905.common.util.Util;
 
 import javax.swing.*;

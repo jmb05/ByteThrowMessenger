@@ -9,18 +9,18 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import net.jmb19905.client.ClientMain;
+import net.jmb19905.common.Chat;
 import net.jmb19905.common.packets.ConnectPacket;
 import net.jmb19905.common.packets.MessagePacket;
 import net.jmb19905.common.packets.SuccessPacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
-import net.jmb19905.common.Chat;
 import net.jmb19905.common.util.NetworkingUtility;
 
 import javax.swing.*;
 import java.net.ConnectException;
-import java.util.*;
 import java.util.Timer;
+import java.util.*;
 
 /**
  * The Client
