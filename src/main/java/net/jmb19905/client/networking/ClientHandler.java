@@ -37,6 +37,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ClientMain.window.appendLine("Connected to Server");
+        Logger.log("Server address is: " + ctx.channel().remoteAddress(), Logger.Level.INFO);
 
         KeyExchangePacket packet = new KeyExchangePacket();
         packet.version = ClientMain.version.toString();
