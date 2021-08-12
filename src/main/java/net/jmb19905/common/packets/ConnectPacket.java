@@ -1,6 +1,9 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.ConnectPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientConnectPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerConnectPacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerPacketHandler;
 import net.jmb19905.common.util.SerializationUtility;
 
 import java.nio.charset.StandardCharsets;
@@ -39,10 +42,14 @@ public class ConnectPacket extends Packet{
         return (getId() + "|" + name + "|" + encodedKey + "|" + connectType.typeInt).getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public ConnectPacketHandler getPacketHandler() {
-        return new ConnectPacketHandler();
+    public ServerPacketHandler<? extends Packet> getServerPacketHandler() {
+        return new ServerConnectPacketHandler(this);
+    }
+
+    @Override
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler() {
+        return new ClientConnectPacketHandler(this);
     }
 
     public enum ConnectType{

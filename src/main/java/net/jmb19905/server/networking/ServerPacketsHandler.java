@@ -1,18 +1,18 @@
-package net.jmb19905.server;
+package net.jmb19905.server.networking;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.common.exception.IllegalSideException;
-import net.jmb19905.common.packets.*;
+import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
 
-public class ServerPacketHandler {
+public class ServerPacketsHandler {
 
     private final ServerHandler.ClientConnection connection;
     private final ServerHandler serverHandler;
 
-    public ServerPacketHandler(ServerHandler serverHandler){
+    public ServerPacketsHandler(ServerHandler serverHandler){
         this.connection = serverHandler.getConnection();
         this.serverHandler = serverHandler;
     }
@@ -23,7 +23,7 @@ public class ServerPacketHandler {
      */
     public void handlePacket(ChannelHandlerContext ctx, Packet packet){
         try {
-            packet.getPacketHandler().handleOnServer(packet, serverHandler, connection, ctx.channel());
+            packet.getServerPacketHandler().handle(serverHandler, connection, ctx.channel());
         } catch (IllegalSideException e) {
             Logger.log(e, Logger.Level.WARN);
         }

@@ -1,13 +1,11 @@
 package net.jmb19905.common.crypto;
 
-import net.jmb19905.client.ClientMain;
 import net.jmb19905.common.exception.InvalidEncryptionException;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package net.jmb19905.client;
+package net.jmb19905.client.networking;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -8,17 +8,19 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import net.jmb19905.client.ClientMain;
+import net.jmb19905.common.Chat;
 import net.jmb19905.common.packets.ConnectPacket;
 import net.jmb19905.common.packets.MessagePacket;
+import net.jmb19905.common.packets.SuccessPacket;
 import net.jmb19905.common.util.EncryptionUtility;
 import net.jmb19905.common.util.Logger;
-import net.jmb19905.common.Chat;
 import net.jmb19905.common.util.NetworkingUtility;
 
 import javax.swing.*;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Timer;
+import java.util.*;
 
 /**
  * The Client
@@ -30,10 +32,14 @@ public class Client {
     private final String host;
     private final int port;
     public String name = "";
+    public boolean loggedIn = false;
+    public boolean identityConfirmed = false;
     private SocketChannel toServerChannel;
     private ClientHandler handler;
 
     public List<Chat> chats = new ArrayList<>();
+
+    public static SuccessPacket confirmIdentityPacket = null;
 
     public Client(String host, int port){
         this.host = host;
@@ -69,7 +75,6 @@ public class Client {
 
     public void stop(){
         group.shutdownGracefully();
-        System.exit(0);
     }
 
     public void connectToPeer(String peerName){
@@ -122,6 +127,36 @@ public class Client {
             }
         }
         return null;
+    }
+
+    /**
+     * Sets the identityConfirmed boolean to false after 5 minutes therefore the User has to verify his identity if
+     * he does anything confidential (e.g: change password, change username)
+     */
+    public void confirmIdentity(){
+        identityConfirmed = true;
+        Logger.log("Identity now confirmed!", Logger.Level.INFO);
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                identityConfirmed = false;
+                Logger.log("Identity now unconfirmed!", Logger.Level.INFO);
+            }
+        };
+        timer.schedule(task, new Date(System.currentTimeMillis() + 300000)); //300000 ms == 5 min
+    }
+
+    public boolean isIdentityConfirmed(){
+        return identityConfirmed;
+    }
+
+    public SocketChannel getToServerChannel() {
+        return toServerChannel;
+    }
+
+    public ClientHandler getHandler() {
+        return handler;
     }
 
 }

@@ -1,12 +1,13 @@
 package net.jmb19905.common.packets;
 
-import net.jmb19905.common.packets.handlers.ChatsPacketHandler;
+import net.jmb19905.common.packets.handlers.client.ChatsPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
 public class ChatsPacket extends Packet{
 
     public String[] names;
+    public boolean update = false;
 
     /**
      * Contains all the names of the peers of a client
@@ -19,8 +20,9 @@ public class ChatsPacket extends Packet{
     public void construct(byte[] data) {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
-        names = new String[parts.length - 1];
-        System.arraycopy(parts, 1, names, 0, parts.length - 1);
+        names = new String[parts.length - 2];
+        System.arraycopy(parts, 1, names, 0, parts.length - 2);
+        update = Boolean.parseBoolean(parts[parts.length - 1]);
     }
 
     @Override
@@ -31,12 +33,11 @@ public class ChatsPacket extends Packet{
                 namesBuilder.append("|").append(name);
             }
         }
-        return (getId() + namesBuilder).getBytes(StandardCharsets.UTF_8);
+        return (getId() + namesBuilder + "|" + update).getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public ChatsPacketHandler getPacketHandler() {
-        return new ChatsPacketHandler();
+    public ChatsPacketHandler getClientPacketHandler() {
+        return new ChatsPacketHandler(this);
     }
 }

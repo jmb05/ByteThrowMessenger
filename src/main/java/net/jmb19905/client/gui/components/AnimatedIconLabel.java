@@ -1,11 +1,17 @@
 package net.jmb19905.client.gui.components;
 
-import net.jmb19905.client.ResourceUtility;
+import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
 
+/**
+ * Shows a gif on a JLabel
+ */
 public class AnimatedIconLabel extends JLabel {
 
+    /**
+     * The Gif as Icon
+     */
     private final Icon imgIcon;
 
     public AnimatedIconLabel(String resource){

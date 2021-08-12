@@ -1,7 +1,5 @@
 package net.jmb19905.common.util;
 
-import net.jmb19905.client.ClientMain;
-import net.jmb19905.client.ResourceUtility;
 import net.jmb19905.common.Version;
 
 import javax.swing.*;
@@ -12,7 +10,9 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,6 +68,31 @@ public class Util {
         }else {
             return new Color(255 - smooth, 255 - smooth, 255 - smooth);
         }
+    }
+
+    /**
+     * Converts a given Image into a BufferedImage
+     *
+     * @param img The Image to be converted
+     * @return The converted BufferedImage
+     */
+    public static BufferedImage toBufferedImage(Image img)
+    {
+        if (img instanceof BufferedImage)
+        {
+            return (BufferedImage) img;
+        }
+
+        // Create a buffered image with transparency
+        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bimage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);
+        bGr.dispose();
+
+        // Return the buffered image
+        return bimage;
     }
 
     public static BufferedImage cropImageToCircle(BufferedImage bufferedImage){
@@ -178,7 +203,7 @@ public class Util {
         if(isDev){
             versionAsString = ResourceUtility.readResourceProperties("version.properties").getProperty("version");
         }else {
-            versionAsString = ClientMain.class.getPackage().getImplementationVersion();
+            versionAsString = Util.class.getPackage().getImplementationVersion();
         }
         return new Version(versionAsString);
     }

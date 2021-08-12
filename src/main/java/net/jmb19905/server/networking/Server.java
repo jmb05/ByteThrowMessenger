@@ -1,4 +1,4 @@
-package net.jmb19905.server;
+package net.jmb19905.server.networking;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -9,7 +9,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.jmb19905.common.Chat;
-import net.jmb19905.common.util.Logger;
+import net.jmb19905.server.util.ClientFileManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,13 +42,9 @@ public record Server(int port) {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) {
-                            if(connections.size() < 2) {
-                                ServerHandler handler = new ServerHandler();
-                                connections.put(handler, ch);
-                                ch.pipeline().addLast(new ServerDecoder(handler), handler);
-                            }else {
-                                ch.close();
-                            }
+                            ServerHandler handler = new ServerHandler();
+                            connections.put(handler, ch);
+                            ch.pipeline().addLast(new ServerDecoder(handler), handler);
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -83,12 +79,36 @@ public record Server(int port) {
     }
 
     public static boolean isClientOnline(String name){
-        for(ServerHandler handler : connections.keySet()){
-            if (handler.getConnection().getName().equals(name)){
+        for (ServerHandler handler : connections.keySet()) {
+            if (handler.getConnection().getName().equals(name)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static void changeName(String oldName, String newName){
+        for (Chat chat : chats) {
+            List<String> chatParticipants = chat.getClients();
+            chatParticipants.remove(oldName);
+            chatParticipants.add(newName);
+            chat.setClients(chatParticipants);
+        }
+    }
+
+    public static String[] getPeerNames(String clientName) {
+        List<String> names = new ArrayList<>();
+        for (Chat chat : chats) {
+            List<String> chatParticipants = chat.getClients();
+            if (chatParticipants.contains(clientName)) {
+                for (String otherName : chatParticipants) {
+                    if (!otherName.equals(clientName)) {
+                        names.add(otherName);
+                    }
+                }
+            }
+        }
+        return names.toArray(new String[0]);
     }
 
 }

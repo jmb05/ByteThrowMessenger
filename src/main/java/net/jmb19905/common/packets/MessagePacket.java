@@ -1,7 +1,10 @@
 package net.jmb19905.common.packets;
 
 import net.jmb19905.common.Chat;
-import net.jmb19905.common.packets.handlers.MessagePacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientMessagePacketHandler;
+import net.jmb19905.common.packets.handlers.client.ClientPacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerMessagePacketHandler;
+import net.jmb19905.common.packets.handlers.server.ServerPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
@@ -28,9 +31,13 @@ public class MessagePacket extends Packet{
         return (getId() + "|" + message.sender() + "|" + message.receiver() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public MessagePacketHandler getPacketHandler() {
-        return new MessagePacketHandler();
+    public ServerPacketHandler<? extends Packet> getServerPacketHandler() {
+        return new ServerMessagePacketHandler(this);
+    }
+
+    @Override
+    public ClientPacketHandler<? extends Packet> getClientPacketHandler() {
+        return new ClientMessagePacketHandler(this);
     }
 }

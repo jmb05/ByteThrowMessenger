@@ -1,26 +1,28 @@
-package net.jmb19905.common.packets.handlers;
+package net.jmb19905.common.packets.handlers.server;
 
 import io.netty.channel.Channel;
-import net.jmb19905.common.crypto.EncryptedConnection;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.common.exception.IllegalSideException;
-import net.jmb19905.common.packets.ChatsPacket;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.packets.SuccessPacket;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
-import net.jmb19905.server.ClientFileManager;
-import net.jmb19905.server.Server;
-import net.jmb19905.server.ServerHandler;
-import net.jmb19905.server.database.SQLiteManager;
+import net.jmb19905.server.database.UserDatabaseManager;
+import net.jmb19905.server.networking.Server;
+import net.jmb19905.server.networking.ServerHandler;
+import net.jmb19905.server.util.ClientFileManager;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.ArrayList;
-import java.util.List;
+public class LoginPacketHandler extends ServerPacketHandler<LoginPacket> {
 
-public class LoginPacketHandler extends PacketHandler<LoginPacket>{
+    public LoginPacketHandler(LoginPacket packet) {
+        super(packet);
+    }
 
     @Override
-    public void handleOnServer(LoginPacket packet, ServerHandler handler, ServerHandler.ClientConnection connection, Channel channel) {
+    public void handle(ServerHandler handler, ServerHandler.ClientConnection connection, Channel channel) throws IllegalSideException {
         if(packet.getId().equals("register")){
             handleRegister(channel, packet, connection);
         }else if(packet.getId().equals("login")){
@@ -35,15 +37,19 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket>{
     private void handleLogin(Channel channel, LoginPacket packet, ServerHandler.ClientConnection connection) {
         String username = packet.name;
         String password = packet.password;
-        if(SQLiteManager.hasUser(username)){
-            SQLiteManager.UserData userData = SQLiteManager.getUserByName(username);
+        UserDatabaseManager.UserData userData = UserDatabaseManager.getUserDataByName(username);
+        if(userData != null){
             if(BCrypt.checkpw(password, userData.password())){
-                handleSuccessfulLogin(channel, packet, connection);
+                if(!packet.confirmIdentity) {
+                    handleSuccessfulLogin(channel, packet, connection);
+                }else {
+                    sendLoginSuccess(channel, packet, connection);
+                }
             }else {
-                sendFail(channel, "login", "Failed to Login! - Wrong password", connection);
+                sendFail(channel, "login", "wrong_pw", "", connection);
             }
         }else {
-            sendFail(channel, "login", "Failed to Login! - User not found", connection);
+            sendFail(channel, "login", "username_not_found", username, connection);
         }
     }
 
@@ -53,10 +59,10 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket>{
      */
     private void handleRegister(Channel channel, LoginPacket packet, ServerHandler.ClientConnection connection) {
         Logger.log("Client is trying to registering", Logger.Level.TRACE);
-        if (SQLiteManager.createUser(packet.name, packet.password)) {
+        if (UserDatabaseManager.createUser(packet.name, packet.password)) {
             handleSuccessfulLogin(channel, packet, connection);
         } else {
-            sendFail(channel, "register", "Failed to Register!", connection);
+            sendFail(channel, "register", "register_fail", "", connection);
         }
     }
 
@@ -66,14 +72,22 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket>{
      * @param packet the login packet containing the login packet of the client
      */
     private void handleSuccessfulLogin(Channel channel, LoginPacket packet, ServerHandler.ClientConnection connection) {
+        if(Server.isClientOnline(packet.name)) {
+            for(ServerHandler handler : Server.connections.keySet()){
+                if(handler.getConnection().getName().equals(packet.name)){
+                    SocketChannel otherSocketChannel = Server.connections.get(handler);
+                    ChannelFuture future = sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", handler.getConnection());
+                    ChannelFutureListener listener = future1 -> handler.markClosed();
+                    future.addListener(listener);
+                }
+            }
+        }
         connection.setName(packet.name);
         Logger.log("Client: " + channel.remoteAddress() + " now uses name: " + connection.getName(), Logger.Level.INFO);
 
         sendLoginSuccess(channel, packet, connection); // confirms the login to the current client
 
         ClientFileManager.createClientFile(connection.getName());
-
-        sendChatsPacket(channel, connection);
     }
 
     /**
@@ -83,37 +97,9 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket>{
     private void sendLoginSuccess(Channel channel, LoginPacket loginPacket, ServerHandler.ClientConnection connection) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = loginPacket.getId();
+        loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
-        Logger.log("Sending packet LoginSuccess to " + channel.remoteAddress() , Logger.Level.TRACE);
+        Logger.log("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress() , Logger.Level.TRACE);
         NetworkingUtility.sendPacket(loginSuccessPacket, channel, connection.encryption);
-    }
-
-    private void sendChatsPacket(Channel channel, ServerHandler.ClientConnection connection){
-        String clientName = connection.getName();
-        ChatsPacket packet = new ChatsPacket();
-        packet.names = getPeerNames(clientName);
-
-        Logger.log("Sending packet " + packet + " to " + channel.remoteAddress(), Logger.Level.TRACE);
-        NetworkingUtility.sendPacket(packet, channel, connection.encryption);
-    }
-
-    private String[] getPeerNames(String clientName) {
-        List<String> names = new ArrayList<>();
-        for(int i=0;i<Server.chats.size();i++){
-            List<String> chatParticipants = Server.chats.get(i).getClients();
-            if(chatParticipants.contains(clientName)){
-                for(String otherName : chatParticipants) {
-                    if(!otherName.equals(clientName)) {
-                        names.add(otherName);
-                    }
-                }
-            }
-        }
-        return names.toArray(new String[0]);
-    }
-
-    @Override
-    public void handleOnClient(LoginPacket packet, EncryptedConnection encryption, Channel channel) throws IllegalSideException {
-        throw new IllegalSideException("Received LoginPacket on the Client");
     }
 }

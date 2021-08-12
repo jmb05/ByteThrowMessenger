@@ -1,8 +1,9 @@
-package net.jmb19905.client;
+package net.jmb19905.client.networking;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.gui.LoginDialog;
 import net.jmb19905.client.gui.RegisterDialog;
 import net.jmb19905.client.util.UserDataUtility;
@@ -10,6 +11,7 @@ import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.KeyExchangePacket;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.packets.Packet;
+import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
 
@@ -27,7 +29,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
      */
     private final EncryptedConnection encryption = new EncryptedConnection();
 
-    private ClientPacketHandler packetHandler;
+    private ClientPacketsHandler packetHandler;
 
     /**
      * Executes when the Connection to the Server starts
@@ -35,6 +37,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ClientMain.window.appendLine("Connected to Server");
+        Logger.log("Server address is: " + ctx.channel().remoteAddress(), Logger.Level.INFO);
 
         KeyExchangePacket packet = new KeyExchangePacket();
         packet.version = ClientMain.version.toString();
@@ -43,7 +46,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         Logger.log("Sending packet:" + packet, Logger.Level.TRACE);
         NetworkingUtility.sendPacket(packet, ctx.channel(), null);
 
-        this.packetHandler = new ClientPacketHandler(this);
+        this.packetHandler = new ClientPacketsHandler(this);
     }
 
     /**
@@ -51,8 +54,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        ClientMain.window.appendLine("Disconnected from Server");
-        ClientMain.window.dispose();
+        ClientMain.exit(0, "", true);
     }
 
     /**
@@ -71,6 +73,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         RegisterDialog registerDialog = new RegisterDialog(true);
         registerDialog.addConfirmButtonActionListener(l -> {
             ClientMain.client.name = registerDialog.getUsername();
+            ClientMain.window.getAccountSettings().setUsername(ClientMain.client.name);
 
             LoginPacket registerPacket = new LoginPacket(true);
             registerPacket.name = ClientMain.client.name;
@@ -78,12 +81,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             Logger.log("Sending RegisterPacket", Logger.Level.TRACE);
 
             NetworkingUtility.sendPacket(registerPacket, channel, encryption);
+            ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
         });
         registerDialog.addCancelListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ClientMain.window.dispose();
-                ClientMain.client.stop();
+                ClientMain.exit(0, "", false);
             }
         });
         registerDialog.addLoginButtonActionListener(l -> login(channel, encryption));
@@ -101,24 +104,25 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
         }
-        LoginDialog loginDialog = new LoginDialog("", "", "");
+        LoginDialog loginDialog = new LoginDialog("", "", "", true);
         loginDialog.addConfirmButtonActionListener(l -> {
             UserDataUtility.writeUserFile(loginDialog.getUsername(), loginDialog.getPassword(), new File("userdata/user.dat"));
             sendLoginPacket(channel, encryption, loginDialog.getUsername(), loginDialog.getPassword());
+            ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
         });
         loginDialog.addCancelListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ClientMain.window.dispose();
-                ClientMain.client.stop();
+                ClientMain.exit(0, "", false);
             }
         });
         loginDialog.addRegisterButtonActionListener(l -> register(channel, encryption));
-        loginDialog.showDialog();
+        loginDialog.setVisible(true);
     }
 
     private static void sendLoginPacket(Channel channel, EncryptedConnection encryption, String username, String password){
         ClientMain.client.name = username;
+        ClientMain.window.getAccountSettings().setUsername(ClientMain.client.name);
 
         LoginPacket loginPacket = new LoginPacket(false);
         loginPacket.name = ClientMain.client.name;

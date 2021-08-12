@@ -1,18 +1,15 @@
-package net.jmb19905.server;
+package net.jmb19905.server.networking;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
-import net.jmb19905.common.exception.IllegalPacketSignatureException;
 import net.jmb19905.common.packets.DisconnectPacket;
+import net.jmb19905.common.packets.FailPacket;
 import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.util.NetworkingUtility;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -25,7 +22,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      */
     private ClientConnection connection;
 
-    private ServerPacketHandler packetHandler;
+    private ServerPacketsHandler packetHandler;
+
+    private boolean closed = false;
 
     /**
      * Executes when the Connection to the Server starts
@@ -34,7 +33,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         Logger.log("Client: \"" + ctx.channel().remoteAddress() + "\" is now connected", Logger.Level.INFO);
         this.connection = new ClientConnection(new EncryptedConnection());
-        this.packetHandler = new ServerPacketHandler(this);
+        this.packetHandler = new ServerPacketsHandler(this);
     }
 
     /**
@@ -44,7 +43,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         Logger.log("Client: \"" + ctx.channel().remoteAddress() + "\" is now disconnected", Logger.Level.INFO);
         Server.connections.remove(this);
-        notifyPeersOfDisconnect();
+        if(!closed) {
+            notifyPeersOfDisconnect();
+        }
     }
 
     /**
@@ -53,7 +54,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        packetHandler.handlePacket(ctx, (Packet) msg);
+        if(!closed) {
+            packetHandler.handlePacket(ctx, (Packet) msg);
+        }
     }
 
     /**
@@ -67,7 +70,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 if(!clientName.equals(disconnectedClientName)){
                     DisconnectPacket disconnectPacket = new DisconnectPacket();
                     disconnectPacket.name = disconnectedClientName;
-                    ServerPacketHandler.sendPacketToPeer(clientName, disconnectPacket, this);
+                    ServerPacketsHandler.sendPacketToPeer(clientName, disconnectPacket, this);
                 }
             }
         }
@@ -77,6 +80,15 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         return connection;
     }
 
+    public void setName(String name){
+        connection.setName(name);
+    }
+
+    public void markClosed(){
+        closed = true;
+        Logger.log("Client: " + connection.getName() + " marked as closed", Logger.Level.INFO);
+    }
+
     /**
      * Executed if an exception is caught
      * @param cause the Exception
@@ -84,11 +96,17 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Logger.log(cause, Logger.Level.ERROR);
+
+        FailPacket failPacket = new FailPacket();
+        failPacket.cause = "internal";
+        failPacket.message = "internal_error";
+        failPacket.extra = "";
+        NetworkingUtility.sendPacket(failPacket, ctx.channel(), connection.encryption);
     }
 
     public static class ClientConnection {
 
-        private String name;
+        private String name = "";
         public final EncryptedConnection encryption;
 
         public ClientConnection(EncryptedConnection encryption){

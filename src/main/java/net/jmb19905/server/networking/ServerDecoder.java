@@ -1,4 +1,4 @@
-package net.jmb19905.server;
+package net.jmb19905.server.networking;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -7,7 +7,6 @@ import net.jmb19905.common.exception.IllegalPacketSignatureException;
 import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class ServerDecoder extends ByteToMessageDecoder {
             byte[] data = decryptData(encryptedData);
             Packet packet = Packet.constructPacket(data);
             out.add(packet);
-            Logger.log("Decoded Packet: " + packet, Logger.Level.DEBUG);
+            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
         } catch (IllegalPacketSignatureException e) {
             Logger.log(e, "IllegalPacketSignatureException: Unexpected Packet signature", Logger.Level.ERROR);
         } catch (IllegalArgumentException ignored){ }
@@ -44,7 +43,7 @@ public class ServerDecoder extends ByteToMessageDecoder {
         if(handler.getConnection().encryption.isUsable()){
             array = handler.getConnection().encryption.decrypt(encryptedArray);
         }else {
-            array = new byte[encryptedArray.length - 2];
+            array = new byte[encryptedArray.length];
             System.arraycopy(encryptedArray, 0, array, 0, array.length);
         }
         return array;

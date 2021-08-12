@@ -1,7 +1,9 @@
-package net.jmb19905.server;
+package net.jmb19905.server.util;
 
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.server.database.UserDatabaseManager;
+import net.jmb19905.server.networking.Server;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -28,7 +30,12 @@ public class ClientFileManager {
         File clientFolder = new File("clientData/");
         for(File clientFile : clientFolder.listFiles()){
             if(!clientFile.isDirectory()){
-                loadClientFile(clientFile);
+                String clientName = clientFile.getName().replaceAll("\\.dat", "");
+                if(UserDatabaseManager.hasUser(clientName)) {
+                    loadClientFile(clientFile);
+                }else {
+                    clientFile.delete();
+                }
             }
         }
     }
@@ -45,24 +52,29 @@ public class ClientFileManager {
 
             for(String otherName : lines) {
                 if(otherName != null) {
-                    Chat chat = new Chat();
-                    chat.addClient(name);
-                    chat.addClient(otherName);
+                    if(UserDatabaseManager.hasUser(otherName)) {
+                        Chat chat = new Chat();
+                        chat.addClient(name);
+                        chat.addClient(otherName);
 
-                    for(Chat otherChat : Server.chats){
-                        if(otherChat.clientsEquals(chat)){
-                            return;
+                        for (Chat otherChat : Server.chats) {
+                            if (otherChat.clientsEquals(chat)) {
+                                return;
+                            }
                         }
+
+                        Server.chats.add(chat);
+
+                        Logger.log("Read Chat:" + chat, Logger.Level.DEBUG);
+                    }else {
+                        Logger.log("Read User from Data File that does not exist!", Logger.Level.WARN);
                     }
-
-                    Server.chats.add(chat);
-
-                    Logger.log("Read Chat:" + chat, Logger.Level.DEBUG);
                 }
             }
         } catch (IOException e) {
             Logger.log(e, "Error reading client File for: " + name, Logger.Level.WARN);
         }
+        writeChatsToFile(name);
     }
 
     public static void writeChatsToFile(String name){
@@ -79,7 +91,7 @@ public class ClientFileManager {
     private static void writeChatToFile(BufferedWriter writer, String name, Chat chat) throws IOException {
         for(String otherName : chat.getClients()){
             if(!name.equals(otherName)){
-                writer.write(otherName);
+                writer.write(otherName + "\n");
                 writer.flush();
                 Logger.log("Wrote: " + otherName + " to " + name, Logger.Level.DEBUG);
             }

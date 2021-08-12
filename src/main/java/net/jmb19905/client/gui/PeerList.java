@@ -1,7 +1,5 @@
 package net.jmb19905.client.gui;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
-
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;

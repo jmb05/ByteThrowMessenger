@@ -1,6 +1,4 @@
-package net.jmb19905.client;
-
-import net.jmb19905.common.util.Logger;
+package net.jmb19905.common.util;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -9,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class ResourceUtility {
@@ -34,7 +34,7 @@ public class ResourceUtility {
             InputStream stream = getResource(s);
             return ImageIO.read(stream);
         } catch (IOException e) {
-            Logger.log("Error loading image", Logger.Level.WARN);
+            Logger.log(e, "Error loading image", Logger.Level.WARN);
             return null;
         }
     }
@@ -52,4 +52,21 @@ public class ResourceUtility {
         return ResourceUtility.class.getClassLoader().getResource(s);
     }
 
+    public static List<String> getResourceFiles(String path) {
+        List<String> filenames = new ArrayList<>();
+
+        try (
+            InputStream in = getResource(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            String resource;
+
+            while ((resource = br.readLine()) != null) {
+                filenames.add(resource);
+            }
+        }catch (IOException e){
+            Logger.log(e, Logger.Level.WARN);
+        }
+
+        return filenames;
+    }
 }

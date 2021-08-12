@@ -1,4 +1,4 @@
-package net.jmb19905.client;
+package net.jmb19905.client.networking;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,10 +27,12 @@ public class ClientDecoder extends ByteToMessageDecoder {
             byte[] data = decryptData(encryptedData);
             Packet packet = Packet.constructPacket(data);
             out.add(packet);
-            Logger.log("Decoded Packet: " + packet, Logger.Level.DEBUG);
+            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
         } catch (IllegalPacketSignatureException e) {
             Logger.log(e, "IllegalPacketSignatureException: Unexpected Packet signature", Logger.Level.ERROR);
-        } catch (IllegalArgumentException ignored){ }
+        } catch (IllegalArgumentException ignored){
+            Logger.log("Received fragmented data", Logger.Level.DEBUG);
+        }
     }
 
     /**
@@ -43,7 +45,7 @@ public class ClientDecoder extends ByteToMessageDecoder {
         if(handler.getEncryption().isUsable()){
             array = handler.getEncryption().decrypt(encryptedArray);
         }else {
-            array = new byte[encryptedArray.length - 2];
+            array = new byte[encryptedArray.length];
             System.arraycopy(encryptedArray, 0, array, 0, array.length);
         }
         return array;
