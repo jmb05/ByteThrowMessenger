@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 public class ChatsPacket extends Packet{
 
     public String[] names;
+    public boolean update = false;
 
     /**
      * Contains all the names of the peers of a client
@@ -20,7 +21,8 @@ public class ChatsPacket extends Packet{
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         names = new String[parts.length - 1];
-        System.arraycopy(parts, 1, names, 0, parts.length - 1);
+        System.arraycopy(parts, 1, names, 0, parts.length - 2);
+        update = Boolean.parseBoolean(parts[parts.length - 1]);
     }
 
     @Override
@@ -31,7 +33,7 @@ public class ChatsPacket extends Packet{
                 namesBuilder.append("|").append(name);
             }
         }
-        return (getId() + namesBuilder).getBytes(StandardCharsets.UTF_8);
+        return (getId() + namesBuilder + "|" + update).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

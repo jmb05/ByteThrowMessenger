@@ -43,7 +43,9 @@ public class UserDatabaseManager {
     public static boolean changeUsername(String oldUsername, String newUsername){
         boolean success = false;
         try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
-            success = connection.changeUserName(oldUsername, newUsername);
+            if(!connection.hasUser(newUsername)){
+                success = connection.changeUserName(oldUsername, newUsername);
+            }
         } catch (IOException e) {
             Logger.log(e, Logger.Level.ERROR);
         }
@@ -60,6 +62,15 @@ public class UserDatabaseManager {
         return success;
     }
 
-    public static record UserData(String username, String password, String salt) {}
+    public static boolean deleteUser(String name){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.removeUser(name);
+        } catch (IOException e) {
+            Logger.log(e, Logger.Level.ERROR);
+        }
+        return success;
+    }
 
+    public static record UserData(String username, String password, String salt) {}
 }

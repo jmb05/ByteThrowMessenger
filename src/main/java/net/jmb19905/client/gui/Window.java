@@ -156,7 +156,7 @@ public class Window extends JFrame {
 
         this.settingsWindow = new SettingsWindow();
 
-        BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/Me.png");
+        BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/placeholder.png");
         ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));
         this.accountSettings = new AccountSettings(icon);
         repaint();

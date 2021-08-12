@@ -17,6 +17,9 @@ public class ChatsPacketHandler extends ClientPacketHandler<ChatsPacket> {
 
     @Override
     public void handle(EncryptedConnection encryption, Channel channel) {
+        if(packet.update){
+            ClientMain.client.chats.clear();
+        }
         for(String name : packet.names){
             Chat chat = new Chat();
             chat.initClient();
@@ -25,13 +28,15 @@ public class ChatsPacketHandler extends ClientPacketHandler<ChatsPacket> {
 
             ClientMain.client.chats.add(chat);
 
-            ConnectPacket connectPacket = new ConnectPacket();
-            connectPacket.connectType = ConnectPacket.ConnectType.FIRST_RECONNECT;
-            connectPacket.name = name;
-            connectPacket.key = chat.encryption.getPublicKey().getEncoded();
+            if(!packet.update) {
+                ConnectPacket connectPacket = new ConnectPacket();
+                connectPacket.connectType = ConnectPacket.ConnectType.FIRST_RECONNECT;
+                connectPacket.name = name;
+                connectPacket.key = chat.encryption.getPublicKey().getEncoded();
 
-            NetworkingUtility.sendPacket(connectPacket, channel, encryption);
-            Logger.log("Sent " + connectPacket, Logger.Level.TRACE);
+                NetworkingUtility.sendPacket(connectPacket, channel, encryption);
+                Logger.log("Sent " + connectPacket, Logger.Level.TRACE);
+            }
         }
         ClientMain.window.setPeers(packet.names);
     }

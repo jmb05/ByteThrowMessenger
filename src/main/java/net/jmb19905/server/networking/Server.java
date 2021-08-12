@@ -87,4 +87,28 @@ public record Server(int port) {
         return false;
     }
 
+    public static void changeName(String oldName, String newName){
+        for (Chat chat : chats) {
+            List<String> chatParticipants = chat.getClients();
+            chatParticipants.remove(oldName);
+            chatParticipants.add(newName);
+            chat.setClients(chatParticipants);
+        }
+    }
+
+    public static String[] getPeerNames(String clientName) {
+        List<String> names = new ArrayList<>();
+        for (Chat chat : chats) {
+            List<String> chatParticipants = chat.getClients();
+            if (chatParticipants.contains(clientName)) {
+                for (String otherName : chatParticipants) {
+                    if (!otherName.equals(clientName)) {
+                        names.add(otherName);
+                    }
+                }
+            }
+        }
+        return names.toArray(new String[0]);
+    }
+
 }

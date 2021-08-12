@@ -11,7 +11,7 @@ public class Chat {
     /**
      * All the clients that participate in this chat.
      */
-    private final List<String> clients = new ArrayList<>();
+    private List<String> clients = new ArrayList<>();
 
     /**
      * All the messages sent in this chat. Messages are encrypted.
@@ -65,6 +65,10 @@ public class Chat {
 
     public boolean hasClient(String name){
         return clients.contains(name);
+    }
+
+    public void setClients(List<String> clients) {
+        this.clients = clients;
     }
 
     @Override

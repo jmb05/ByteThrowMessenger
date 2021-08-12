@@ -5,8 +5,10 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.DisconnectPacket;
+import net.jmb19905.common.packets.FailPacket;
 import net.jmb19905.common.packets.Packet;
 import net.jmb19905.common.util.Logger;
+import net.jmb19905.common.util.NetworkingUtility;
 
 import java.util.List;
 
@@ -94,6 +96,12 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Logger.log(cause, Logger.Level.ERROR);
+
+        FailPacket failPacket = new FailPacket();
+        failPacket.cause = "internal";
+        failPacket.message = "internal_error";
+        failPacket.extra = "";
+        NetworkingUtility.sendPacket(failPacket, ctx.channel(), connection.encryption);
     }
 
     public static class ClientConnection {

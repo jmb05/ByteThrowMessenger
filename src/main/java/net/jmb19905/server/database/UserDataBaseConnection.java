@@ -57,23 +57,18 @@ class UserDataBaseConnection implements Closeable {
             Logger.log( e, "Error adding user to database", Logger.Level.ERROR);
             return false;
         }
-        Logger.log("Closed database successfully", Logger.Level.TRACE);
         return true;
     }
 
-    private boolean addUser(String username, String password, String salt){
+    public boolean removeUser(String username){
         try {
-            assert connection != null;
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt) VALUES (?,?,?);");
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM table WHERE username = ?;");
             statement.setString(1, username);
-            statement.setString(2, password);
-            statement.setString(3, salt);
             statement.execute();
-        } catch (SQLException | NullPointerException e) {
-            Logger.log( e, "Error adding user to database", Logger.Level.ERROR);
+        }catch (SQLException e){
+            Logger.log( e, "Error deleting user from database", Logger.Level.ERROR);
             return false;
         }
-        Logger.log("Closed database successfully", Logger.Level.TRACE);
         return true;
     }
 
@@ -114,26 +109,6 @@ class UserDataBaseConnection implements Closeable {
         return addUser(userData);
     }
 
-    public boolean changeUserData(String oldUsername, UserDatabaseManager.UserData userData){
-        if (hasUser(oldUsername)) {
-            UserDatabaseManager.UserData oldUserData = getUserByName(oldUsername);
-            try {
-                PreparedStatement deleteUserStatement = connection.prepareStatement("DELETE FROM users WHERE username = ?");
-                deleteUserStatement.setString(1, oldUsername);
-                deleteUserStatement.execute();
-
-                addUser(userData);
-                return true;
-            } catch (SQLException e) {
-                Logger.log(e, "Error changing Username", Logger.Level.WARN);
-                if (!hasUser(oldUsername)){
-                    addUser(oldUserData);
-                }
-            }
-        }
-        return false;
-    }
-
     public boolean changeUserName(String oldUsername, String newUsername){
         if (hasUser(oldUsername)) {
             int id = getId(oldUsername);
@@ -157,7 +132,7 @@ class UserDataBaseConnection implements Closeable {
             String salt = BCrypt.gensalt();
             try {
                 PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET password = ? WHERE username = ?");
-                passwordStatement.setString(1, newPassword);
+                passwordStatement.setString(1, BCrypt.hashpw(newPassword, salt));
                 passwordStatement.setString(2, String.valueOf(username));
                 passwordStatement.execute();
 
@@ -179,7 +154,7 @@ class UserDataBaseConnection implements Closeable {
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getInt("password");
+                return resultSet.getInt("id");
             }
         } catch (SQLException | NullPointerException e) {
             Logger.log(e,"Error retrieving user data from database", Logger.Level.ERROR);

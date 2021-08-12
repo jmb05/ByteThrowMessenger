@@ -24,7 +24,7 @@ public class FailPacketHandler extends ClientPacketHandler<FailPacket> {
             message = Localisation.get(packet.message, packet.extra);
         }
         JOptionPane.showMessageDialog(ClientMain.window, message, "", JOptionPane.ERROR_MESSAGE);
-        switch (cause) {
+        switch (cause.split(":")[0]) {
             case "login" -> ClientHandler.login(channel, encryption);
             case "register" -> ClientHandler.register(channel, encryption);
             case "version" -> ClientMain.exit(-1, packet.message, true);

@@ -2,6 +2,7 @@ package net.jmb19905.client.gui.settings;
 
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.gui.ConfirmIdentityDialog;
+import net.jmb19905.common.packets.ChangeUserDataPacket;
 import net.jmb19905.common.util.ResourceUtility;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.util.Logger;
@@ -59,10 +60,10 @@ public class AccountSettings extends JDialog {
         JButton changeUsernameButton = new JButton("Change Username");
         changeUsernameButton.addActionListener(e -> {
             if(ClientMain.client.isIdentityConfirmed()){
-                changeUsername("");
+                changeUsername(JOptionPane.showInputDialog("New Username: "));
             }else {
                 confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
-                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(""));
+                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog("New Username: ")));
                 confirmIdentityDialog.setVisible(true);
             }
         });
@@ -75,10 +76,10 @@ public class AccountSettings extends JDialog {
         JButton changePasswordButton = new JButton("Change Password");
         changePasswordButton.addActionListener(e -> {
             if(ClientMain.client.isIdentityConfirmed()){
-                changePassword("");
+                changePassword(JOptionPane.showInputDialog("New Password: "));
             }else {
                 confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
-                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(""));
+                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
                 confirmIdentityDialog.setVisible(true);
             }
         });
@@ -111,20 +112,28 @@ public class AccountSettings extends JDialog {
         loginPacket.name = ClientMain.client.name;
         loginPacket.password = password;
         loginPacket.confirmIdentity = true;
-        Logger.log("Sending LoginPacket", Logger.Level.TRACE);
 
         NetworkingUtility.sendPacket(loginPacket, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
     }
 
     private void changeUsername(String username){
-        Logger.log("Changing Username isn't implemented yet!", Logger.Level.WARN);//TODO: allow changing username
+        ChangeUserDataPacket packet = new ChangeUserDataPacket();
+        packet.type = "username";
+        packet.value = username;
+
+        NetworkingUtility.sendPacket(packet, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
     }
 
     private void changePassword(String password){
-        Logger.log("Changing Password isn't implemented yet!", Logger.Level.WARN);//TODO: allow changing password
+        ChangeUserDataPacket packet = new ChangeUserDataPacket();
+        packet.type = "password";
+        packet.value = password;
+
+        NetworkingUtility.sendPacket(packet, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
     }
 
     private void changeAvatar(){
+        JOptionPane.showMessageDialog(this, "An avatar is currently not implemented!");
         Logger.log("Avatar isn't implemented yet!", Logger.Level.WARN);//TODO: implement an avatar
     }
 }
