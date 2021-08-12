@@ -1,12 +1,16 @@
 package net.jmb19905.common.packets.handlers.server;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.LoginPacket;
 import net.jmb19905.common.packets.SuccessPacket;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
 import net.jmb19905.server.database.UserDatabaseManager;
+import net.jmb19905.server.networking.Server;
 import net.jmb19905.server.networking.ServerHandler;
 import net.jmb19905.server.util.ClientFileManager;
 import org.mindrot.jbcrypt.BCrypt;
@@ -68,6 +72,16 @@ public class LoginPacketHandler extends ServerPacketHandler<LoginPacket> {
      * @param packet the login packet containing the login packet of the client
      */
     private void handleSuccessfulLogin(Channel channel, LoginPacket packet, ServerHandler.ClientConnection connection) {
+        if(Server.isClientOnline(packet.name)) {
+            for(ServerHandler handler : Server.connections.keySet()){
+                if(handler.getConnection().getName().equals(packet.name)){
+                    SocketChannel otherSocketChannel = Server.connections.get(handler);
+                    ChannelFuture future = sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", handler.getConnection());
+                    ChannelFutureListener listener = future1 -> handler.markClosed();
+                    future.addListener(listener);
+                }
+            }
+        }
         connection.setName(packet.name);
         Logger.log("Client: " + channel.remoteAddress() + " now uses name: " + connection.getName(), Logger.Level.INFO);
 

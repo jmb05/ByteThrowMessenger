@@ -10,6 +10,9 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Shows a Login Dialog
+ */
 public class ConfirmIdentityDialog extends LoginDialog{
 
     protected ActionListener identityConfirmedListener = null;

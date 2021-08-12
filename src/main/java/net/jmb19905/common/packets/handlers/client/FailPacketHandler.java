@@ -24,19 +24,17 @@ public class FailPacketHandler extends ClientPacketHandler<FailPacket> {
             message = Localisation.get(packet.message, packet.extra);
         }
         JOptionPane.showMessageDialog(ClientMain.window, message, "", JOptionPane.ERROR_MESSAGE);
-        if(cause.equals("login")){
-            ClientHandler.login(channel, encryption);
-        }else if(cause.equals("register")){
-            ClientHandler.register(channel, encryption);
-        }else if(cause.startsWith("connect")){
-            String peerName = cause.split(":")[1];
-            Chat chat = ClientMain.client.getChat(peerName);
-            ClientMain.client.chats.remove(chat);
-            ClientMain.window.removePeer(peerName);
-        }else if(cause.startsWith("version")){
-            ClientMain.window.setEnabled(false);
-            ClientMain.window.appendLine("Disconnected from Server");
-            ClientMain.window.appendLine("Could not connect to server: Client is outdated!");
+        switch (cause) {
+            case "login" -> ClientHandler.login(channel, encryption);
+            case "register" -> ClientHandler.register(channel, encryption);
+            case "version" -> ClientMain.exit(-1, packet.message, true);
+            case "external_disconnect" -> ClientMain.exit(0, packet.message, true);
+            case "connect" -> {
+                String peerName = cause.split(":")[1];
+                Chat chat = ClientMain.client.getChat(peerName);
+                ClientMain.client.chats.remove(chat);
+                ClientMain.window.removePeer(peerName);
+            }
         }
     }
 }

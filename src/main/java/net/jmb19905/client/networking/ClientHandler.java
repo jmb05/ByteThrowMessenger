@@ -53,8 +53,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        ClientMain.window.appendLine("Disconnected from Server");
-        ClientMain.window.dispose();
+        ClientMain.exit(0, "", true);
     }
 
     /**
@@ -86,8 +85,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         registerDialog.addCancelListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ClientMain.window.dispose();
-                ClientMain.client.stop();
+                ClientMain.exit(0, "", false);
             }
         });
         registerDialog.addLoginButtonActionListener(l -> login(channel, encryption));
@@ -114,8 +112,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         loginDialog.addCancelListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ClientMain.window.dispose();
-                ClientMain.client.stop();
+                ClientMain.exit(0, "", false);
             }
         });
         loginDialog.addRegisterButtonActionListener(l -> register(channel, encryption));

@@ -28,6 +28,8 @@ public class ClientMain {
      */
     public static void main(String[] args) {
         isDevEnv = args.length > 0;
+        Logger.setLevel(Logger.Level.TRACE);
+        Logger.initLogFile(false);
         version = Util.loadVersion(isDevEnv);
         Logger.log("Starting ByteThrow Messenger Client - Version: " + version, Logger.Level.INFO);
         config = ConfigManager.loadClientConfigFile("config/client_config.json");
@@ -40,11 +42,28 @@ public class ClientMain {
             client.start();
         }catch (ConnectException e) {
             JOptionPane.showMessageDialog(ClientMain.window, Localisation.get("no_internet"), "", JOptionPane.ERROR_MESSAGE);
-            System.exit(0);
+            exit(0);
         }catch (Exception e){
             Logger.log(e, Logger.Level.ERROR);
             window.appendLine("Error: " + e.getMessage());
         }
+    }
+
+    public static void exit(int code, String message, boolean disconnect){
+        ClientMain.window.setEnabled(false);
+        if(disconnect){
+            ClientMain.window.appendLine(Localisation.get("disconnect"));
+        }
+        ClientMain.window.appendLine(message);
+        ClientMain.window.dispose();
+        exit(code);
+    }
+
+    public static void exit(int code){
+        client.stop();
+        ConfigManager.saveClientConfig(config, "config/client_config.json");
+        Logger.close();
+        System.exit(code);
     }
 
 }

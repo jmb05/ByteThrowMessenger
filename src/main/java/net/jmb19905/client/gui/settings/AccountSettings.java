@@ -10,6 +10,9 @@ import net.jmb19905.common.util.NetworkingUtility;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Interface that allows the user to change username, password, etc. of their account
+ */
 public class AccountSettings extends JDialog {
 
     private Icon userIcon;

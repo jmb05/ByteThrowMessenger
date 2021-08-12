@@ -3,12 +3,15 @@ package net.jmb19905.common.packets.handlers.client;
 import io.netty.channel.Channel;
 import net.jmb19905.client.ClientMain;
 import net.jmb19905.client.networking.Client;
+import net.jmb19905.client.util.UserDataUtility;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.ChatsRequestPacket;
 import net.jmb19905.common.packets.SuccessPacket;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.NetworkingUtility;
+
+import java.io.File;
 
 public class SuccessPacketHandler extends ClientPacketHandler<SuccessPacket> {
 
@@ -21,12 +24,19 @@ public class SuccessPacketHandler extends ClientPacketHandler<SuccessPacket> {
 
     @Override
     public void handle(EncryptedConnection encryption, Channel channel) throws IllegalSideException {
-        if(packet.type.equals("login")){
-            doOnLoginSuccess(encryption, channel);
-        }else if(packet.type.equals("register")){
-            doOnLoginSuccess(encryption, channel);
+        switch (packet.type) {
+            case "login":
+            case "register":
+                doOnLoginSuccess(encryption, channel);
+                ClientMain.window.showLoading(false);
+                break;
+            case "change_username":
+
+                break;
+            case "change_password":
+
+                break;
         }
-        ClientMain.window.showLoading(false);
     }
 
     private void doOnLoginSuccess(EncryptedConnection encryption, Channel channel){

@@ -1,6 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
+import net.jmb19905.client.ClientMain;
 import net.jmb19905.common.Version;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.KeyExchangePacket;
@@ -29,7 +30,7 @@ public class ClientKeyExchangePacketHandler extends ClientPacketHandler<KeyExcha
             net.jmb19905.client.networking.ClientHandler.login(channel, encryption);
         }catch (InvalidKeySpecException e){
             Logger.log(e, Logger.Level.FATAL);
-            System.exit(-1);
+            ClientMain.exit(-1);
         }
     }
 }

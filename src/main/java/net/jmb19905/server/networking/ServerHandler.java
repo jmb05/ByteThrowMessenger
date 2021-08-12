@@ -22,6 +22,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private ServerPacketsHandler packetHandler;
 
+    private boolean closed = false;
+
     /**
      * Executes when the Connection to the Server starts
      */
@@ -39,7 +41,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
         Logger.log("Client: \"" + ctx.channel().remoteAddress() + "\" is now disconnected", Logger.Level.INFO);
         Server.connections.remove(this);
-        notifyPeersOfDisconnect();
+        if(!closed) {
+            notifyPeersOfDisconnect();
+        }
     }
 
     /**
@@ -48,7 +52,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        packetHandler.handlePacket(ctx, (Packet) msg);
+        if(!closed) {
+            packetHandler.handlePacket(ctx, (Packet) msg);
+        }
     }
 
     /**
@@ -72,6 +78,15 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         return connection;
     }
 
+    public void setName(String name){
+        connection.setName(name);
+    }
+
+    public void markClosed(){
+        closed = true;
+        Logger.log("Client: " + connection.getName() + " marked as closed", Logger.Level.INFO);
+    }
+
     /**
      * Executed if an exception is caught
      * @param cause the Exception
@@ -83,7 +98,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     public static class ClientConnection {
 
-        private String name;
+        private String name = "";
         public final EncryptedConnection encryption;
 
         public ClientConnection(EncryptedConnection encryption){

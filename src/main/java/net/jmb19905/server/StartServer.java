@@ -1,7 +1,6 @@
 package net.jmb19905.server;
 
 
-import net.jmb19905.client.ClientMain;
 import net.jmb19905.common.Version;
 import net.jmb19905.common.util.ConfigManager;
 import net.jmb19905.common.util.Logger;
@@ -26,6 +25,8 @@ public class StartServer {
      */
     public static void main(String[] args) {
         isDevEnv = args.length > 0;
+        Logger.setLevel(Logger.Level.TRACE);
+        Logger.initLogFile(true);
         version = Util.loadVersion(isDevEnv);
         Logger.log("Starting ByteThrow Messenger Server - Version: " + version, Logger.Level.INFO);
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
@@ -42,12 +43,8 @@ public class StartServer {
             Logger.log(e, "Could not bind port! Is a server already running?", Logger.Level.FATAL);
             System.exit(-1);
         } catch (Exception e) {
-            Logger.log(e, Logger.Level.ERROR);
+            Logger.log(e, "Caught in StartServer", Logger.Level.ERROR);
         }
-    }
-
-    private static void randomMethodThatNeverGetsCalled(){
-        ClientMain.window.appendLine("Hello");
     }
 
 }

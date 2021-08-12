@@ -27,7 +27,7 @@ public class ServerDecoder extends ByteToMessageDecoder {
             byte[] data = decryptData(encryptedData);
             Packet packet = Packet.constructPacket(data);
             out.add(packet);
-            Logger.log("Decoded Packet: " + packet, Logger.Level.DEBUG);
+            Logger.log("Decoded Packet: " + packet, Logger.Level.TRACE);
         } catch (IllegalPacketSignatureException e) {
             Logger.log(e, "IllegalPacketSignatureException: Unexpected Packet signature", Logger.Level.ERROR);
         } catch (IllegalArgumentException ignored){ }

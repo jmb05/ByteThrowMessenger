@@ -9,6 +9,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * Show a Login Dialog
+ */
 public class LoginDialog extends JDialog {
 
     protected final JTextField usernameInputField;

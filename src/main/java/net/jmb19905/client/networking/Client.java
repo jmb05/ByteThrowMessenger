@@ -75,7 +75,6 @@ public class Client {
 
     public void stop(){
         group.shutdownGracefully();
-        System.exit(0);
     }
 
     public void connectToPeer(String peerName){

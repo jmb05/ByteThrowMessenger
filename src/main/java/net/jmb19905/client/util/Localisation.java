@@ -1,10 +1,12 @@
 package net.jmb19905.client.util;
 
 import net.jmb19905.client.ClientMain;
+import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.ResourceUtility;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class Localisation {
@@ -26,7 +28,12 @@ public class Localisation {
     }
 
     public static String get(String key){
-        return resourceBundle.getString(key);
+        try {
+            return resourceBundle.getString(key);
+        }catch (MissingResourceException e){
+            Logger.log(e, Logger.Level.WARN);
+            return key;
+        }
     }
 
     public static String get(String key, String input){

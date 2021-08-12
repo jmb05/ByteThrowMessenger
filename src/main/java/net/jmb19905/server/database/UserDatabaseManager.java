@@ -40,6 +40,26 @@ public class UserDatabaseManager {
         return success;
     }
 
+    public static boolean changeUsername(String oldUsername, String newUsername){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.changeUserName(oldUsername, newUsername);
+        } catch (IOException e) {
+            Logger.log(e, Logger.Level.ERROR);
+        }
+        return success;
+    }
+
+    public static boolean changePassword(String username, String password){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.changeUserPassword(username, password);
+        } catch (IOException e) {
+            Logger.log(e, Logger.Level.ERROR);
+        }
+        return success;
+    }
+
     public static record UserData(String username, String password, String salt) {}
 
 }

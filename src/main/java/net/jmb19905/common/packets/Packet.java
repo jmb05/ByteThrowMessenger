@@ -38,6 +38,7 @@ public abstract class Packet {
             case "connect" -> packet = new ConnectPacket();
             case "success" -> packet = new SuccessPacket();
             case "chats_request" -> packet = new ChatsRequestPacket();
+            case "change_user_data" -> packet = new ChangeUserDataPacket();
             default -> throw new IllegalPacketSignatureException("Unexpected value: " + parts[0]);
         }
         if(packet != null) {

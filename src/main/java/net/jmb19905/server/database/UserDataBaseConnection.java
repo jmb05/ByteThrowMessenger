@@ -84,7 +84,6 @@ class UserDataBaseConnection implements Closeable {
      */
     public UserDatabaseManager.UserData getUserByName(String username) {
         try {
-            assert connection != null;
             PreparedStatement statement = connection.prepareStatement("SELECT password,salt FROM users WHERE username = ?");
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
@@ -115,41 +114,77 @@ class UserDataBaseConnection implements Closeable {
         return addUser(userData);
     }
 
-    public boolean changeUserName(String oldUsername, String newUsername){
-        try {
-            UserDatabaseManager.UserData userData = getUserByName(oldUsername);
-            if(addUser(newUsername, userData.password(), userData.salt())){
-                PreparedStatement passwordStatement = connection.prepareStatement("DELETE FROM users WHERE username = ?");
-                passwordStatement.setString(1, oldUsername);
-                passwordStatement.execute();
+    public boolean changeUserData(String oldUsername, UserDatabaseManager.UserData userData){
+        if (hasUser(oldUsername)) {
+            UserDatabaseManager.UserData oldUserData = getUserByName(oldUsername);
+            try {
+                PreparedStatement deleteUserStatement = connection.prepareStatement("DELETE FROM users WHERE username = ?");
+                deleteUserStatement.setString(1, oldUsername);
+                deleteUserStatement.execute();
+
+                addUser(userData);
                 return true;
-            }else{
-                Logger.log("Error changing Username", Logger.Level.WARN);
-                return false;
+            } catch (SQLException e) {
+                Logger.log(e, "Error changing Username", Logger.Level.WARN);
+                if (!hasUser(oldUsername)){
+                    addUser(oldUserData);
+                }
             }
-        }catch (SQLException e){
-            Logger.log(e, "Error changing Username", Logger.Level.WARN);
-            return false;
         }
+        return false;
+    }
+
+    public boolean changeUserName(String oldUsername, String newUsername){
+        if (hasUser(oldUsername)) {
+            int id = getId(oldUsername);
+            if(id >= 0) {
+                try {
+                    PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET username = ? WHERE id = ?");
+                    passwordStatement.setString(1, newUsername);
+                    passwordStatement.setInt(2, id);
+                    passwordStatement.execute();
+                    return true;
+                } catch (SQLException e) {
+                    Logger.log(e, "Error changing Username", Logger.Level.WARN);
+                }
+            }
+        }
+        return false;
     }
 
     public boolean changeUserPassword(String username, String newPassword){
-        String salt = BCrypt.gensalt();
-        try {
-            PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET password = ? WHERE username = ?");
-            passwordStatement.setString(1, newPassword);
-            passwordStatement.setString(2, String.valueOf(username));
-            passwordStatement.execute();
+        if(hasUser(username)) {
+            String salt = BCrypt.gensalt();
+            try {
+                PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET password = ? WHERE username = ?");
+                passwordStatement.setString(1, newPassword);
+                passwordStatement.setString(2, String.valueOf(username));
+                passwordStatement.execute();
 
-            PreparedStatement saltStatement = connection.prepareStatement("UPDATE users SET salt = ? WHERE username = ?");
-            saltStatement.setString(1, salt);
-            saltStatement.setString(2, String.valueOf(username));
-            saltStatement.execute();
-            return true;
-        } catch (SQLException e) {
-            Logger.log(e, "Error changing User Password", Logger.Level.WARN);
-            return false;
+                PreparedStatement saltStatement = connection.prepareStatement("UPDATE users SET salt = ? WHERE username = ?");
+                saltStatement.setString(1, salt);
+                saltStatement.setString(2, String.valueOf(username));
+                saltStatement.execute();
+                return true;
+            } catch (SQLException e) {
+                Logger.log(e, "Error changing User Password", Logger.Level.WARN);
+            }
         }
+        return false;
+    }
+
+    private int getId(String username){
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
+            statement.setString(1, username);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("password");
+            }
+        } catch (SQLException | NullPointerException e) {
+            Logger.log(e,"Error retrieving user data from database", Logger.Level.ERROR);
+        }
+        return -1;
     }
 
     public boolean hasUser(String username){

@@ -79,8 +79,8 @@ public record Server(int port) {
     }
 
     public static boolean isClientOnline(String name){
-        for(ServerHandler handler : connections.keySet()){
-            if (handler.getConnection().getName().equals(name)){
+        for (ServerHandler handler : connections.keySet()) {
+            if (handler.getConnection().getName().equals(name)) {
                 return true;
             }
         }

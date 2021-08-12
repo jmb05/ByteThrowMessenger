@@ -1,6 +1,7 @@
 package net.jmb19905.common.packets.handlers.server;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import net.jmb19905.common.exception.IllegalSideException;
 import net.jmb19905.common.packets.FailPacket;
 import net.jmb19905.common.packets.Packet;
@@ -22,12 +23,12 @@ public abstract class ServerPacketHandler<P extends Packet> {
      * @param cause the cause of the fail e.g. login or register
      * @param message the message displayed to the client
      */
-    protected void sendFail(Channel channel, String cause, String message, String extra, ServerHandler.ClientConnection connection) {
+    protected ChannelFuture sendFail(Channel channel, String cause, String message, String extra, ServerHandler.ClientConnection connection) {
         FailPacket failPacket = new FailPacket();
         failPacket.cause = cause;
         failPacket.message = message;
         failPacket.extra = extra;
-        NetworkingUtility.sendPacket(failPacket, channel, connection.encryption);
+        return NetworkingUtility.sendPacket(failPacket, channel, connection.encryption);
     }
 
 }
