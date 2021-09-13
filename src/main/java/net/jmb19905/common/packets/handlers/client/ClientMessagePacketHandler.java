@@ -1,7 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.exception.IllegalSideException;
@@ -20,12 +20,12 @@ public class ClientMessagePacketHandler extends ClientPacketHandler<MessagePacke
         String sender = packet.message.sender();
         String receiver = packet.message.receiver();
         String encryptedMessage = packet.message.message();
-        if(receiver.equals(ClientMain.client.name)) {
-            Chat chat = ClientMain.client.getChat(sender);
+        if(receiver.equals(StartClient.client.name)) {
+            Chat chat = StartClient.client.getChat(sender);
             if (chat != null) {
                 String decryptedMessage = EncryptionUtility.decryptString(chat.encryption, encryptedMessage);
                 chat.addMessage(new Chat.Message(sender, receiver, decryptedMessage));
-                ClientMain.window.appendMessage(sender, decryptedMessage);
+                StartClient.window.appendMessage(sender, decryptedMessage);
                 //Notify.create().title("ByteThrow Messenger").text("[" + sender + "] " + decryptedMessage).darkStyle().show();
             }else {
                 Logger.log("Received Packet from unknown user", Logger.Level.WARN);

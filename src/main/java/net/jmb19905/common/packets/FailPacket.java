@@ -12,7 +12,7 @@ public class FailPacket extends Packet{
     public String extra;
 
     /**
-     * A Packet that is sent from the server to a client to inform him that something went wrong
+     * A Packet that is sent to a client to inform him that something went wrong
      */
     public FailPacket() {
         super("fail");

@@ -1,7 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.Version;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.KeyExchangePacket;
@@ -20,17 +20,17 @@ public class ClientKeyExchangePacketHandler extends ClientPacketHandler<KeyExcha
     @Override
     public void handle(EncryptedConnection encryption, Channel channel) {
         Version packetVersion = new Version(packet.version);
-        if(packetVersion.isInCompatible(net.jmb19905.client.ClientMain.version)){
-            JOptionPane.showMessageDialog(net.jmb19905.client.ClientMain.window,"Client is outdated!", "", JOptionPane.ERROR_MESSAGE);
+        if(packetVersion.isInCompatible(StartClient.version)){
+            JOptionPane.showMessageDialog(StartClient.window,"Client is outdated!", "", JOptionPane.ERROR_MESSAGE);
             return;
         }
         try {
             encryption.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(packet.key));
-            net.jmb19905.client.ClientMain.window.appendLine("Connection to Server encrypted");
+            StartClient.window.appendLine("Connection to Server encrypted");
             net.jmb19905.client.networking.ClientHandler.login(channel, encryption);
         }catch (InvalidKeySpecException e){
             Logger.log(e, Logger.Level.FATAL);
-            ClientMain.exit(-1);
+            StartClient.exit(-1);
         }
     }
 }

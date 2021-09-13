@@ -1,6 +1,6 @@
 package net.jmb19905.client.gui.settings;
 
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.client.util.Localisation;
 import net.jmb19905.client.util.ThemeManager;
 import net.jmb19905.common.util.ConfigManager;
@@ -52,7 +52,7 @@ public class SettingsWindow extends JDialog {
         constraints.gridheight = 1;
         contentPanel.add(themeCombo, constraints);
 
-        themeCombo.setSelectedItem(ClientMain.config.theme);
+        themeCombo.setSelectedItem(StartClient.config.theme);
         themeCombo.addItemListener(e -> setLookAndFeel((String) themeCombo.getSelectedItem()));
 
         autoLoginLabel = new JLabel(Localisation.get("automatic_login") + ": ");
@@ -69,10 +69,10 @@ public class SettingsWindow extends JDialog {
         constraints.gridheight = 1;
         contentPanel.add(autoLoginCheckBox, constraints);
 
-        autoLoginCheckBox.setSelected(ClientMain.config.autoLogin);
+        autoLoginCheckBox.setSelected(StartClient.config.autoLogin);
         autoLoginCheckBox.addActionListener((e) -> {
-            ClientMain.config.autoLogin = autoLoginCheckBox.isSelected();
-            ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
+            StartClient.config.autoLogin = autoLoginCheckBox.isSelected();
+            ConfigManager.saveClientConfig();
         });
 
         langLabel = new JLabel(Localisation.get("lang") + ": ");
@@ -81,12 +81,13 @@ public class SettingsWindow extends JDialog {
         contentPanel.add(langLabel, constraints);
 
         langCombo = new JComboBox<>(Localisation.getLocales());
-        langCombo.setSelectedItem(ClientMain.config.lang);
+        langCombo.setSelectedItem(StartClient.config.lang);
         langCombo.addItemListener(l -> {
-            ClientMain.config.lang = (String) langCombo.getSelectedItem();
-            ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
+            StartClient.config.lang = (String) langCombo.getSelectedItem();
+            ConfigManager.saveClientConfig();
             Localisation.reload();
-            ClientMain.window.repaint();
+            StartClient.window.repaint();
+            pack();
         });
         constraints.gridx = 1;
         contentPanel.add(langCombo, constraints);
@@ -99,16 +100,17 @@ public class SettingsWindow extends JDialog {
         contentPanel.add(resetSettings, constraints);
 
         resetSettings.addActionListener(e -> {
-            ClientMain.config = new ConfigManager.ClientConfig();
-            ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
-            themeCombo.setSelectedItem(ClientMain.config.theme);
+            StartClient.config = new ConfigManager.ClientConfig();
+            ConfigManager.saveClientConfig();
+            themeCombo.setSelectedItem(StartClient.config.theme);
             setLookAndFeel((String) themeCombo.getSelectedItem());
-            autoLoginCheckBox.setSelected(ClientMain.config.autoLogin);
+            autoLoginCheckBox.setSelected(StartClient.config.autoLogin);
         });
 
         add(pane);
 
         pack();
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -116,19 +118,19 @@ public class SettingsWindow extends JDialog {
      * @param lookAndFeelName the Name of the LookAndFeel
      */
     public static void setLookAndFeel(String lookAndFeelName) {
-        ClientMain.config.theme = lookAndFeelName;
+        StartClient.config.theme = lookAndFeelName;
         ThemeManager.init();
         try {
-            SwingUtilities.updateComponentTreeUI(ClientMain.window.getSettingsWindow());
-            SwingUtilities.updateComponentTreeUI(ClientMain.window);
-            ClientMain.window.getSettingsWindow().repaint();
-            ClientMain.window.repaint();
-            ClientMain.window.getSettingsWindow().pack();
-            ClientMain.window.pack();
+            SwingUtilities.updateComponentTreeUI(StartClient.window.getSettingsWindow());
+            SwingUtilities.updateComponentTreeUI(StartClient.window);
+            StartClient.window.getSettingsWindow().repaint();
+            StartClient.window.repaint();
+            StartClient.window.getSettingsWindow().pack();
+            StartClient.window.pack();
         } catch (NullPointerException e) {
             Logger.log(e, Logger.Level.WARN);
         }
-        ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
+        ConfigManager.saveClientConfig();
     }
 
     public void reloadLang(){

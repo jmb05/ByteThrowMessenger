@@ -1,6 +1,7 @@
 package net.jmb19905.client.gui.settings;
 
 import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.client.gui.ConfirmIdentityDialog;
 import net.jmb19905.common.packets.ChangeUserDataPacket;
 import net.jmb19905.common.packets.LoginPacket;
@@ -10,6 +11,7 @@ import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 /**
  * Interface that allows the user to change username, password, etc. of their account
@@ -22,6 +24,7 @@ public class AccountSettings extends JDialog {
     private final ConfirmIdentityDialog confirmIdentityDialog;
 
     public AccountSettings(Icon userIcon){
+        super(StartClient.window);
         this.userIcon = userIcon;
         this.confirmIdentityDialog = new ConfirmIdentityDialog();
         setTitle("Account Settings");
@@ -29,6 +32,7 @@ public class AccountSettings extends JDialog {
         //setPreferredSize(new Dimension(450, 300));
         setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
         setLayout(new GridBagLayout());
+        setModal(true);
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.ipadx = 10;
@@ -43,39 +47,63 @@ public class AccountSettings extends JDialog {
         constraints.gridheight = 1;
         add(iconLabel, constraints);
 
-        nameLabel = new JLabel(ClientMain.client.name);
+        String name = "";
+        try {
+            name = StartClient.client.name;
+        }catch (NullPointerException ignored){}
+        nameLabel = new JLabel(name);
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         add(nameLabel, constraints);
 
-        JButton changeUsernameButton = new JButton("Change Username");
-        changeUsernameButton.addActionListener(e -> {
-            if(ClientMain.client.isIdentityConfirmed()){
-                changeUsername(JOptionPane.showInputDialog("New Username: "));
-            }else {
-                confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
-                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog("New Username: ")));
-                confirmIdentityDialog.setVisible(true);
+        JButton changeUsernameButton = new JButton();
+        Action changeUsernameAction = new AbstractAction("Change Username") {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (isIdentityConfirmed()) {
+                    String newUsername = JOptionPane.showInputDialog("New Username: ");
+                    if (!newUsername.strip().equals("")) {
+                        changeUsername(newUsername);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Nothing changed");
+                    }
+                } else {
+                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
+                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog("New Username: ")));
+                    confirmIdentityDialog.setVisible(true);
+                    changeUsernameButton.getAction().actionPerformed(actionEvent);
+                }
             }
-        });
+        };
+        changeUsernameButton.setAction(changeUsernameAction);
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         add(changeUsernameButton, constraints);
 
-        JButton changePasswordButton = new JButton("Change Password");
-        changePasswordButton.addActionListener(e -> {
-            if(ClientMain.client.isIdentityConfirmed()){
-                changePassword(JOptionPane.showInputDialog("New Password: "));
-            }else {
-                confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
-                confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
-                confirmIdentityDialog.setVisible(true);
+        JButton changePasswordButton = new JButton();
+        Action changePasswordAction = new AbstractAction("Change Password") {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if(isIdentityConfirmed()){
+                    String newPassword = JOptionPane.showInputDialog("New Password: ");
+                    if(!newPassword.strip().equals("")) {
+                        changePassword(newPassword);
+                    }else {
+                        JOptionPane.showMessageDialog(null, "Nothing changed");
+                    }
+                }else {
+                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
+                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
+                    confirmIdentityDialog.setVisible(true);
+                    changePasswordButton.getAction().actionPerformed(actionEvent);
+                }
             }
-        });
+        };
+        changePasswordButton.setAction(changePasswordAction);
         constraints.gridx = 0;
         constraints.gridy = 3;
         constraints.gridwidth = 1;
@@ -91,6 +119,16 @@ public class AccountSettings extends JDialog {
         add(changeIconButton, constraints);
 
         pack();
+        setLocationRelativeTo(null);
+    }
+
+    private boolean isIdentityConfirmed() {
+        boolean identityConfirmed = false;
+        try {
+            identityConfirmed = StartClient.client.isIdentityConfirmed();
+        } catch (NullPointerException ignored) {
+        }
+        return identityConfirmed;
     }
 
     public Icon getUserIcon() {
@@ -106,15 +144,17 @@ public class AccountSettings extends JDialog {
     }
 
     private void sendConfirmIdentityPacket(String username, String password){
-        ClientMain.client.name = username;
-        ClientMain.window.getAccountSettings().setUsername(ClientMain.client.name);
+        try {
+            StartClient.client.name = username;
+            StartClient.window.getAccountSettings().setUsername(StartClient.client.name);
 
-        LoginPacket loginPacket = new LoginPacket(false);
-        loginPacket.name = ClientMain.client.name;
-        loginPacket.password = password;
-        loginPacket.confirmIdentity = true;
+            LoginPacket loginPacket = new LoginPacket(false);
+            loginPacket.name = StartClient.client.name;
+            loginPacket.password = password;
+            loginPacket.confirmIdentity = true;
 
-        NetworkingUtility.sendPacket(loginPacket, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
+            NetworkingUtility.sendPacket(loginPacket, StartClient.client.getToServerChannel(), StartClient.client.getHandler().getEncryption());
+        }catch (NullPointerException ignored){}
     }
 
     private void changeUsername(String username){
@@ -122,15 +162,17 @@ public class AccountSettings extends JDialog {
         packet.type = "username";
         packet.value = username;
 
-        NetworkingUtility.sendPacket(packet, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
+        NetworkingUtility.sendPacket(packet, StartClient.client.getToServerChannel(), StartClient.client.getHandler().getEncryption());
     }
 
     private void changePassword(String password){
-        ChangeUserDataPacket packet = new ChangeUserDataPacket();
-        packet.type = "password";
-        packet.value = password;
+        try {
+            ChangeUserDataPacket packet = new ChangeUserDataPacket();
+            packet.type = "password";
+            packet.value = password;
 
-        NetworkingUtility.sendPacket(packet, ClientMain.client.getToServerChannel(), ClientMain.client.getHandler().getEncryption());
+            NetworkingUtility.sendPacket(packet, StartClient.client.getToServerChannel(), StartClient.client.getHandler().getEncryption());
+        }catch (NullPointerException ignored){}
     }
 
     private void changeAvatar(){

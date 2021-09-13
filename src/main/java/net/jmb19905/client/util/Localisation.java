@@ -1,30 +1,27 @@
 package net.jmb19905.client.util;
 
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.util.Logger;
 import net.jmb19905.common.util.ResourceUtility;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class Localisation {
 
     private static ResourceBundle resourceBundle;
 
     public static void reload(){
-        String[] localeParts = ClientMain.config.lang.split("_");
+        String[] localeParts = StartClient.config.lang.split("_");
         Locale locale = new Locale(localeParts[0], localeParts[1]);
         resourceBundle = ResourceBundle.getBundle("lang.bundle", locale);
     }
 
     public static String[] getLocales(){
-        List<String> locales = ResourceUtility.getResourceFiles("lang");
-        for(int i=0;i<locales.size();i++){
-            locales.set(i, locales.get(i).replace("bundle_", "").replace(".properties", ""));
+        String[] locales = ResourceUtility.getResourceFiles("lang");
+        for(int i=0;i<locales.length;i++){
+            locales[i] = locales[i].replace("bundle_", "").replace(".properties", "");
         }
-        return locales.toArray(new String[0]);
+        return locales;
     }
 
     public static String get(String key){

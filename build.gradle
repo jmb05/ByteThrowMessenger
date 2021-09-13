@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.0-alpha5'
+version '1.0.0-alpha6-dev'
 
 repositories {
     mavenCentral()
@@ -13,18 +13,17 @@ repositories {
 
 configurations {
     provided
-    // Make compile extend from our provided configuration so that things added to bundled end up on the compile classpath
     implementation.extendsFrom(provided)
 }
 
 dependencies {
-    provided 'io.netty:netty-all:4.1.66.Final'
+    provided 'io.netty:netty-all:4.1.67.Final'
     provided 'com.formdev:flatlaf:1.5'
-    provided 'org.xerial:sqlite-jdbc:3.36.0.1'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
     provided 'org.mindrot:jbcrypt:0.4'
-    provided 'com.fasterxml.jackson.core:jackson-core:2.12.4'
-    provided 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
-    provided 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+    provided 'com.fasterxml.jackson.core:jackson-core:2.12.5'
+    provided 'com.fasterxml.jackson.core:jackson-annotations:2.12.5'
+    provided 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
@@ -64,7 +63,7 @@ task serverJar(type: Jar) {
 launch4j {
     outfile = "ByteThrowMessenger-${project.version}-Client.exe"
     mainClassName = 'net.jmb19905.networking.client.ClientMain'
-    icon = "${projectDir}/build/libs/icon.ico"
+    icon = "${projectDir}/build/libs/btm.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
     textVersion = project.version

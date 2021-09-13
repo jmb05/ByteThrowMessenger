@@ -2,14 +2,14 @@ package net.jmb19905.common.util;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class ResourceUtility {
 
@@ -52,21 +52,62 @@ public class ResourceUtility {
         return ResourceUtility.class.getClassLoader().getResource(s);
     }
 
-    public static List<String> getResourceFiles(String path) {
-        List<String> filenames = new ArrayList<>();
-
-        try (
-            InputStream in = getResource(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String resource;
-
-            while ((resource = br.readLine()) != null) {
-                filenames.add(resource);
+    /**
+     * List directory contents for a resource folder. Not recursive.
+     * This is basically a brute-force implementation.
+     * Works for regular files and also JARs.
+     *
+     * @author Greg Briggs - taken from: http://www.uofr.net/~greg/java/get-resource-listing.html
+     * @return Just the name of each member item, not the full paths.
+     */
+    public static String[] getResourceFiles(String path) {
+        URL dirURL = getResourceAsURL(path);
+        if (dirURL != null && dirURL.getProtocol().equals("file")) {
+            /* A file path: easy enough */
+            try {
+                return new File(dirURL.toURI()).list();
+            } catch (URISyntaxException e) {
+                Logger.log(e, Logger.Level.ERROR);
             }
-        }catch (IOException e){
-            Logger.log(e, Logger.Level.WARN);
         }
 
-        return filenames;
+        if (dirURL == null) {
+            /*
+             * In case of a jar file, we can't actually find a directory.
+             * Have to assume the same jar as clazz.
+             */
+            String me = ResourceUtility.class.getName().replace(".", "/")+".class";
+            dirURL = getResourceAsURL(me);
+        }
+
+        if (dirURL.getProtocol().equals("jar")) {
+            /* A JAR path */
+            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+            JarFile jar = null;
+            try {
+                jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                Logger.log(e, Logger.Level.ERROR);
+            }
+            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+            Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
+            while(entries.hasMoreElements()) {
+                String name = entries.nextElement().getName();
+                if (name.startsWith(path)) { //filter according to the path
+                    String entry = name.substring(path.length() + 1);
+                    if(!entry.equals("")) {
+                        int checkSubdir = entry.indexOf("/");
+                        if (checkSubdir >= 0) {
+                            // if it is a subdirectory, we just return the directory name
+                            entry = entry.substring(0, checkSubdir);
+                        }
+                        result.add(entry);
+                    }
+                }
+            }
+            return result.toArray(new String[0]);
+        }
+
+        throw new UnsupportedOperationException("Cannot list files for URL "+dirURL);
     }
 }

@@ -1,6 +1,6 @@
 package net.jmb19905.client.gui;
 
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.client.gui.components.HintPasswordField;
 import net.jmb19905.client.gui.components.HintTextField;
 import net.jmb19905.client.util.Localisation;
@@ -26,6 +26,7 @@ public class RegisterDialog extends JDialog {
     private JPasswordField passwordInputField2 = null;
 
     public RegisterDialog(boolean useStandardPasswordRules){
+        super(StartClient.window);
         setModal(true);
         setResizable(false);
         setLayout(new GridBagLayout());
@@ -107,9 +108,9 @@ public class RegisterDialog extends JDialog {
         add(passwordInputField2, constraints);
 
         JCheckBox rememberLogin = new JCheckBox(Localisation.get("automatic_login"));
-        rememberLogin.setSelected(ClientMain.config.autoLogin);
+        rememberLogin.setSelected(StartClient.config.autoLogin);
         constraints.gridy = 3;
-        rememberLogin.addActionListener(l -> ClientMain.config.autoLogin = true);
+        rememberLogin.addActionListener(l -> StartClient.config.autoLogin = true);
         add(rememberLogin, constraints);
 
         JButton confirm = new JButton(confirmAction);
@@ -145,6 +146,7 @@ public class RegisterDialog extends JDialog {
         add(login, constraints);
 
         pack();
+        setLocationRelativeTo(null);
     }
 
     public void addConfirmButtonActionListener(ActionListener listener){

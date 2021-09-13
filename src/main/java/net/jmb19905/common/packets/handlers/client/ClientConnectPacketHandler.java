@@ -1,7 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.ConnectPacket;
@@ -26,14 +26,14 @@ public class ClientConnectPacketHandler extends ClientPacketHandler<ConnectPacke
         byte[] encodedPeerKey = packet.key;
 
         try {
-            if(ClientMain.client.getChat(peerName) == null) {
+            if(StartClient.client.getChat(peerName) == null) {
                 handleNewChatRequestClient(packet, channel, encryption, peerName, encodedPeerKey);
-            }else if(ClientMain.client.getChat(peerName) != null) {
+            }else if(StartClient.client.getChat(peerName) != null) {
                 handleConnectToExistingChatRequestClient(packet, channel, encryption, peerName, encodedPeerKey);
             }
         } catch (InvalidKeySpecException e) {
             Logger.log(e, Logger.Level.ERROR);
-            ClientMain.window.appendLine("Error connecting with: " + peerName);
+            StartClient.window.appendLine("Error connecting with: " + peerName);
         }
     }
 
@@ -45,7 +45,7 @@ public class ClientConnectPacketHandler extends ClientPacketHandler<ConnectPacke
         }else if(packet.connectType == ConnectPacket.ConnectType.FIRST_RECONNECT){
             activateEncryption(peerName, encodedPeerKey);
 
-            EncryptedConnection chatEncryption = ClientMain.client.getChat(peerName).encryption;
+            EncryptedConnection chatEncryption = StartClient.client.getChat(peerName).encryption;
 
             packet.name = peerName;
             packet.key = chatEncryption.getPublicKey().getEncoded();
@@ -58,28 +58,28 @@ public class ClientConnectPacketHandler extends ClientPacketHandler<ConnectPacke
     }
 
     private void activateEncryption(String peerName, byte[] encodedPeerKey) throws InvalidKeySpecException {
-        Chat chat = ClientMain.client.getChat(peerName);
+        Chat chat = StartClient.client.getChat(peerName);
         chat.setActive(true);
-        ClientMain.window.setPeerStatus(peerName, true);
+        StartClient.window.setPeerStatus(peerName, true);
 
         chat.encryption.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
-        ClientMain.window.appendLine("Connection to " + peerName + " encrypted");
+        StartClient.window.appendLine("Connection to " + peerName + " encrypted");
     }
 
     private void handleNewChatRequestClient(ConnectPacket packet, Channel channel, EncryptedConnection encryption, String peerName, byte[] encodedPeerKey) throws InvalidKeySpecException {
         if(packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             Chat chat = new Chat();
-            chat.addClient(ClientMain.client.name);
+            chat.addClient(StartClient.client.name);
             chat.addClient(peerName);
             chat.initClient();
             chat.setActive(true);
-            ClientMain.client.chats.add(chat);
+            StartClient.client.chats.add(chat);
 
-            ClientMain.window.addPeer(peerName);
-            ClientMain.window.setPeerStatus(peerName, true);
+            StartClient.window.addPeer(peerName);
+            StartClient.window.setPeerStatus(peerName, true);
 
             chat.encryption.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
-            ClientMain.window.appendLine("Connection to " + peerName + " encrypted");
+            StartClient.window.appendLine("Connection to " + peerName + " encrypted");
 
 
             Logger.log("Starting E2E Encryption to: " + peerName, Logger.Level.INFO);

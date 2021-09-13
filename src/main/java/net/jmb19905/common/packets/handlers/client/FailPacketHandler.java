@@ -1,7 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.client.networking.ClientHandler;
 import net.jmb19905.client.util.Localisation;
 import net.jmb19905.common.Chat;
@@ -23,17 +23,17 @@ public class FailPacketHandler extends ClientPacketHandler<FailPacket> {
         if(!packet.extra.equals(" ")){
             message = Localisation.get(packet.message, packet.extra);
         }
-        JOptionPane.showMessageDialog(ClientMain.window, message, "", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(StartClient.window, message, "", JOptionPane.ERROR_MESSAGE);
         switch (cause.split(":")[0]) {
             case "login" -> ClientHandler.login(channel, encryption);
             case "register" -> ClientHandler.register(channel, encryption);
-            case "version" -> ClientMain.exit(-1, packet.message, true);
-            case "external_disconnect" -> ClientMain.exit(0, packet.message, true);
+            case "version" -> StartClient.exit(-1, packet.message, true);
+            case "external_disconnect" -> StartClient.exit(0, packet.message, true);
             case "connect" -> {
                 String peerName = cause.split(":")[1];
-                Chat chat = ClientMain.client.getChat(peerName);
-                ClientMain.client.chats.remove(chat);
-                ClientMain.window.removePeer(peerName);
+                Chat chat = StartClient.client.getChat(peerName);
+                StartClient.client.chats.remove(chat);
+                StartClient.window.removePeer(peerName);
             }
         }
     }

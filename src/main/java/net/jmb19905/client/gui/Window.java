@@ -1,6 +1,6 @@
 package net.jmb19905.client.gui;
 
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.client.gui.components.PicturePanel;
 import net.jmb19905.client.gui.settings.AccountSettings;
 import net.jmb19905.client.gui.settings.SettingsWindow;
@@ -76,8 +76,8 @@ public class Window extends JFrame {
         addPeer = new JButton(Localisation.get("add_peer"));
         addPeer.addActionListener(l -> {
             String name = JOptionPane.showInputDialog(Localisation.get("peer_name_input"));
-            if(ClientMain.client != null && name != null && !name.equals("")) {
-                ClientMain.client.connectToPeer(name);
+            if(StartClient.client != null && name != null && !name.equals("")) {
+                StartClient.client.connectToPeer(name);
             }
         });
         peerPanelConstraints.gridy = 1;
@@ -105,23 +105,7 @@ public class Window extends JFrame {
         constraints.insets = new Insets(5,0,5,0);
         messagingPanel.add(field, constraints);
 
-        field.addActionListener(l ->  {
-            if(ClientMain.client != null){
-                if(list.getSelectedValue() != null) {
-                    String text = field.getText();
-                    if(ClientMain.client.sendMessage(getSelectedPeer(), text)) {
-                        appendMessage("You", text);
-                    }else {
-                        JOptionPane.showMessageDialog(this, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
-                    }
-                }else {
-                    appendLine(Localisation.get("select_peer"));
-                }
-            } else {
-                appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
-            }
-            field.setText("");
-        });
+        field.addActionListener(sendAction);
 
         toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
@@ -136,14 +120,15 @@ public class Window extends JFrame {
 
         initToolBar();
 
-        setTitle("ByteThrow Messenger - " + ClientMain.version);
-        setVisible(true);
+        setTitle("ByteThrow Messenger - " + StartClient.version);
         pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
 
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ConfigManager.saveClientConfig(ClientMain.config, "config/client_config.json");
+                ConfigManager.saveClientConfig();
             }
         });
 
@@ -330,7 +315,21 @@ public class Window extends JFrame {
         sendAction = new AbstractAction("", ThemeManager.getIcon("send")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                if(StartClient.client != null){
+                    if(list.getSelectedValue() != null) {
+                        String text = field.getText();
+                        if(StartClient.client.sendMessage(getSelectedPeer(), text)) {
+                            appendMessage("You", text);
+                        }else {
+                            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
+                        }
+                    }else {
+                        appendLine(Localisation.get("select_peer"));
+                    }
+                } else {
+                    appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
+                }
+                field.setText("");
             }
         };
     }

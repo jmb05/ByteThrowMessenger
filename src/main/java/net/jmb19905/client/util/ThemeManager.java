@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.util.ResourceUtility;
 
 import javax.swing.*;
@@ -17,7 +17,7 @@ public class ThemeManager {
     private static boolean dark;
 
     public static void init(){
-        String themeStringID = ClientMain.config.theme;
+        String themeStringID = StartClient.config.theme;
         switch (themeStringID) {
             case "Darcula" -> {
                 FlatDarculaLaf.setup();

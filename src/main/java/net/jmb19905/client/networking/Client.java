@@ -8,7 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.packets.ConnectPacket;
 import net.jmb19905.common.packets.MessagePacket;
@@ -100,7 +100,7 @@ public class Client {
         chat.addClient(name);
         chat.addClient(peerName);
         chats.add(chat);
-        ClientMain.window.addPeer(peerName);
+        StartClient.window.addPeer(peerName);
         return chat;
     }
 

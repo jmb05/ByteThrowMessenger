@@ -1,7 +1,7 @@
 package net.jmb19905.common.packets.handlers.client;
 
 import io.netty.channel.Channel;
-import net.jmb19905.client.ClientMain;
+import net.jmb19905.client.StartClient;
 import net.jmb19905.common.Chat;
 import net.jmb19905.common.crypto.EncryptedConnection;
 import net.jmb19905.common.packets.ChatsPacket;
@@ -19,15 +19,15 @@ public class ChatsPacketHandler extends ClientPacketHandler<ChatsPacket> {
     public void handle(EncryptedConnection encryption, Channel channel) {
         Logger.log(packet.toString(), Logger.Level.DEBUG);
         if(packet.update) {
-            ClientMain.client.chats.clear();
+            StartClient.client.chats.clear();
         }
         for(String name : packet.names){
             Chat chat = new Chat();
             chat.initClient();
-            chat.addClient(ClientMain.client.name);
+            chat.addClient(StartClient.client.name);
             chat.addClient(name);
 
-            ClientMain.client.chats.add(chat);
+            StartClient.client.chats.add(chat);
 
             if(!packet.update) {
                 ConnectPacket connectPacket = new ConnectPacket();
@@ -39,6 +39,6 @@ public class ChatsPacketHandler extends ClientPacketHandler<ChatsPacket> {
                 Logger.log("Sent " + connectPacket, Logger.Level.TRACE);
             }
         }
-        ClientMain.window.setPeers(packet.names);
+        StartClient.window.setPeers(packet.names);
     }
 }

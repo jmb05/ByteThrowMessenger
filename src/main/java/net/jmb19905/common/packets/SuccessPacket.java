@@ -5,6 +5,9 @@ import net.jmb19905.common.packets.handlers.client.SuccessPacketHandler;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Sent to the client when an action is successful
+ */
 public class SuccessPacket extends Packet{
 
     public String type;

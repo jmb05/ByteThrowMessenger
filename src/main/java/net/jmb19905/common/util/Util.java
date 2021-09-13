@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -201,10 +202,19 @@ public class Util {
     public static Version loadVersion(boolean isDev){
         String versionAsString;
         if(isDev){
-            versionAsString = ResourceUtility.readResourceProperties("version.properties").getProperty("version");
+            try {
+                versionAsString = ResourceUtility.readResourceProperties("version.properties").getProperty("version");
+            }catch (NullPointerException e){
+                Logger.log(e, "Error read version", Logger.Level.ERROR);
+                versionAsString = "0.0.0";
+            }
         }else {
             versionAsString = Util.class.getPackage().getImplementationVersion();
         }
         return new Version(versionAsString);
+    }
+
+    public static String getUserHome(){
+        return System.getProperty( "user.home" );
     }
 }
