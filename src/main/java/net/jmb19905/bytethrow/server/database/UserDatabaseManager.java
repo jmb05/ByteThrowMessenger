@@ -1,0 +1,76 @@
+package net.jmb19905.bytethrow.server.database;
+
+import net.jmb19905.util.Logger;
+
+import java.io.IOException;
+
+public class UserDatabaseManager {
+
+    private static final String DATABASE = "database/users.db";
+
+    public static UserData getUserDataByName(String username){
+        UserData userData = null;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            if(connection.hasUser(username)){
+                userData = connection.getUserByName(username);
+            }
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return userData;
+    }
+
+    public static boolean createUser(String username, String password){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.createUser(username, password);
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return success;
+    }
+
+    public static boolean hasUser(String username){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.hasUser(username);
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return success;
+    }
+
+    public static boolean changeUsername(String oldUsername, String newUsername){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            if(!connection.hasUser(newUsername)){
+                success = connection.changeUserName(oldUsername, newUsername);
+            }
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return success;
+    }
+
+    public static boolean changePassword(String username, String password){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.changeUserPassword(username, password);
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return success;
+    }
+
+    public static boolean deleteUser(String name){
+        boolean success = false;
+        try (UserDataBaseConnection connection = new UserDataBaseConnection(DATABASE)){
+            success = connection.removeUser(name);
+        } catch (IOException e) {
+            Logger.error(e);
+        }
+        return success;
+    }
+
+    public static record UserData(String username, String password, String salt) {}
+}

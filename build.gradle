@@ -17,15 +17,15 @@ configurations {
 }
 
 dependencies {
-    provided 'io.netty:netty-all:4.1.67.Final'
-    provided 'com.formdev:flatlaf:1.5'
+    provided 'com.formdev:flatlaf:1.6'
     provided 'org.xerial:sqlite-jdbc:3.36.0.2'
     provided 'org.mindrot:jbcrypt:0.4'
-    provided 'com.fasterxml.jackson.core:jackson-core:2.12.5'
-    provided 'com.fasterxml.jackson.core:jackson-annotations:2.12.5'
-    provided 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    provided 'com.fasterxml.jackson.core:jackson-core:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    provided 'io.netty:netty-all:4.1.68.Final'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 task clientJar(type: Jar) {
@@ -33,7 +33,7 @@ task clientJar(type: Jar) {
     archiveName "ByteThrowMessenger-${project.version}-Client.jar"
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.client.ClientMain'
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.client.ClientMain'
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
@@ -49,7 +49,7 @@ task serverJar(type: Jar) {
     archiveName "ByteThrowMessenger-${project.version}-Server.jar"
     baseName "ByteThrowMessenger-${project.version}-Server"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.server.StartServer'
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.server.StartServer'
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
