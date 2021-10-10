@@ -5,7 +5,6 @@ import io.netty.channel.ChannelFuture;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.jmbnetty.utility.NetworkUtility;
 

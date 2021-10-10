@@ -6,6 +6,7 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
@@ -27,10 +28,10 @@ public class DisconnectPacketHandler extends PacketHandler {
         Chat chat = StartClient.manager.getChat(peerName);
         if(chat != null){
             chat.setActive(false);
-            StartClient.window.setPeerStatus(peerName, false);
-            StartClient.window.append(peerName, StartClient.window.getBold());
-            StartClient.window.append(" disconnected", null);
-            StartClient.window.newLine();
+            StartClient.guiManager.setPeerStatus(peerName, false);
+            StartClient.guiManager.append(peerName, Window.getBold());
+            StartClient.guiManager.append(" disconnected", null);
+            StartClient.guiManager.newLine();
         }else {
             Logger.warn("Received invalid DisconnectPacket");
         }

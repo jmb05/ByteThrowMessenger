@@ -1,7 +1,5 @@
 package net.jmb19905.bytethrow.client;
 
-import net.jmb19905.bytethrow.client.gui.TrayIconDemo;
-import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.client.util.ThemeManager;
 import net.jmb19905.bytethrow.common.RegistryManager;
@@ -11,7 +9,6 @@ import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
-import javax.swing.*;
 import java.net.ConnectException;
 import java.util.Arrays;
 
@@ -20,7 +17,7 @@ public class StartClient {
     public static ConfigManager.ClientConfig config;
 
     public static ClientManager manager;
-    public static Window window;
+    public static GUIManager guiManager;
 
     public static Version version;
 
@@ -44,8 +41,6 @@ public class StartClient {
         }
 
         ShutdownManager.addCleanUp(() -> {
-            StartClient.window.setEnabled(false);
-            StartClient.window.dispose();
             manager.stop();
             ConfigManager.saveClientConfig();
             Logger.close();
@@ -65,14 +60,14 @@ public class StartClient {
         ThemeManager.init();
         try {
             manager = new ClientManager(config.server, config.port);
-            window = new Window();
+            guiManager = new GUIManager();
             manager.start();
         }catch (ConnectException e) {
-            JOptionPane.showMessageDialog(StartClient.window, Localisation.get("no_internet"), "", JOptionPane.ERROR_MESSAGE);
+            guiManager.showLocalisedError(Localisation.get("no_internet"));
             ShutdownManager.shutdown(0);
         }catch (Exception e){
             Logger.error(e);
-            window.appendLine("Error: " + e.getMessage());
+            guiManager.appendLine("Error: " + e.getMessage());
         }
     }
 

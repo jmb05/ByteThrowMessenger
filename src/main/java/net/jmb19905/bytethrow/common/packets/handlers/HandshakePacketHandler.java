@@ -5,21 +5,20 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
-import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.ClientManager;
+import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.Version;
 import net.jmb19905.bytethrow.common.packets.HandshakePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
-import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.util.Logger;
 
-import javax.swing.*;
 import java.security.PublicKey;
 
 public class HandshakePacketHandler extends PacketHandler {
@@ -55,11 +54,11 @@ public class HandshakePacketHandler extends PacketHandler {
         HandshakePacket handshakePacket = (HandshakePacket) packet;
         Version packetVersion = new Version(handshakePacket.version);
         if(packetVersion.isInCompatible(StartClient.version)){
-            JOptionPane.showMessageDialog(StartClient.window,"Client is outdated!", "", JOptionPane.ERROR_MESSAGE);
+            StartClient.guiManager.showError("Client is outdated!");
             return;
         }
         tcpClientHandler.setPublicKey(EncryptionUtility.createPublicKeyFromData(handshakePacket.key));
-        StartClient.window.appendLine("Connection to Server encrypted");
+        StartClient.guiManager.appendLine("Connection to Server encrypted");
         manager.login(channelHandlerContext.channel(), tcpClientHandler.getEncryption());
     }
 }

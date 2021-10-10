@@ -32,12 +32,23 @@ public class Window extends JFrame {
     private final JPanel peerPanel;
     private final JButton addPeer;
 
-    private final SimpleAttributeSet bold;
-    private final SimpleAttributeSet italic;
-    private final SimpleAttributeSet underline;
+    private static final SimpleAttributeSet bold;
+    private static final SimpleAttributeSet italic;
+    private static final SimpleAttributeSet underline;
 
     private final SettingsWindow settingsWindow;
     private final AccountSettings accountSettings;
+
+    static {
+        bold = new SimpleAttributeSet();
+        bold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
+
+        italic = new SimpleAttributeSet();
+        italic.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.TRUE);
+
+        underline = new SimpleAttributeSet();
+        underline.addAttribute(StyleConstants.CharacterConstants.Underline, Boolean.TRUE);
+    }
 
     /**
      * Initializes the components
@@ -49,15 +60,6 @@ public class Window extends JFrame {
         this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("icons/spinner.gif")));
         setGlassPane(loadingPanel);
         setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
-
-        bold = new SimpleAttributeSet();
-        bold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
-
-        italic = new SimpleAttributeSet();
-        italic.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.TRUE);
-
-        underline = new SimpleAttributeSet();
-        underline.addAttribute(StyleConstants.CharacterConstants.Underline, Boolean.TRUE);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(750, 500));
@@ -143,7 +145,7 @@ public class Window extends JFrame {
 
         BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/placeholder.png");
         ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));
-        this.accountSettings = new AccountSettings(icon);
+        this.accountSettings = new AccountSettings(icon, this);
         repaint();
     }
 
@@ -253,7 +255,7 @@ public class Window extends JFrame {
         list.setPeerStatus(name, status);
     }
 
-    public SimpleAttributeSet getBold() {
+    public static SimpleAttributeSet getBold() {
         return bold;
     }
 

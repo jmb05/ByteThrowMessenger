@@ -27,8 +27,8 @@ public class LoginDialog extends JDialog {
     protected String username = "";
     protected String password = "";
 
-    public LoginDialog(String usernameText, String passwordText, String extraText, boolean showRegisterButton){
-        super(StartClient.window);
+    public LoginDialog(String usernameText, String passwordText, String extraText, boolean showRegisterButton, Window window){
+        super(window);
         setModal(true);
         setResizable(false);
         setLayout(new GridBagLayout());

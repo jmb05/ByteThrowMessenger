@@ -86,7 +86,7 @@ public class SettingsWindow extends JDialog {
             StartClient.config.lang = (String) langCombo.getSelectedItem();
             ConfigManager.saveClientConfig();
             Localisation.reload();
-            StartClient.window.repaint();
+            StartClient.guiManager.repaint();
             pack();
         });
         constraints.gridx = 1;
@@ -121,12 +121,8 @@ public class SettingsWindow extends JDialog {
         StartClient.config.theme = lookAndFeelName;
         ThemeManager.init();
         try {
-            SwingUtilities.updateComponentTreeUI(StartClient.window.getSettingsWindow());
-            SwingUtilities.updateComponentTreeUI(StartClient.window);
-            StartClient.window.getSettingsWindow().repaint();
-            StartClient.window.repaint();
-            StartClient.window.getSettingsWindow().pack();
-            StartClient.window.pack();
+            StartClient.guiManager.updateComponentTree();
+            StartClient.guiManager.pack();
         } catch (NullPointerException e) {
             Logger.warn(e);
         }

@@ -2,7 +2,6 @@ package net.jmb19905.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 public class ShutdownManager {
 

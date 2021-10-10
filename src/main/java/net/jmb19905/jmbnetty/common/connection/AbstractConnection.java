@@ -5,10 +5,8 @@ import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEventListener;
 import net.jmb19905.jmbnetty.common.connection.event.ErrorEventListener;
 import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEvent;
 import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEventListener;
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.util.Logger;
 
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

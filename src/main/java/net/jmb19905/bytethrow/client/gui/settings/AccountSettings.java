@@ -1,11 +1,10 @@
 package net.jmb19905.bytethrow.client.gui.settings;
 
+import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.ConfirmIdentityDialog;
-import net.jmb19905.bytethrow.client.ClientManager;
-import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
-import net.jmb19905.bytethrow.common.packets.LoginPacket;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.client.gui.Window;
+import net.jmb19905.bytethrow.common.packets.PacketManager;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
 import net.jmb19905.util.Logger;
 
@@ -25,12 +24,12 @@ public class AccountSettings extends JDialog {
 
     private final ClientManager manager;
 
-    public AccountSettings(Icon userIcon){
-        super(StartClient.window);
+    public AccountSettings(Icon userIcon, Window window){
+        super(window);
         this.manager = StartClient.manager;
 
         this.userIcon = userIcon;
-        this.confirmIdentityDialog = new ConfirmIdentityDialog();
+        this.confirmIdentityDialog = new ConfirmIdentityDialog(window);
         setTitle("Account Settings");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         //setPreferredSize(new Dimension(450, 300));
@@ -150,32 +149,19 @@ public class AccountSettings extends JDialog {
     private void sendConfirmIdentityPacket(String username, String password){
         try {
             manager.name = username;
-            StartClient.window.getAccountSettings().setUsername(manager.name);
+            setUsername(username);
 
-            LoginPacket loginPacket = new LoginPacket();
-            loginPacket.name = manager.name;
-            loginPacket.password = password;
-            loginPacket.confirmIdentity = true;
-
-            NetworkingUtility.sendPacket(loginPacket, manager.getChannel(), manager.getHandler().getEncryption());
+            PacketManager.confirmIdentity(username, password, manager.getChannel(), manager.getHandler().getEncryption());
         }catch (NullPointerException ignored){}
     }
 
     private void changeUsername(String username){
-        ChangeUserDataPacket packet = new ChangeUserDataPacket();
-        packet.type = "username";
-        packet.value = username;
-
-        NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getEncryption());
+        PacketManager.sendChangeUsername(username, manager.getChannel(), manager.getHandler().getEncryption());
     }
 
     private void changePassword(String password){
         try {
-            ChangeUserDataPacket packet = new ChangeUserDataPacket();
-            packet.type = "password";
-            packet.value = password;
-
-            NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getEncryption());
+            PacketManager.sendChangePassword(password, manager.getChannel(), manager.getHandler().getEncryption());
         }catch (NullPointerException ignored){}
     }
 

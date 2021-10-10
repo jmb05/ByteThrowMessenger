@@ -1,9 +1,7 @@
 package net.jmb19905.util;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class Clock {
 

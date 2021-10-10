@@ -6,8 +6,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.ClientManager;
+import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.ChatsRequestPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -35,7 +35,7 @@ public class SuccessPacketHandler extends PacketHandler {
         switch (successPacket.type) {
             case "login", "register" -> {
                 doOnLoginSuccess(successPacket, encryption, ctx.channel());
-                StartClient.window.showLoading(false);
+                StartClient.guiManager.showLoading(false);
             }
             case "change_username" -> JOptionPane.showMessageDialog(null, "Username changed successfully");
             case "change_password" -> JOptionPane.showMessageDialog(null, "Password changed successfully");
@@ -50,7 +50,7 @@ public class SuccessPacketHandler extends PacketHandler {
         ClientManager manager = StartClient.manager;
         if(!packet.confirmIdentity) {
             if(!manager.loggedIn) {
-                StartClient.window.appendLine("Login successful");
+                StartClient.guiManager.appendLine("Login successful");
                 manager.loggedIn = true;
                 ChatsRequestPacket chatsRequestPacket = new ChatsRequestPacket();
                 NetworkingUtility.sendPacket(chatsRequestPacket, channel, encryption);

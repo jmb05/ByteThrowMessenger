@@ -6,8 +6,6 @@ package net.jmb19905.bytethrow.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.SocketChannel;
-import net.jmb19905.bytethrow.client.gui.LoginDialog;
-import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.util.UserDataUtility;
 import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.*;
@@ -22,8 +20,6 @@ import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.ConnectException;
 import java.util.Timer;
@@ -52,7 +48,7 @@ public class ClientManager {
             TcpClientConnection clientConnection = (TcpClientConnection) channelHandler.getConnection();
             SocketChannel channel = clientConnection.getChannel();
 
-            StartClient.window.appendLine("Connected to Server");
+            StartClient.guiManager.appendLine("Connected to Server");
             Logger.log("Server address is: " + channel.remoteAddress(), Logger.Level.INFO);
 
             HandshakePacket packet = new HandshakePacket();
@@ -107,7 +103,7 @@ public class ClientManager {
         chat.addClient(name);
         chat.addClient(peerName);
         chats.add(chat);
-        StartClient.window.addPeer(peerName);
+        StartClient.guiManager.addPeer(peerName);
         return chat;
     }
 
@@ -158,27 +154,18 @@ public class ClientManager {
      * Sends a LoginPacket tagged as register with the client's name to the server
      */
     public void register(Channel channel, Encryption encryption){
-        RegisterDialog registerDialog = new RegisterDialog(securePasswords);
-        registerDialog.addConfirmButtonActionListener(l -> {
-            name = registerDialog.getUsername();
-            StartClient.window.getAccountSettings().setUsername(name);
+        GUIManager.LoginData loginData = StartClient.guiManager.showRegisterDialog(securePasswords, l -> login(channel, encryption));
 
-            RegisterPacket registerPacket = new RegisterPacket();
-            registerPacket.name = name;
-            registerPacket.password = registerDialog.getPassword();
-            Logger.log("Sending RegisterPacket", Logger.Level.TRACE);
+        name = loginData.username();
+        StartClient.guiManager.setUsername(name);
 
-            NetworkingUtility.sendPacket(registerPacket, channel, encryption);
-            ConfigManager.saveClientConfig();
-        });
-        registerDialog.addCancelListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                ShutdownManager.shutdown(0);
-            }
-        });
-        registerDialog.addLoginButtonActionListener(l -> login(channel, encryption));
-        registerDialog.showDialog();
+        RegisterPacket registerPacket = new RegisterPacket();
+        registerPacket.name = name;
+        registerPacket.password = loginData.password();
+        Logger.log("Sending RegisterPacket", Logger.Level.TRACE);
+
+        NetworkingUtility.sendPacket(registerPacket, channel, encryption);
+        ConfigManager.saveClientConfig();
     }
 
     /**
@@ -192,25 +179,16 @@ public class ClientManager {
                 return;
             }
         }
-        LoginDialog loginDialog = new LoginDialog("", "", "", true);
-        loginDialog.addConfirmButtonActionListener(l -> {
-            UserDataUtility.writeUserFile(loginDialog.getUsername(), loginDialog.getPassword(), new File("userdata/user.dat"));
-            sendLoginPacket(channel, encryption, loginDialog.getUsername(), loginDialog.getPassword());
-            ConfigManager.saveClientConfig();
-        });
-        loginDialog.addCancelListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                ShutdownManager.shutdown(0);
-            }
-        });
-        loginDialog.addRegisterButtonActionListener(l -> register(channel, encryption));
-        loginDialog.setVisible(true);
+
+        GUIManager.LoginData loginData = StartClient.guiManager.showLoginDialog(l -> register(channel, encryption));
+        UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
+        sendLoginPacket(channel, encryption, loginData.username(), loginData.password());
+        ConfigManager.saveClientConfig();
     }
 
     private void sendLoginPacket(Channel channel, Encryption encryption, String username, String password){
         name = username;
-        StartClient.window.getAccountSettings().setUsername(name);
+        StartClient.guiManager.setUsername(name);
 
         LoginPacket loginPacket = new LoginPacket();
         loginPacket.name = name;

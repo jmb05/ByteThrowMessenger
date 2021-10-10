@@ -1,7 +1,7 @@
 package net.jmb19905.bytethrow.client.gui;
 
-import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.ClientManager;
+import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.util.Localisation;
 
 import javax.swing.*;
@@ -18,8 +18,8 @@ public class ConfirmIdentityDialog extends LoginDialog{
 
     protected ActionListener identityConfirmedListener = null;
 
-    public ConfirmIdentityDialog() {
-        super("", "", Localisation.get("confirm_id"), false);
+    public ConfirmIdentityDialog(Window window) {
+        super("", "", Localisation.get("confirm_id"), false, window);
     }
 
     @Override

@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class RegisterDialog extends JDialog {
@@ -27,8 +26,8 @@ public class RegisterDialog extends JDialog {
     private JPasswordField passwordInputField1 = null;
     private JPasswordField passwordInputField2 = null;
 
-    public RegisterDialog(boolean useStandardPasswordRules){
-        super(StartClient.window);
+    public RegisterDialog(boolean useStandardPasswordRules, Window window){
+        super(window);
         setModal(true);
         setResizable(false);
         setLayout(new GridBagLayout());

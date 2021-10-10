@@ -48,6 +48,6 @@ public class ChatsPacketHandler extends PacketHandler {
                 Logger.log("Sent " + connectPacket, Logger.Level.TRACE);
             }
         }
-        StartClient.window.setPeers(chatsPacket.names);
+        StartClient.guiManager.setPeers(chatsPacket.names);
     }
 }

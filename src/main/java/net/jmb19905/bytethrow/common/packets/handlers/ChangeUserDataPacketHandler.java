@@ -12,15 +12,15 @@ import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.server.StartServer;
+import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
+import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
-import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
-import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.util.Logger;
 
 import java.util.Optional;
