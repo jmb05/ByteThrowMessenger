@@ -1,7 +1,7 @@
 package net.jmb19905.bytethrow.client.gui;
 
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.networking.ClientManager;
+import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.util.Localisation;
 
 import javax.swing.*;

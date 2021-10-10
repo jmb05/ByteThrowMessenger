@@ -39,7 +39,7 @@ public class TcpServerConnection extends ServerConnection {
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             TcpServerHandler serverHandler = new TcpServerHandler(instance);
-                            ch.pipeline().addLast(new Decoder(encryption), serverHandler);
+                            ch.pipeline().addLast(new Decoder(serverHandler.getEncryption()), serverHandler);
                             clientConnections.put(serverHandler, ch);
                         }
                     })

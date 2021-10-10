@@ -25,7 +25,7 @@ public class ChangeUserDataPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + type + "|" + value + "%";
+        String dataString = ID + "|" + type + "|" + value;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 

@@ -25,9 +25,8 @@ public class MessagePacketHandler extends PacketHandler {
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
         MessagePacket messagePacket = (MessagePacket) packet;
         Chat.Message message = messagePacket.message;
-        TcpServerConnection connection = (TcpServerConnection) serverHandler.getConnection();
         ServerManager manager = StartServer.manager;
-        String name = "connection.getName()";
+        String name = manager.getClientName(serverHandler);
         if(name.equals(message.sender())) {
             String peerName = message.receiver();
             if (!name.isBlank()) {
@@ -38,10 +37,10 @@ public class MessagePacketHandler extends PacketHandler {
                         manager.sendPacketToPeer(peerName, messagePacket, serverHandler);
                         Logger.trace("Sent message to recipient: " + peerName);
                     } else {
-                        NetworkingUtility.sendFail(ctx.channel(), "message", "peer_offline", peerName, connection);
+                        NetworkingUtility.sendFail(ctx.channel(), "message", "peer_offline", peerName, serverHandler);
                     }
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "message", "no_such_chat", peerName, connection);
+                    NetworkingUtility.sendFail(ctx.channel(), "message", "no_such_chat", peerName, serverHandler);
                 }
             } else {
                 Logger.warn("Client is trying to communicate but isn't logged in!");

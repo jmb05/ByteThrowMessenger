@@ -37,7 +37,7 @@ public class ConnectPacket extends Packet {
     @Override
     public byte[] deconstruct() {
         String encodedKey = SerializationUtility.encodeBinary(key);
-        return (ID + "|" + name + "|" + encodedKey + "|" + connectType.typeInt + "%").getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + name + "|" + encodedKey + "|" + connectType.typeInt).getBytes(StandardCharsets.UTF_8);
     }
 
     public enum ConnectType{

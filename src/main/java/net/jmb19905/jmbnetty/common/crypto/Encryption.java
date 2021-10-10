@@ -114,9 +114,9 @@ public class Encryption {
             byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
             return c.doFinal(decodedValue);
         } catch (InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
-            Logger.log(e, "Error decrypting", Logger.Level.ERROR);
+            Logger.error(e, "Error decrypting");
         } catch (BadPaddingException e){
-            Logger.log(e, "Error decrypting - wrong key", Logger.Level.ERROR);
+            Logger.error(e, "Error decrypting - wrong key");
         }
         return encryptedData;
     }

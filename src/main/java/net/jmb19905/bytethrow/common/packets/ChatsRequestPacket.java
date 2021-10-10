@@ -18,7 +18,7 @@ public class ChatsRequestPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "%").getBytes(StandardCharsets.UTF_8);
+        return ID.getBytes(StandardCharsets.UTF_8);
     }
 
 }

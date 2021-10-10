@@ -36,15 +36,15 @@ public class LoginPacketHandler extends PacketHandler {
         if(userData != null){
             if(BCrypt.checkpw(password, userData.password())){
                 if(!loginPacket.confirmIdentity) {
-                    handleSuccessfulLogin(ctx.channel(), loginPacket, connection);
+                    handleSuccessfulLogin(ctx.channel(), loginPacket, tcpServerHandler);
                 }else {
-                    sendLoginSuccess(ctx.channel(), loginPacket, connection);
+                    sendLoginSuccess(ctx.channel(), loginPacket, tcpServerHandler);
                 }
             }else {
-                NetworkingUtility.sendFail(ctx.channel(), "login", "wrong_pw", "", connection);
+                NetworkingUtility.sendFail(ctx.channel(), "login", "wrong_pw", "", tcpServerHandler);
             }
         }else {
-            NetworkingUtility.sendFail(ctx.channel(), "login", "username_not_found", username, connection);
+            NetworkingUtility.sendFail(ctx.channel(), "login", "username_not_found", username, tcpServerHandler);
         }
     }
 
@@ -53,24 +53,24 @@ public class LoginPacketHandler extends PacketHandler {
      * tell the Client that the login succeeded -> tell the client which conversations he has started
      * @param packet the login packet containing the login packet of the client
      */
-    private void handleSuccessfulLogin(Channel channel, LoginPacket packet, TcpServerConnection connection) {
+    private void handleSuccessfulLogin(Channel channel, LoginPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
         if(manager.isClientOnline(packet.name)) {
-            for(TcpServerHandler handler : connection.getClientConnections().keySet()){
-                if(manager.getClientName((TcpServerConnection) handler.getConnection()).equals(packet.name)){
-                    SocketChannel otherSocketChannel = connection.getClientConnections().get(handler);
-                    ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", (TcpServerConnection) handler.getConnection());
-                    ChannelFutureListener listener = future1 -> handler.getConnection().markClosed();
+            for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
+                if(manager.getClientName(otherHandler).equals(packet.name)){
+                    SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
+                    ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
+                    ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
                     future.addListener(listener);
                 }
             }
         }
-        manager.addOnlineClient(packet.name, connection);
-        Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(connection));
+        manager.addOnlineClient(packet.name, handler);
+        Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
-        sendLoginSuccess(channel, packet, connection); // confirms the login to the current client
+        sendLoginSuccess(channel, packet, handler); // confirms the login to the current client
 
-        ClientFileManager.createClientFile(manager.getClientName(connection));
+        ClientFileManager.createClientFile(manager.getClientName(handler));
     }
 
 
@@ -79,13 +79,13 @@ public class LoginPacketHandler extends PacketHandler {
      * Sends LoginPacket to client to confirm login
      * @param loginPacket the LoginPacket
      */
-    private void sendLoginSuccess(Channel channel, LoginPacket loginPacket, TcpServerConnection connection) {
+    private void sendLoginSuccess(Channel channel, LoginPacket loginPacket, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = "login";
         loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
-        NetworkingUtility.sendPacket(loginSuccessPacket, channel, connection.getEncryption());
+        NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
     }
 
 

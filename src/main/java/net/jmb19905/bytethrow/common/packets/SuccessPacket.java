@@ -27,7 +27,7 @@ public class SuccessPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + type + "|" + confirmIdentity + "%";
+        String dataString = ID + "|" + type + "|" + confirmIdentity;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 }

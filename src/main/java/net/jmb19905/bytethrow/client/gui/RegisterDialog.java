@@ -5,6 +5,7 @@ import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.util.Util;
+import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class RegisterDialog extends JDialog {
@@ -91,6 +93,10 @@ public class RegisterDialog extends JDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         passwordInputField1.addActionListener(l -> {
+            if(StartClient.isDevEnv){
+                Logger.debug(new String(passwordInputField1.getPassword()));
+                Logger.debug(new String(passwordInputField2.getPassword()));
+            }
             if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
@@ -104,7 +110,13 @@ public class RegisterDialog extends JDialog {
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        passwordInputField2.addActionListener(confirmAction);
+        passwordInputField2.addActionListener(l -> {
+            if(StartClient.isDevEnv){
+                Logger.debug(new String(passwordInputField1.getPassword()));
+                Logger.debug(new String(passwordInputField2.getPassword()));
+            }
+            confirmAction.actionPerformed(l);
+        });
         add(passwordInputField2, constraints);
 
         JCheckBox rememberLogin = new JCheckBox(Localisation.get("automatic_login"));

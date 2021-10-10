@@ -55,7 +55,11 @@ public class PeerList extends JList<String> {
 
     @Override
     public String getSelectedValue() {
-        return super.getSelectedValue().replace("✓", "").replace("✗", "").strip();
+        String selectedValue = super.getSelectedValue();
+        if(selectedValue == null){
+            return null;
+        }
+        return selectedValue.replace("✓", "").replace("✗", "").strip();
     }
 
     private static class PeerListRenderer extends JLabel implements ListCellRenderer<String>{

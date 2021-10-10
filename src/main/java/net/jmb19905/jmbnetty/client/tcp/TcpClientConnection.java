@@ -33,7 +33,7 @@ public class TcpClientConnection extends ClientConnection {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) {
-                            ch.pipeline().addLast(new Decoder(encryption), clientHandler);
+                            ch.pipeline().addLast(new Decoder(clientHandler.getEncryption()), clientHandler);
                             channel = ch;
                         }
                     })

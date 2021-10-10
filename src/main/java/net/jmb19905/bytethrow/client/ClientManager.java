@@ -1,8 +1,11 @@
-package net.jmb19905.bytethrow.client.networking;
+/*
+ * Copyright (c) $ Jared M. Bennett today.year. Please refer to LICENSE.txt
+ */
+
+package net.jmb19905.bytethrow.client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.socket.SocketChannel;
-import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.util.UserDataUtility;
@@ -52,9 +55,9 @@ public class ClientManager {
             StartClient.window.appendLine("Connected to Server");
             Logger.log("Server address is: " + channel.remoteAddress(), Logger.Level.INFO);
 
-            KeyExchangePacket packet = new KeyExchangePacket();
+            HandshakePacket packet = new HandshakePacket();
             packet.version = StartClient.version.toString();
-            packet.key = clientConnection.getEncryption().getPublicKey().getEncoded();
+            packet.key = channelHandler.getEncryption().getPublicKey().getEncoded();
 
             Logger.log("Sending packet:" + packet, Logger.Level.TRACE);
             NetworkingUtility.sendPacket(packet, channel, null);
@@ -94,7 +97,7 @@ public class ClientManager {
         connectPacket.key = chat.encryption.getPublicKey().getEncoded();
         connectPacket.connectType = ConnectPacket.ConnectType.FIRST_CONNECT;
 
-        NetworkingUtility.sendPacket(connectPacket, client.getConnection().getChannel(), client.getConnection().getEncryption());
+        NetworkingUtility.sendPacket(connectPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
         Logger.trace("Connecting with peer: " + peerName);
     }
 
@@ -117,7 +120,7 @@ public class ClientManager {
         Chat chat = getChat(recipient);
         if(chat != null && chat.isActive()) {
             packet.message = new Chat.Message(name, recipient, EncryptionUtility.encryptString(chat.encryption, message));
-            NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getEncryption());
+            NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
             Logger.trace("Sent Message: " + message);
             return true;
         }
@@ -160,7 +163,7 @@ public class ClientManager {
             name = registerDialog.getUsername();
             StartClient.window.getAccountSettings().setUsername(name);
 
-            LoginPacket registerPacket = new LoginPacket();
+            RegisterPacket registerPacket = new RegisterPacket();
             registerPacket.name = name;
             registerPacket.password = registerDialog.getPassword();
             Logger.log("Sending RegisterPacket", Logger.Level.TRACE);

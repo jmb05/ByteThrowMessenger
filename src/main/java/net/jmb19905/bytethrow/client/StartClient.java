@@ -1,7 +1,7 @@
 package net.jmb19905.bytethrow.client;
 
+import net.jmb19905.bytethrow.client.gui.TrayIconDemo;
 import net.jmb19905.bytethrow.client.gui.Window;
-import net.jmb19905.bytethrow.client.networking.ClientManager;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.client.util.ThemeManager;
 import net.jmb19905.bytethrow.common.RegistryManager;

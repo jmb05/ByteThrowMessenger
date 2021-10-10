@@ -20,7 +20,7 @@ public class ServerManager {
 
     private final Server server;
     private final List<Chat> chats = new ArrayList<>();
-    private final Map<String, TcpServerConnection> onlineClients = new HashMap<>();
+    private final Map<String, TcpServerHandler> onlineClients = new HashMap<>();
 
     public ServerManager(int port){
         this.server = new Server(port);
@@ -40,7 +40,7 @@ public class ServerManager {
             if(!channelHandler.isClosed()) {
                 Optional<String> clientName = onlineClients.keySet()
                         .stream()
-                        .filter(name -> onlineClients.get(name).equals(channelHandler))
+                        .filter(name -> onlineClients.get(name).equals(serverHandler))
                         .findFirst();
                 clientName.ifPresent(s -> notifyPeersOfDisconnect(s, serverHandler));
             }
@@ -54,7 +54,7 @@ public class ServerManager {
             failPacket.cause = "internal";
             failPacket.message = "internal_error";
             failPacket.extra = "";
-            NetworkingUtility.sendPacket(failPacket, channel, serverHandler.getConnection().getEncryption());
+            NetworkingUtility.sendPacket(failPacket, channel, serverHandler.getEncryption());
         });
     }
 
@@ -62,8 +62,8 @@ public class ServerManager {
         this.server.start();
     }
 
-    public void addOnlineClient(String client, TcpServerConnection connection){
-        onlineClients.put(client, connection);
+    public void addOnlineClient(String client, TcpServerHandler handler){
+        onlineClients.put(client, handler);
     }
 
     public void removeOnlineClient(String client){
@@ -151,10 +151,12 @@ public class ServerManager {
      */
     public void sendPacketToPeer(String peerName, Packet packet, TcpServerHandler serverHandler){
         TcpServerHandler peerHandler = getPeerHandler(peerName, serverHandler);
-        SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
         if(peerHandler != null) {
-            Logger.log("Sending packet " + packet + " to " + channel.remoteAddress() , Logger.Level.TRACE);
-            NetworkingUtility.sendPacket(packet, channel, peerHandler.getConnection().getEncryption());
+            SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+            Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
+            NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+        }else {
+            Logger.warn("Could not find peer: " + peerName);
         }
     }
 
@@ -164,7 +166,8 @@ public class ServerManager {
     public TcpServerHandler getPeerHandler(String name, TcpServerHandler ownHandler){
         for(TcpServerHandler peerHandler : ((TcpServerConnection) ownHandler.getConnection()).getClientConnections().keySet()) {
             if (peerHandler != ownHandler) {
-                String peerName = getClientName((TcpServerConnection) peerHandler.getConnection());
+                String peerName = getClientName(peerHandler);
+                Logger.debug("" + peerName);
                 if (peerName.equals(name) && !peerName.isBlank()) {
                     return peerHandler;
                 }
@@ -173,10 +176,10 @@ public class ServerManager {
         return null;
     }
 
-    public String getClientName(TcpServerConnection connection){
+    public String getClientName(TcpServerHandler handler){
         Optional<String> clientName = onlineClients.keySet()
                 .stream()
-                .filter(name -> onlineClients.get(name).equals(connection))
+                .filter(name -> onlineClients.get(name).equals(handler))
                 .findFirst();
         return clientName.orElse("");
     }

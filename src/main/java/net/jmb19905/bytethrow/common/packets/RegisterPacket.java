@@ -29,7 +29,7 @@ public class RegisterPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + name + "|" + password + "|" + confirmIdentity + "%";
+        String dataString = ID + "|" + name + "|" + password + "|" + confirmIdentity;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 

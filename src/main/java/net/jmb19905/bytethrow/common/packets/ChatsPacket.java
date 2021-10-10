@@ -34,7 +34,7 @@ public class ChatsPacket extends Packet {
                 namesBuilder.append("|").append(name);
             }
         }
-        return (ID + namesBuilder + "|" + update + "%").getBytes(StandardCharsets.UTF_8);
+        return (ID + namesBuilder + "|" + update).getBytes(StandardCharsets.UTF_8);
     }
 
 }

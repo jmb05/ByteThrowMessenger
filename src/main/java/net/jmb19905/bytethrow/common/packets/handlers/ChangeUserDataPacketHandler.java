@@ -36,15 +36,15 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
         ChangeUserDataPacket changeUserDataPacket = (ChangeUserDataPacket) packet;
         TcpServerConnection serverConnection = (TcpServerConnection) serverHandler.getConnection();
-        Encryption encryption = serverConnection.getEncryption();
+        Encryption encryption = serverHandler.getEncryption();
         ServerManager manager = StartServer.manager;
-        String oldName = manager.getClientName(serverConnection);
+        String oldName = manager.getClientName(serverHandler);
         switch (changeUserDataPacket.type) {
             case "username":
                 String newUsername = changeUserDataPacket.value;
                 if (UserDatabaseManager.changeUsername(oldName, newUsername)) {
                     manager.removeOnlineClient(oldName);
-                    manager.addOnlineClient(newUsername, serverConnection);
+                    manager.addOnlineClient(newUsername, serverHandler);
                     manager.changeName(oldName, newUsername);
                     ChannelFuture channelFuture = sendUsernameSuccessPacket(ctx.channel(), encryption);
                     channelFuture.addListener(l -> {
@@ -60,25 +60,25 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                                 chatsPacket.names = manager.getPeerNames(peer);
                             }
 
-                            Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(p -> manager.getClientName((TcpServerConnection) p.getConnection()).equals(peer)).findFirst();
+                            Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(handler -> manager.getClientName(handler).equals(peer)).findFirst();
                             if(optionalServerHandler.isPresent()){
                                 TcpServerHandler peerHandler = optionalServerHandler.get();
                                 SocketChannel peerChannel = serverConnection.getClientConnections().get(peerHandler);
 
                                 Logger.trace("Sending packet " + packet + " to " + peerChannel.remoteAddress());
-                                NetworkingUtility.sendPacket(packet, peerChannel, peerHandler.getConnection().getEncryption());
+                                NetworkingUtility.sendPacket(packet, peerChannel, peerHandler.getEncryption());
                             }
                         }
                     });
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_username", "error_change_username", newUsername, serverConnection);
+                    NetworkingUtility.sendFail(ctx.channel(), "change_username", "error_change_username", newUsername, serverHandler);
                 }
                 break;
             case "password":
                 if (UserDatabaseManager.changePassword(oldName, changeUserDataPacket.value)) {
                     sendPasswordSuccessPacket(ctx.channel(), encryption);
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverConnection);
+                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverHandler);
                 }
                 break;
             case "delete":
@@ -86,7 +86,7 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                     sendDeleteSuccessPacket(ctx.channel(), encryption);
                     serverConnection.markClosed();
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverConnection);
+                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverHandler);
                 }
                 break;
         }

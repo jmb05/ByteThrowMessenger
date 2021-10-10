@@ -32,6 +32,6 @@ public class FailPacket extends Packet {
         if(extra.equals("")){
             extra = " ";
         }
-        return (ID + "|" + cause + "|" + message + "|" + extra + "%").getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + cause + "|" + message + "|" + extra).getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -9,14 +9,14 @@ import java.nio.charset.StandardCharsets;
 /**
  * Transfers Public-Keys over the network
  */
-public class KeyExchangePacket extends Packet {
+public class HandshakePacket extends Packet {
 
-    private static final String ID = "key_exchange";
+    private static final String ID = "handshake";
 
     public String version = "null";
     public byte[] key;
 
-    public KeyExchangePacket() {
+    public HandshakePacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
     }
 
@@ -28,7 +28,7 @@ public class KeyExchangePacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        String data = ID + "|" + version + "|" + SerializationUtility.encodeBinary(key) + "%";
+        String data = ID + "|" + version + "|" + SerializationUtility.encodeBinary(key);
         return data.getBytes(StandardCharsets.UTF_8);
     }
 

@@ -6,14 +6,19 @@ import net.jmb19905.jmbnetty.common.connection.AbstractConnection;
 import net.jmb19905.jmbnetty.common.connection.event.ConnectedEvent;
 import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEvent;
 import net.jmb19905.jmbnetty.common.connection.event.ErrorEvent;
+import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.util.Logger;
 
-public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapter {
+import java.security.PublicKey;
+
+public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapter implements IEncryptedHandler {
 
     private final AbstractConnection connection;
+    private final Encryption encryption;
 
     public AbstractChannelHandler(AbstractConnection connection){
         this.connection = connection;
+        this.encryption = new Encryption();
     }
 
     @Override
@@ -38,5 +43,18 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
 
     public AbstractConnection getConnection() {
         return connection;
+    }
+
+    @Override
+    public Encryption getEncryption() {
+        return encryption;
+    }
+
+    public PublicKey getPublicKey(){
+        return encryption.getPublicKey();
+    }
+
+    public void setPublicKey(PublicKey key){
+        encryption.setReceiverPublicKey(key);
     }
 }

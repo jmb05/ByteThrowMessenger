@@ -14,12 +14,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public abstract class AbstractConnection implements IEncryptedConnection, Runnable{
+public abstract class AbstractConnection implements IConnection, Runnable{
 
     protected int port;
     protected Thread thread;
-
-    protected Encryption encryption;
 
     protected Map<String, EventListenerList<? extends NetworkEvent>> eventListeners = new ConcurrentHashMap<>();
 
@@ -27,7 +25,6 @@ public abstract class AbstractConnection implements IEncryptedConnection, Runnab
 
     public AbstractConnection(){
         this.thread = new Thread(this);
-        this.encryption = new Encryption();
     }
 
     @Override
@@ -80,19 +77,6 @@ public abstract class AbstractConnection implements IEncryptedConnection, Runnab
     @Override
     public int getPort(){
         return port;
-    }
-
-    @Override
-    public Encryption getEncryption() {
-        return encryption;
-    }
-
-    public PublicKey getPublicKey(){
-        return encryption.getPublicKey();
-    }
-
-    public void setPublicKey(PublicKey key){
-        encryption.setReceiverPublicKey(key);
     }
 
     @SuppressWarnings("unchecked")

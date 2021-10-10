@@ -2,7 +2,7 @@ package net.jmb19905.bytethrow.client.gui.settings;
 
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.ConfirmIdentityDialog;
-import net.jmb19905.bytethrow.client.networking.ClientManager;
+import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
 import net.jmb19905.bytethrow.common.packets.LoginPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -157,7 +157,7 @@ public class AccountSettings extends JDialog {
             loginPacket.password = password;
             loginPacket.confirmIdentity = true;
 
-            NetworkingUtility.sendPacket(loginPacket, manager.getChannel(), manager.getHandler().getConnection().getEncryption());
+            NetworkingUtility.sendPacket(loginPacket, manager.getChannel(), manager.getHandler().getEncryption());
         }catch (NullPointerException ignored){}
     }
 
@@ -166,7 +166,7 @@ public class AccountSettings extends JDialog {
         packet.type = "username";
         packet.value = username;
 
-        NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getConnection().getEncryption());
+        NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getEncryption());
     }
 
     private void changePassword(String password){
@@ -175,7 +175,7 @@ public class AccountSettings extends JDialog {
             packet.type = "password";
             packet.value = password;
 
-            NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getConnection().getEncryption());
+            NetworkingUtility.sendPacket(packet, manager.getChannel(), manager.getHandler().getEncryption());
         }catch (NullPointerException ignored){}
     }
 

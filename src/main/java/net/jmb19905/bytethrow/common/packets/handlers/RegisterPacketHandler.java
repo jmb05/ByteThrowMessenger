@@ -29,9 +29,9 @@ public class RegisterPacketHandler extends PacketHandler {
         RegisterPacket registerPacket = (RegisterPacket) packet;
         Logger.trace("Client is trying to registering");
         if (UserDatabaseManager.createUser(registerPacket.name, registerPacket.password)) {
-            handleSuccessfulRegister(ctx.channel(), registerPacket, (TcpServerConnection) tcpServerHandler.getConnection());
+            handleSuccessfulRegister(ctx.channel(), registerPacket, tcpServerHandler);
         } else {
-            NetworkingUtility.sendFail(ctx.channel(), "register", "register_fail", "", (TcpServerConnection) tcpServerHandler.getConnection());
+            NetworkingUtility.sendFail(ctx.channel(), "register", "register_fail", "", tcpServerHandler);
         }
     }
 
@@ -40,37 +40,37 @@ public class RegisterPacketHandler extends PacketHandler {
      * tell the Client that the login succeeded -> tell the client which conversations he has started
      * @param packet the login packet containing the login packet of the client
      */
-    private void handleSuccessfulRegister(Channel channel, RegisterPacket packet, TcpServerConnection connection) {
+    private void handleSuccessfulRegister(Channel channel, RegisterPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
         if(manager.isClientOnline(packet.name)) {
-            for(TcpServerHandler handler : connection.getClientConnections().keySet()){
-                if(manager.getClientName((TcpServerConnection) handler.getConnection()).equals(packet.name)){
-                    SocketChannel otherSocketChannel = connection.getClientConnections().get(handler);
-                    ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", (TcpServerConnection) handler.getConnection());
-                    ChannelFutureListener listener = future1 -> handler.getConnection().markClosed();
+            for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
+                if(manager.getClientName(otherHandler).equals(packet.name)){
+                    SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
+                    ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
+                    ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
                     future.addListener(listener);
                 }
             }
         }
-        manager.addOnlineClient(packet.name, connection);
-        Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(connection));
+        manager.addOnlineClient(packet.name, handler);
+        Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
-        sendRegisterSuccess(channel, packet, connection); // confirms the register to the current client
+        sendRegisterSuccess(channel, packet, handler); // confirms the register to the current client
 
-        ClientFileManager.createClientFile(manager.getClientName(connection));
+        ClientFileManager.createClientFile(manager.getClientName(handler));
     }
 
     /**
      * Sends LoginPacket to client to confirm login
      * @param loginPacket the LoginPacket
      */
-    private void sendRegisterSuccess(Channel channel, RegisterPacket loginPacket, TcpServerConnection connection) {
+    private void sendRegisterSuccess(Channel channel, RegisterPacket loginPacket, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = "register";
         loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
-        NetworkingUtility.sendPacket(loginSuccessPacket, channel, connection.getEncryption());
+        NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
     }
 
     @Override

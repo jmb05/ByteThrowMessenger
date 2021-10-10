@@ -6,7 +6,7 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.networking.ClientManager;
+import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
@@ -33,7 +33,7 @@ public class FailPacketHandler extends PacketHandler {
         FailPacket failPacket = (FailPacket) packet;
         String cause = failPacket.cause;
         String message = Localisation.get(failPacket.message);
-        Encryption encryption = tcpClientHandler.getConnection().getEncryption();
+        Encryption encryption = tcpClientHandler.getEncryption();
         if(!failPacket.extra.equals(" ")){
             message = Localisation.get(failPacket.message, failPacket.extra);
         }

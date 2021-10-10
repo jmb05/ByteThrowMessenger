@@ -105,7 +105,7 @@ public class Window extends JFrame {
         constraints.insets = new Insets(5,0,5,0);
         messagingPanel.add(field, constraints);
 
-        field.addActionListener(sendAction);
+        field.addActionListener(l -> send());
 
         toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
@@ -212,7 +212,6 @@ public class Window extends JFrame {
      */
     public void appendLine(String line){
         try {
-
             document.insertString(document.getLength(), line + "\n", null);
         } catch (BadLocationException e) {
             Logger.error(e);
@@ -315,23 +314,27 @@ public class Window extends JFrame {
         sendAction = new AbstractAction("", ThemeManager.getIcon("send")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(StartClient.manager != null){
-                    if(list.getSelectedValue() != null) {
-                        String text = field.getText();
-                        if(StartClient.manager.sendMessage(getSelectedPeer(), text)) {
-                            appendMessage("You", text);
-                        }else {
-                            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
-                        }
-                    }else {
-                        appendLine(Localisation.get("select_peer"));
-                    }
-                } else {
-                    appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
-                }
-                field.setText("");
+                send();
             }
         };
+    }
+
+    private void send(){
+        if(StartClient.manager != null){
+            if(list.getSelectedValue() != null) {
+                String text = field.getText();
+                if(StartClient.manager.sendMessage(getSelectedPeer(), text)) {
+                    appendMessage("You", text);
+                    field.setText("");
+                }else {
+                    JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
+                }
+            }else {
+                appendLine(Localisation.get("select_peer"));
+            }
+        } else {
+            appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
+        }
     }
 
 }

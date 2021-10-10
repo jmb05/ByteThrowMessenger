@@ -26,7 +26,7 @@ public class ServerSettingsPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        String data = ID + "|" + securePasswords + "%";
+        String data = ID + "|" + securePasswords;
         return data.getBytes(StandardCharsets.UTF_8);
     }
 }

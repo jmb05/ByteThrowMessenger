@@ -37,7 +37,8 @@ task clientJar(type: Jar) {
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
-        exclude 'net/jmb19905/server**'
+        exclude 'net/jmb19905/bytethrow/server**'
+        exclude 'net/jmb19905/jmbnetty/server**'
         exclude 'version.properties'
         zipTree(it)
     }
@@ -53,7 +54,8 @@ task serverJar(type: Jar) {
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
-        exclude 'net/jmb19905/client**'
+        exclude 'net/jmb19905/bytethrow/client**'
+        exclude 'net/jmb19905/jmbnetty/client**'
         exclude 'version.properties'
         zipTree(it)
     }

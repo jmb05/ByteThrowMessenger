@@ -26,6 +26,6 @@ public class MessagePacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + message.sender() + "|" + message.receiver() + "|" + message.message() + "%").getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + message.sender() + "|" + message.receiver() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
     }
 }

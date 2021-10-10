@@ -21,12 +21,12 @@ public class ChatsRequestPacketHandler extends PacketHandler {
     @Override
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
         ServerManager manager = StartServer.manager;
-        String clientName = manager.getClientName((TcpServerConnection) serverHandler.getConnection());
+        String clientName = manager.getClientName(serverHandler);
         ChatsPacket chatsPacket = new ChatsPacket();
         chatsPacket.names = manager.getPeerNames(clientName);
 
         Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());
-        NetworkingUtility.sendPacket(packet, ctx.channel(), serverHandler.getConnection().getEncryption());
+        NetworkingUtility.sendPacket(packet, ctx.channel(), serverHandler.getEncryption());
     }
 
     @Override

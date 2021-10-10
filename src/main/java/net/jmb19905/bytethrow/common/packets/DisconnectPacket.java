@@ -25,7 +25,7 @@ public class DisconnectPacket extends Packet {
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + name + "%").getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + name).getBytes(StandardCharsets.UTF_8);
     }
 
 }
