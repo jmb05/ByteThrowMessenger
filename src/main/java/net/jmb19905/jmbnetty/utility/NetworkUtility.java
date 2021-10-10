@@ -46,7 +46,6 @@ public class NetworkUtility {
     private static ByteBuf writeToByteBuf(byte[] rawData, ByteBufAllocator alloc){
         byte[] data = Arrays.copyOf(rawData, rawData.length + 1);
         data[data.length - 1] = '%';
-        Logger.debug("Writing into ByteBuf: " + new String(data, StandardCharsets.UTF_8));
         ByteBuf byteBuf = alloc.buffer(data.length);
         byteBuf.writeBytes(data);
         return byteBuf;

@@ -11,6 +11,7 @@ import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
+import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
@@ -19,14 +20,13 @@ import net.jmb19905.util.Logger;
 public class ChatsPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler handler) {
-        //TODO: add IllegalSideException to lib
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler handler) throws IllegalSideException {
+        throw new IllegalSideException("Chats received on Server");
     }
 
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler handler) {
         ChatsPacket chatsPacket = (ChatsPacket) packet;
-        Logger.log(packet.toString(), Logger.Level.DEBUG);
         if(chatsPacket.update) {
             StartClient.manager.chats.clear();
         }

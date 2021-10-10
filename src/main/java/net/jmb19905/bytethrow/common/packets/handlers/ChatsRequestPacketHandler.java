@@ -10,6 +10,7 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
+import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
@@ -29,7 +30,7 @@ public class ChatsRequestPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
-
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) throws IllegalSideException {
+        throw new IllegalSideException("ChatsRequestPacket received on Client");
     }
 }

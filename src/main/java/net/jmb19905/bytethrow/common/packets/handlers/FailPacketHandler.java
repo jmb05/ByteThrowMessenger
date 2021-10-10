@@ -12,6 +12,7 @@ import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
@@ -21,8 +22,8 @@ import net.jmb19905.util.ShutdownManager;
 public class FailPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
-
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) throws IllegalSideException {
+        throw new IllegalSideException("FailPacket received on Server");
     }
 
     @Override

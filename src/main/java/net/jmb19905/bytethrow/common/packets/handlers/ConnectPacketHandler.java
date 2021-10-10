@@ -58,7 +58,6 @@ public class ConnectPacketHandler extends PacketHandler {
             chat.addClient(peerName);
             chat.setActive(true);
             manager.addChat(chat);
-            Logger.log("Added Chat:" + chat, Logger.Level.DEBUG);
 
             ClientFileManager.writeChatsToFile(clientName);
             ClientFileManager.writeChatsToFile(peerName);

@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.ServerSettingsPacket;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
+import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
@@ -15,8 +16,8 @@ import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 public class ServerSettingsPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler tcpServerHandler) {
-
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler tcpServerHandler) throws IllegalSideException {
+        throw new IllegalSideException("ServerSettingsPacket received on Server");
     }
 
     @Override

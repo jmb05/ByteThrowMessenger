@@ -66,8 +66,6 @@ public class ClientFileManager {
                         }
 
                         manager.addChat(chat);
-
-                        Logger.debug("Read Chat:" + chat);
                     }else {
                         Logger.warn("Read User from Data File that does not exist!");
                     }
@@ -96,7 +94,6 @@ public class ClientFileManager {
             if(!name.equals(otherName)){
                 writer.write(otherName + "\n");
                 writer.flush();
-                Logger.debug("Wrote: " + otherName + " to " + name);
             }
         }
     }

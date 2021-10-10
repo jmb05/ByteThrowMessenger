@@ -167,7 +167,6 @@ public class ServerManager {
         for(TcpServerHandler peerHandler : ((TcpServerConnection) ownHandler.getConnection()).getClientConnections().keySet()) {
             if (peerHandler != ownHandler) {
                 String peerName = getClientName(peerHandler);
-                Logger.debug("" + peerName);
                 if (peerName.equals(name) && !peerName.isBlank()) {
                     return peerHandler;
                 }

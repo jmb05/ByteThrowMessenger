@@ -20,7 +20,6 @@ public class Decoder extends ByteToMessageDecoder {
     public Decoder(Encryption encryption){
         tasks.add(in -> {
             if(encryption == null || !encryption.isUsable()){
-                Logger.debug("Encryption is not set up");
                 return in;
             }
             return encryption.decrypt(in);
@@ -37,14 +36,11 @@ public class Decoder extends ByteToMessageDecoder {
             byte[] rawData = new byte[in.readableBytes()];
             in.readBytes(rawData);
 
-            Logger.debug("Decoding: " + new String(rawData, StandardCharsets.UTF_8));
-
             byte[] data;
             int lastEnd = 0;
             for(int i=0;i<rawData.length;i++){
                 if(rawData[i] == '%'){
                     data = Arrays.copyOfRange(rawData, lastEnd, i);
-                    Logger.debug("Removed end byte: " + new String(data, StandardCharsets.UTF_8));
                     lastEnd = i + 1;
 
                     for(DecoderTask task : tasks){

@@ -92,10 +92,6 @@ public class RegisterDialog extends JDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         passwordInputField1.addActionListener(l -> {
-            if(StartClient.isDevEnv){
-                Logger.debug(new String(passwordInputField1.getPassword()));
-                Logger.debug(new String(passwordInputField2.getPassword()));
-            }
             if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
