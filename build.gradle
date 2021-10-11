@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.0-alpha6-dev'
+version '1.0.0-alpha6'
 
 repositories {
     mavenCentral()
