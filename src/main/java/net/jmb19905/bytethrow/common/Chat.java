@@ -3,10 +3,10 @@ package net.jmb19905.bytethrow.common;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.util.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
-public class Chat {
+public class Chat implements Serializable {
 
     /**
      * All the clients that participate in this chat.
@@ -28,6 +28,16 @@ public class Chat {
      */
     public Encryption encryption;
 
+    private final UUID uniqueId;
+
+    public Chat(){
+        uniqueId = UUID.randomUUID();
+    }
+
+    public Chat(UUID uniqueId){
+        this.uniqueId = uniqueId;
+    }
+
     /**
      * Initializes the EncryptedConnection for the client
      */
@@ -41,6 +51,10 @@ public class Chat {
         }else {
             Logger.warn("Group chats are not supported yet!");
         }
+    }
+
+    public void addClients(List<String> names){
+        clients.addAll(names);
     }
 
     public void addMessage(Message message){
@@ -72,6 +86,23 @@ public class Chat {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Chat chat = (Chat) o;
+        return active == chat.active && listEqualsIgnoreOrder(clients, chat.clients) && listEqualsIgnoreOrder(messages, chat.messages) && Objects.equals(encryption, chat.encryption) && Objects.equals(uniqueId, chat.uniqueId);
+    }
+
+    public static <T> boolean listEqualsIgnoreOrder(List<T> list1, List<T> list2) {
+        return new HashSet<>(list1).equals(new HashSet<>(list2));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clients, messages, active, encryption, uniqueId);
+    }
+
+    @Override
     public String toString() {
         return "Chat{" +
                 "clients=" + clients +
@@ -85,6 +116,23 @@ public class Chat {
         return chat.getClients().containsAll(clients);
     }
 
-    public static record Message(String sender, String receiver, String message){}
+    public static record Message(String sender, String receiver, String message) implements Serializable{
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Message message1 = (Message) o;
+            return Objects.equals(sender, message1.sender) && Objects.equals(receiver, message1.receiver) && Objects.equals(message, message1.message);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(sender, receiver, message);
+        }
+    }
+
+    public UUID getUniqueId() {
+        return uniqueId;
+    }
 
 }

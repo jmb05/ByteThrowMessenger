@@ -5,8 +5,11 @@ import net.jmb19905.bytethrow.common.RegistryManager;
 import net.jmb19905.bytethrow.common.Version;
 import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.Util;
+import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
+import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.util.Logger;
+import net.jmb19905.util.ShutdownManager;
 
 import java.io.File;
 
@@ -28,19 +31,19 @@ public class StartServer {
         Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.INFO);
         Logger.initLogFile(true);
         version = Util.loadVersion(isDevEnv);
-        Logger.log("Starting ByteThrow Messenger Server - Version: " + version, Logger.Level.INFO);
+        Logger.info("Starting ByteThrow Messenger Server - Version: " + version);
         if(isDevEnv){
-            Logger.log("Is in DEV Environment", Logger.Level.INFO);
+            Logger.info("Is in DEV Environment");
         }
         RegistryManager.registerAll();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
-        Logger.log("Loaded configs", Logger.Level.INFO);
+        Logger.info("Loaded configs");
 
-        File file = new File("clientData/");
-        if(!file.exists() || !file.isDirectory()){
-            file.mkdir();
-        }
+        DatabaseManager.open();
+        ShutdownManager.addCleanUp(DatabaseManager::close);
+
         manager = new ServerManager(config.port);
+        ClientDataFilesManager.loadChats();
         manager.start();
     }
 }

@@ -49,13 +49,13 @@ public class ClientManager {
             SocketChannel channel = clientConnection.getChannel();
 
             StartClient.guiManager.appendLine("Connected to Server");
-            Logger.log("Server address is: " + channel.remoteAddress(), Logger.Level.INFO);
+            Logger.info("Server address is: " + channel.remoteAddress());
 
             HandshakePacket packet = new HandshakePacket();
             packet.version = StartClient.version.toString();
             packet.key = channelHandler.getEncryption().getPublicKey().getEncoded();
 
-            Logger.log("Sending packet:" + packet, Logger.Level.TRACE);
+            Logger.trace("Sending packet: " + packet);
             NetworkingUtility.sendPacket(packet, channel, null);
         });
         this.client.getConnection().addDisconnectedEventListener(evt -> ShutdownManager.shutdown(0));
@@ -64,7 +64,7 @@ public class ClientManager {
             TcpClientConnection clientConnection = (TcpClientConnection) channelHandler.getConnection();
             SocketChannel channel = clientConnection.getChannel();
 
-            Logger.log(evt.getCause(), Logger.Level.ERROR);
+            Logger.error(evt.getCause());
             channel.close();
         });
     }
@@ -138,13 +138,13 @@ public class ClientManager {
      */
     public void confirmIdentity(){
         identityConfirmed = true;
-        Logger.log("Identity now confirmed!", Logger.Level.INFO);
+        Logger.info("Identity now confirmed!");
         Timer timer = new Timer();
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 identityConfirmed = false;
-                Logger.log("Identity now unconfirmed!", Logger.Level.INFO);
+                Logger.info("Identity now unconfirmed!");
             }
         };
         timer.schedule(task, new Date(System.currentTimeMillis() + 300000)); //300000 ms == 5 min
@@ -162,7 +162,7 @@ public class ClientManager {
         RegisterPacket registerPacket = new RegisterPacket();
         registerPacket.name = name;
         registerPacket.password = loginData.password();
-        Logger.log("Sending RegisterPacket", Logger.Level.TRACE);
+        Logger.trace("Sending RegisterPacket");
 
         NetworkingUtility.sendPacket(registerPacket, channel, encryption);
         ConfigManager.saveClientConfig();

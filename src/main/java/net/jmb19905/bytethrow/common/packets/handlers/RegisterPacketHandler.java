@@ -13,9 +13,8 @@ import net.jmb19905.bytethrow.common.packets.RegisterPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
+import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
-import net.jmb19905.bytethrow.server.util.ClientFileManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -29,7 +28,7 @@ public class RegisterPacketHandler extends PacketHandler {
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
         RegisterPacket registerPacket = (RegisterPacket) packet;
         Logger.trace("Client is trying to registering");
-        if (UserDatabaseManager.createUser(registerPacket.name, registerPacket.password)) {
+        if (DatabaseManager.createUser(registerPacket.name, registerPacket.password)) {
             handleSuccessfulRegister(ctx.channel(), registerPacket, tcpServerHandler);
         } else {
             NetworkingUtility.sendFail(ctx.channel(), "register", "register_fail", "", tcpServerHandler);
@@ -57,8 +56,6 @@ public class RegisterPacketHandler extends PacketHandler {
         Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
         sendRegisterSuccess(channel, packet, handler); // confirms the register to the current client
-
-        ClientFileManager.createClientFile(manager.getClientName(handler));
     }
 
     /**

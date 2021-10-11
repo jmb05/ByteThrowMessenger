@@ -1,30 +1,18 @@
 package net.jmb19905.bytethrow.server.database;
 
 import net.jmb19905.util.Logger;
+import net.jmb19905.bytethrow.server.database.DatabaseManager.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 
-class UserDataBaseConnection implements Closeable {
+class UserTableHandler implements DatabaseConnection.ITableHandler {
 
-    private Connection connection = null;
+    private final Connection connection;
 
-    /**
-     * Opens a SQLite Database
-     * @param fileName the filename of the Database
-     */
-    protected UserDataBaseConnection(String fileName) {
+    public UserTableHandler(DatabaseConnection databaseConnection) {
+        this.connection = databaseConnection.connection;
         try {
-            File database = new File(fileName);
-            if (!database.exists()) {
-                database.getParentFile().mkdirs();
-                database.createNewFile();
-            }
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + fileName);
             try (Statement stmt = connection.createStatement()) {
                 Logger.trace("Opened database successfully");
                 String sql = "CREATE TABLE IF NOT EXISTS users("
@@ -35,8 +23,8 @@ class UserDataBaseConnection implements Closeable {
                         + ");";
                 stmt.executeUpdate(sql);
             }
-        } catch (ClassNotFoundException | SQLException | IOException ex) {
-            Logger.error(ex, "Error opening/creating database/table");
+        } catch (SQLException ex) {
+            Logger.error(ex, "Error opening table");
         }
     }
 
@@ -45,7 +33,7 @@ class UserDataBaseConnection implements Closeable {
      * @param user the userdata of the newly registered user
      * @return if the registration succeeded
      */
-    public boolean addUser(UserDatabaseManager.UserData user) {
+    public boolean addUser(UserData user) {
         try {
             assert connection != null;
             PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username,password,salt) VALUES (?,?,?);");
@@ -77,7 +65,7 @@ class UserDataBaseConnection implements Closeable {
      * @param username the username
      * @return the UserSession
      */
-    public UserDatabaseManager.UserData getUserByName(String username) {
+    public UserData getUserByName(String username) {
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT password,salt FROM users WHERE username = ?");
             statement.setString(1, username);
@@ -85,7 +73,7 @@ class UserDataBaseConnection implements Closeable {
             if (resultSet.next()) {
                 String password = resultSet.getString("password");
                 String salt = resultSet.getString("salt");
-                return new UserDatabaseManager.UserData(username, password, salt);
+                return new UserData(username, password, salt);
             }
         } catch (SQLException | NullPointerException e) {
             Logger.error(e,"Error retrieving user data from database");
@@ -104,14 +92,14 @@ class UserDataBaseConnection implements Closeable {
     public boolean createUser(String username, String password) {
         String salt = BCrypt.gensalt();
 
-        UserDatabaseManager.UserData userData = new UserDatabaseManager.UserData(username, BCrypt.hashpw(password, salt), salt);
+        UserData userData = new UserData(username, BCrypt.hashpw(password, salt), salt);
 
         return addUser(userData);
     }
 
     public boolean changeUserName(String oldUsername, String newUsername){
         if (hasUser(oldUsername)) {
-            int id = getId(oldUsername);
+            int id = getUserId(oldUsername);
             if(id >= 0) {
                 try {
                     PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET username = ? WHERE id = ?");
@@ -148,7 +136,7 @@ class UserDataBaseConnection implements Closeable {
         return false;
     }
 
-    private int getId(String username){
+    private int getUserId(String username){
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
             statement.setString(1, username);
@@ -164,17 +152,5 @@ class UserDataBaseConnection implements Closeable {
 
     public boolean hasUser(String username){
         return getUserByName(username) != null;
-    }
-
-    @Override
-    public void close() throws IOException{
-        if(connection != null){
-            try {
-                connection.close();
-                Logger.trace("Closed database successfully");
-            } catch (SQLException e) {
-                throw new IOException("Error closing DataBase Connection");
-            }
-        }
     }
 }

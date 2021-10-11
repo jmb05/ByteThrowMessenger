@@ -45,7 +45,7 @@ public class ChatsPacketHandler extends PacketHandler {
                 connectPacket.key = chat.encryption.getPublicKey().getEncoded();
 
                 NetworkingUtility.sendPacket(connectPacket, channelHandlerContext.channel(), handler.getEncryption());
-                Logger.log("Sent " + connectPacket, Logger.Level.TRACE);
+                Logger.trace("Sent " + connectPacket);
             }
         }
         StartClient.guiManager.setPeers(chatsPacket.names);

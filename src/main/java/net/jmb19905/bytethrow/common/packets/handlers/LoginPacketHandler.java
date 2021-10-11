@@ -13,9 +13,8 @@ import net.jmb19905.bytethrow.common.packets.LoginPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
+import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
-import net.jmb19905.bytethrow.server.util.ClientFileManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -30,10 +29,9 @@ public class LoginPacketHandler extends PacketHandler {
     @Override
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
         LoginPacket loginPacket = (LoginPacket) packet;
-        TcpServerConnection connection = (TcpServerConnection) tcpServerHandler.getConnection();
         String username = loginPacket.name;
         String password = loginPacket.password;
-        UserDatabaseManager.UserData userData = UserDatabaseManager.getUserDataByName(username);
+        DatabaseManager.UserData userData = DatabaseManager.getUserDataByName(username);
         if(userData != null){
             if(BCrypt.checkpw(password, userData.password())){
                 if(!loginPacket.confirmIdentity) {
@@ -70,11 +68,7 @@ public class LoginPacketHandler extends PacketHandler {
         Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
         sendLoginSuccess(channel, packet, handler); // confirms the login to the current client
-
-        ClientFileManager.createClientFile(manager.getClientName(handler));
     }
-
-
 
     /**
      * Sends LoginPacket to client to confirm login
@@ -88,8 +82,6 @@ public class LoginPacketHandler extends PacketHandler {
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
         NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
     }
-
-
 
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) throws IllegalSideException {

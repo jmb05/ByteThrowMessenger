@@ -26,7 +26,7 @@ public class ChatsRequestPacketHandler extends PacketHandler {
         chatsPacket.names = manager.getPeerNames(clientName);
 
         Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());
-        NetworkingUtility.sendPacket(packet, ctx.channel(), serverHandler.getEncryption());
+        NetworkingUtility.sendPacket(chatsPacket, ctx.channel(), serverHandler.getEncryption());
     }
 
     @Override

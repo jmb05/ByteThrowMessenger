@@ -11,9 +11,8 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -217,4 +216,22 @@ public class Util {
     public static String getUserHome(){
         return System.getProperty( "user.home" );
     }
+
+
+    public static List<String> sortStringsAlphabetically(List<String> list){
+        Comparator<String> comparator = (s, t1) -> {
+            int length = Math.min(s.length(), t1.length());
+            for(int i=0;i<length;i++) {
+                if (s.toLowerCase(Locale.ROOT).charAt(i) > t1.toLowerCase(Locale.ROOT).charAt(i)) {
+                    return 1;
+                }else if(s.toLowerCase(Locale.ROOT).charAt(i) < t1.toLowerCase(Locale.ROOT).charAt(i)) {
+                    return -1;
+                }
+            }
+            return 0;
+        };
+        list.sort(comparator);
+        return list;
+    }
+
 }

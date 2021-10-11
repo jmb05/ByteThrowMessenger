@@ -19,7 +19,7 @@ import java.util.*;
 public class ServerManager {
 
     private final Server server;
-    private final List<Chat> chats = new ArrayList<>();
+    private List<Chat> chats = new ArrayList<>();
     private final Map<String, TcpServerHandler> onlineClients = new HashMap<>();
 
     public ServerManager(int port){
@@ -29,13 +29,13 @@ public class ServerManager {
             TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
             TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
             SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
-            Logger.log("Client: \"" + channel.remoteAddress() + "\" is now connected", Logger.Level.INFO);
+            Logger.info("Client: \"" + channel.remoteAddress() + "\" is now connected");
         });
         connection.addDisconnectedEventListener(evt -> {
             TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
             TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
             SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
-            Logger.log("Client: \"" + channel.remoteAddress() + "\" is now disconnected", Logger.Level.INFO);
+            Logger.info("Client: \"" + channel.remoteAddress() + "\" is now disconnected");
             server.getConnection().getClientConnections().remove(serverHandler);
             if(!channelHandler.isClosed()) {
                 Optional<String> clientName = onlineClients.keySet()
@@ -68,6 +68,10 @@ public class ServerManager {
 
     public void removeOnlineClient(String client){
         onlineClients.remove(client);
+    }
+
+    public void setChats(List<Chat> chats){
+        this.chats = chats;
     }
 
     public void addChat(Chat chat){

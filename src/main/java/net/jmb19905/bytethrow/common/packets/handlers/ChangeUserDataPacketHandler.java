@@ -13,7 +13,7 @@ import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
+import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
@@ -43,7 +43,7 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
         switch (changeUserDataPacket.type) {
             case "username":
                 String newUsername = changeUserDataPacket.value;
-                if (UserDatabaseManager.changeUsername(oldName, newUsername)) {
+                if (DatabaseManager.changeUsername(oldName, newUsername)) {
                     manager.removeOnlineClient(oldName);
                     manager.addOnlineClient(newUsername, serverHandler);
                     manager.changeName(oldName, newUsername);
@@ -76,14 +76,14 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                 }
                 break;
             case "password":
-                if (UserDatabaseManager.changePassword(oldName, changeUserDataPacket.value)) {
+                if (DatabaseManager.changePassword(oldName, changeUserDataPacket.value)) {
                     sendPasswordSuccessPacket(ctx.channel(), encryption);
                 } else {
                     NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverHandler);
                 }
                 break;
             case "delete":
-                if (UserDatabaseManager.deleteUser(oldName)) {
+                if (DatabaseManager.deleteUser(oldName)) {
                     sendDeleteSuccessPacket(ctx.channel(), encryption);
                     serverConnection.markClosed();
                 } else {

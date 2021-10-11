@@ -11,9 +11,9 @@ import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.database.UserDatabaseManager;
+import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.networking.ServerManager;
-import net.jmb19905.bytethrow.server.util.ClientFileManager;
+import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
@@ -33,7 +33,7 @@ public class ConnectPacketHandler extends PacketHandler {
         String clientName = manager.getClientName(handler);
         if(!clientName.isBlank()) {
             String peerName = connectPacket.name;
-            if (UserDatabaseManager.hasUser(peerName)) {
+            if (DatabaseManager.hasUser(peerName)) {
                 if(manager.isClientOnline(peerName)) {
                     if(manager.getChats(peerName, clientName) == null) {
                         handleNewChatRequestServer(connectPacket, manager, handler, clientName, peerName);
@@ -47,7 +47,7 @@ public class ConnectPacketHandler extends PacketHandler {
                 NetworkingUtility.sendFail(channelHandlerContext.channel(), "connect:" + peerName, "no_such_user", peerName, handler);
             }
         }else {
-            Logger.log("Client is trying to communicate but isn't logged in!", Logger.Level.WARN);
+            Logger.warn("Client is trying to communicate but isn't logged in!");
         }
     }
 
@@ -59,13 +59,13 @@ public class ConnectPacketHandler extends PacketHandler {
             chat.setActive(true);
             manager.addChat(chat);
 
-            ClientFileManager.writeChatsToFile(clientName);
-            ClientFileManager.writeChatsToFile(peerName);
+            ClientDataFilesManager.writeChats(clientName);
+            ClientDataFilesManager.writeChats(peerName);
 
             packet.name = clientName;
             manager.sendPacketToPeer(peerName, packet, handler);
         }else {
-            Logger.log("What is this Client even doing with his life?", Logger.Level.WARN);
+            Logger.warn("What is this Client even doing with his life?");
         }
     }
 
@@ -107,7 +107,7 @@ public class ConnectPacketHandler extends PacketHandler {
                 handleConnectToExistingChatRequestClient(connectPacket, channelHandlerContext.channel(), handler.getEncryption(), peerName, encodedPeerKey);
             }
         } catch (InvalidKeySpecException e) {
-            Logger.log(e, Logger.Level.ERROR);
+            Logger.error(e);
             StartClient.guiManager.appendLine("Error connecting with: " + peerName);
         }
     }
@@ -157,16 +157,16 @@ public class ConnectPacketHandler extends PacketHandler {
             StartClient.guiManager.appendLine("Connection to " + peerName + " encrypted");
 
 
-            Logger.log("Starting E2E Encryption to: " + peerName, Logger.Level.INFO);
+            Logger.info("Starting E2E Encryption to: " + peerName);
             ConnectPacket replyPacket = new ConnectPacket();
             replyPacket.name = peerName;
             replyPacket.key = chat.encryption.getPublicKey().getEncoded();
             replyPacket.connectType = ConnectPacket.ConnectType.REPLY_CONNECT;
-            Logger.log("Sending packet ConnectPacket to " + peerName, Logger.Level.TRACE);
+            Logger.trace("Sending packet ConnectPacket to " + peerName);
 
             NetworkingUtility.sendPacket(replyPacket, channel, encryption);
         }else {
-            Logger.log("What is this Client even doing with his life?", Logger.Level.WARN);
+            Logger.warn("What is this Client even doing with his life?");
         }
     }
 }
