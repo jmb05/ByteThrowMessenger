@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.0-alpha5'
+version '1.0.0-alpha6-dev'
 
 repositories {
     mavenCentral()
@@ -13,20 +13,19 @@ repositories {
 
 configurations {
     provided
-    // Make compile extend from our provided configuration so that things added to bundled end up on the compile classpath
     implementation.extendsFrom(provided)
 }
 
 dependencies {
-    provided 'io.netty:netty-all:4.1.66.Final'
-    provided 'com.formdev:flatlaf:1.5'
-    provided 'org.xerial:sqlite-jdbc:3.36.0.1'
+    provided 'com.formdev:flatlaf:1.6'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
     provided 'org.mindrot:jbcrypt:0.4'
-    provided 'com.fasterxml.jackson.core:jackson-core:2.12.4'
-    provided 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
-    provided 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    provided 'com.fasterxml.jackson.core:jackson-core:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    provided 'io.netty:netty-all:4.1.68.Final'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 task clientJar(type: Jar) {
@@ -34,11 +33,12 @@ task clientJar(type: Jar) {
     archiveName "ByteThrowMessenger-${project.version}-Client.jar"
     baseName "ByteThrowMessenger-${project.version}-Client"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.client.ClientMain'
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.client.ClientMain'
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
-        exclude 'net/jmb19905/server**'
+        exclude 'net/jmb19905/bytethrow/server**'
+        exclude 'net/jmb19905/jmbnetty/server**'
         exclude 'version.properties'
         zipTree(it)
     }
@@ -50,11 +50,12 @@ task serverJar(type: Jar) {
     archiveName "ByteThrowMessenger-${project.version}-Server.jar"
     baseName "ByteThrowMessenger-${project.version}-Server"
     manifest {
-        attributes 'Main-Class': 'net.jmb19905.server.StartServer'
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.server.StartServer'
         attributes 'Implementation-Version': project.version
     }
     from configurations.provided.asFileTree.files.collect {
-        exclude 'net/jmb19905/client**'
+        exclude 'net/jmb19905/bytethrow/client**'
+        exclude 'net/jmb19905/jmbnetty/client**'
         exclude 'version.properties'
         zipTree(it)
     }
@@ -64,7 +65,7 @@ task serverJar(type: Jar) {
 launch4j {
     outfile = "ByteThrowMessenger-${project.version}-Client.exe"
     mainClassName = 'net.jmb19905.networking.client.ClientMain'
-    icon = "${projectDir}/build/libs/icon.ico"
+    icon = "${projectDir}/build/libs/btm.ico"
     copyright = 'Copyright © Jared Bennett, 2021'
     fileDescription = 'A Simple Messenger'
     textVersion = project.version
