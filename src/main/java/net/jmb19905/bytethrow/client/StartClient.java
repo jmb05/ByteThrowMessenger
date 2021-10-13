@@ -1,3 +1,21 @@
+/*
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package net.jmb19905.bytethrow.client;
 
 import net.jmb19905.bytethrow.client.util.Localisation;
@@ -11,6 +29,7 @@ import net.jmb19905.util.ShutdownManager;
 
 import java.net.ConnectException;
 import java.util.Arrays;
+import java.util.Locale;
 
 public class StartClient {
 
@@ -32,6 +51,10 @@ public class StartClient {
         }
 
         Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.INFO);
+
+        Arrays.stream(args).filter(s -> s.startsWith("Level=")).forEach(s -> Logger.setLevel(Logger.Level.valueOf(s.split("=")[1].toUpperCase(Locale.ROOT))));
+
+
         Logger.initLogFile(false);
 
         version = Util.loadVersion(isDevEnv);
@@ -61,6 +84,7 @@ public class StartClient {
         try {
             manager = new ClientManager(config.server, config.port);
             guiManager = new GUIManager();
+            guiManager.showLoading(true);
             manager.start();
         }catch (ConnectException e) {
             guiManager.showLocalisedError(Localisation.get("no_internet"));

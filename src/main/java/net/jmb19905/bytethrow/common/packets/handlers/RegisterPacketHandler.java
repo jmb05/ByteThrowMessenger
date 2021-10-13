@@ -1,6 +1,20 @@
 /*
- * Copyright (c) $ Jared M. Bennett today.year. Please refer to LICENSE.txt
- */
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 package net.jmb19905.bytethrow.common.packets.handlers;
 
@@ -28,7 +42,7 @@ public class RegisterPacketHandler extends PacketHandler {
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
         RegisterPacket registerPacket = (RegisterPacket) packet;
         Logger.trace("Client is trying to registering");
-        if (DatabaseManager.createUser(registerPacket.name, registerPacket.password)) {
+        if (DatabaseManager.createUser(registerPacket.username, registerPacket.password)) {
             handleSuccessfulRegister(ctx.channel(), registerPacket, tcpServerHandler);
         } else {
             NetworkingUtility.sendFail(ctx.channel(), "register", "register_fail", "", tcpServerHandler);
@@ -42,30 +56,27 @@ public class RegisterPacketHandler extends PacketHandler {
      */
     private void handleSuccessfulRegister(Channel channel, RegisterPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
-        if(manager.isClientOnline(packet.name)) {
+        if(manager.isClientOnline(packet.username)) {
             for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
-                if(manager.getClientName(otherHandler).equals(packet.name)){
+                if(manager.getClientName(otherHandler).equals(packet.username)){
                     SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
                     ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
-                    ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
-                    future.addListener(listener);
+                    future.addListener(future1 -> otherHandler.getConnection().markClosed());
                 }
             }
         }
-        manager.addOnlineClient(packet.name, handler);
+        manager.addOnlineClient(packet.username, handler);
         Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
-        sendRegisterSuccess(channel, packet, handler); // confirms the register to the current client
+        sendRegisterSuccess(channel, handler); // confirms the register to the current client
     }
 
     /**
      * Sends LoginPacket to client to confirm login
-     * @param loginPacket the LoginPacket
      */
-    private void sendRegisterSuccess(Channel channel, RegisterPacket loginPacket, TcpServerHandler handler) {
+    private void sendRegisterSuccess(Channel channel, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = "register";
-        loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
         NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
