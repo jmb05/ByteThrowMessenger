@@ -19,24 +19,20 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.jmbnetty.common.packets.registry.PacketType;
 
-import java.nio.charset.StandardCharsets;
+public abstract class IdentificationPacket extends Packet {
 
-public class ChatsRequestPacket extends Packet {
+    public String username;
+    public String password = " ";
 
-    private static final String ID = "chats_request";
-
-    public ChatsRequestPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    protected IdentificationPacket(PacketType<? extends Packet> type) {
+        super(type);
     }
 
     @Override
-    public void construct(String[] strings) {}
-
-    @Override
-    public byte[] deconstruct() {
-        return ID.getBytes(StandardCharsets.UTF_8);
+    public void construct(String[] data) {
+        username = data[1];
+        password = data[2];
     }
-
 }

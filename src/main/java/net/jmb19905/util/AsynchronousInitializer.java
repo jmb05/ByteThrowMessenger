@@ -16,27 +16,31 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package net.jmb19905.bytethrow.common.packets;
+package net.jmb19905.util;
 
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import java.util.concurrent.CountDownLatch;
 
-import java.nio.charset.StandardCharsets;
+public class AsynchronousInitializer<T> {
 
-public class ChatsRequestPacket extends Packet {
+    private final CountDownLatch cancelLatch = new CountDownLatch(1);
+    private T t = null;
 
-    private static final String ID = "chats_request";
-
-    public ChatsRequestPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    public void init(T initT){
+        t = initT;
+        cancel();
     }
 
-    @Override
-    public void construct(String[] strings) {}
+    public void cancel(){
+        cancelLatch.countDown();
+    }
 
-    @Override
-    public byte[] deconstruct() {
-        return ID.getBytes(StandardCharsets.UTF_8);
+    public T get() {
+        try {
+            cancelLatch.await();
+        } catch (InterruptedException e) {
+            Logger.error(e);
+        }
+        return t;
     }
 
 }

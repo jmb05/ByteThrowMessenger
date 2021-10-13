@@ -1,11 +1,28 @@
 /*
- * Copyright (c) $ Jared M. Bennett today.year. Please refer to LICENSE.txt
- */
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 package net.jmb19905.bytethrow.client;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.bytethrow.client.gui.LoginDialog;
+import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.util.UserDataUtility;
 import net.jmb19905.bytethrow.common.Chat;
 import net.jmb19905.bytethrow.common.packets.*;
@@ -154,18 +171,25 @@ public class ClientManager {
      * Sends a LoginPacket tagged as register with the client's name to the server
      */
     public void register(Channel channel, Encryption encryption){
-        GUIManager.LoginData loginData = StartClient.guiManager.showRegisterDialog(securePasswords, l -> login(channel, encryption));
+        RegisterDialog.RegisterData registerData = StartClient.guiManager.showRegisterDialog(() -> login(channel, encryption));
+        if(registerData != null) {
+            UserDataUtility.writeUserFile(registerData.username(), registerData.password(), new File("userdata/user.dat"));
+            sendRegisterData(channel, encryption, registerData.username(), registerData.password());
+        }
+        ConfigManager.saveClientConfig();
+    }
 
-        name = loginData.username();
+    private void sendRegisterData(Channel channel, Encryption encryption, String username, String password){
+        name = username;
         StartClient.guiManager.setUsername(name);
 
         RegisterPacket registerPacket = new RegisterPacket();
-        registerPacket.name = name;
-        registerPacket.password = loginData.password();
+        registerPacket.username = name;
+        registerPacket.password = password;
         Logger.trace("Sending RegisterPacket");
 
-        NetworkingUtility.sendPacket(registerPacket, channel, encryption);
-        ConfigManager.saveClientConfig();
+        ChannelFuture future = NetworkingUtility.sendPacket(registerPacket, channel, encryption);
+        future.addListener(l -> Logger.debug("RegisterPacket sent"));
     }
 
     /**
@@ -180,9 +204,11 @@ public class ClientManager {
             }
         }
 
-        GUIManager.LoginData loginData = StartClient.guiManager.showLoginDialog(l -> register(channel, encryption));
-        UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
-        sendLoginPacket(channel, encryption, loginData.username(), loginData.password());
+        LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(channel, encryption));
+        if(loginData != null) {
+            UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
+            sendLoginPacket(channel, encryption, loginData.username(), loginData.password());
+        }
         ConfigManager.saveClientConfig();
     }
 
@@ -191,11 +217,12 @@ public class ClientManager {
         StartClient.guiManager.setUsername(name);
 
         LoginPacket loginPacket = new LoginPacket();
-        loginPacket.name = name;
+        loginPacket.username = name;
         loginPacket.password = password;
         Logger.trace("Sending LoginPacket");
 
-        NetworkingUtility.sendPacket(loginPacket, channel, encryption);
+        ChannelFuture future = NetworkingUtility.sendPacket(loginPacket, channel, encryption);
+        future.addListener(l -> Logger.debug("LoginPacket sent"));
     }
 
     public boolean isIdentityConfirmed(){

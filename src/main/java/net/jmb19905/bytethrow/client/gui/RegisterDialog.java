@@ -1,10 +1,30 @@
+/*
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.client.GUIManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.util.Util;
+import net.jmb19905.util.AsynchronousInitializer;
 import net.jmb19905.util.Logger;
 
 import javax.swing.*;
@@ -14,8 +34,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 public class RegisterDialog extends JDialog {
+
     private ActionListener confirmListener = e -> {};
     private ActionListener loginListener = e -> {};
     private WindowAdapter cancelListener = new WindowAdapter() {};
@@ -81,6 +103,7 @@ public class RegisterDialog extends JDialog {
             }else if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
+                setVisible(false);
                 confirmAction.actionPerformed(l);
             }
         });
@@ -95,6 +118,7 @@ public class RegisterDialog extends JDialog {
             if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
+                setVisible(false);
                 confirmAction.actionPerformed(l);
             }
         });
@@ -110,6 +134,7 @@ public class RegisterDialog extends JDialog {
                 Logger.debug(new String(passwordInputField1.getPassword()));
                 Logger.debug(new String(passwordInputField2.getPassword()));
             }
+            setVisible(false);
             confirmAction.actionPerformed(l);
         });
         add(passwordInputField2, constraints);
@@ -120,7 +145,11 @@ public class RegisterDialog extends JDialog {
         rememberLogin.addActionListener(l -> StartClient.config.autoLogin = true);
         add(rememberLogin, constraints);
 
-        JButton confirm = new JButton(confirmAction);
+        JButton confirm = new JButton(Localisation.get("confirm"));
+        confirm.addActionListener(l -> {
+            setVisible(false);
+            confirmAction.actionPerformed(l);
+        });
         constraints.gridx = 0;
         constraints.gridy = 4;
         constraints.gridwidth = 1;
@@ -147,7 +176,7 @@ public class RegisterDialog extends JDialog {
         login.addActionListener(e -> {
             username = "";
             password = "";
-            dispose();
+            setVisible(false);
             loginListener.actionPerformed(e);
         });
         add(login, constraints);
@@ -176,8 +205,20 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public void showDialog(){
-        setVisible(true);
+    public RegisterDataResult showDialog(){
+        AsynchronousInitializer<RegisterDataResult> initializer = new AsynchronousInitializer<>();
+        SwingUtilities.invokeLater(() -> {
+            addConfirmButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CONFIRM)));
+            addCancelListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CANCEL));
+                }
+            });
+            addLoginButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.OTHER)));
+            setVisible(true);
+        });
+        return initializer.get();
     }
 
     private void showPasswordsDoNotMatchPane(){
@@ -187,5 +228,9 @@ public class RegisterDialog extends JDialog {
     private void showPasswordCriteriaNotMetPane(){
         JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
+
+    public static record RegisterData(String username, String password){}
+
+    public record RegisterDataResult(RegisterData registerData, GUIManager.ResultType resultType) {}
 
 }

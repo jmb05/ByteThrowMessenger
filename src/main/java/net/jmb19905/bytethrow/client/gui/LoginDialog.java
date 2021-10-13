@@ -1,9 +1,29 @@
+/*
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.client.GUIManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.util.Localisation;
+import net.jmb19905.util.AsynchronousInitializer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -137,7 +157,7 @@ public class LoginDialog extends JDialog {
     protected void registerActionPerformed(ActionEvent e) {
         username = "";
         password = "";
-        dispose();
+        setVisible(false);
         if(registerListener != null) {
             registerListener.actionPerformed(e);
         }
@@ -147,7 +167,7 @@ public class LoginDialog extends JDialog {
     protected void cancelActionPerformed(WindowEvent e) {
         username = "";
         password = "";
-        dispose();
+        setVisible(false);
         if(cancelListener != null) {
             cancelListener.windowClosing(e);
         }
@@ -157,7 +177,7 @@ public class LoginDialog extends JDialog {
     protected void confirmActionPerformed(ActionEvent e) {
         username = usernameInputField.getText();
         password = new String(passwordInputField.getPassword());
-        dispose();
+        setVisible(false);
         if(confirmListener != null) {
             confirmListener.actionPerformed(e);
         }
@@ -188,5 +208,25 @@ public class LoginDialog extends JDialog {
     public String getPassword() {
         return password;
     }
+
+    public LoginDataResult showDialog(){
+        AsynchronousInitializer<LoginDataResult> initializer = new AsynchronousInitializer<>();
+        SwingUtilities.invokeLater(() -> {
+            addConfirmButtonActionListener(evt -> initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.CONFIRM)));
+            addCancelListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.CANCEL));
+                }
+            });
+            addRegisterButtonActionListener(evt -> initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.OTHER)));
+            setVisible(true);
+        });
+        return initializer.get();
+    }
+
+    public static record LoginData(String username, String password){ }
+
+    public record LoginDataResult(LoginData loginData, GUIManager.ResultType resultType) {}
 
 }

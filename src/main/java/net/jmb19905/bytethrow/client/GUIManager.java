@@ -1,6 +1,20 @@
 /*
- * Copyright (c) $ Jared M. Bennett today.year. Please refer to LICENSE.txt
- */
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 package net.jmb19905.bytethrow.client;
 
@@ -10,181 +24,150 @@ import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
-import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class GUIManager {
 
     private final Window window;
+    private final LoginDialog loginDialog;
+    private final RegisterDialog registerDialog;
 
     public GUIManager(){
         this.window = new Window();
+        loginDialog = new LoginDialog("", "", "", true, window);
+        registerDialog = new RegisterDialog(true, window);
 
-        ShutdownManager.addCleanUp(() -> {
+        ShutdownManager.addCleanUp(() -> SwingUtilities.invokeLater(() -> {
             window.setEnabled(false);
             window.dispose();
-        });
+            loginDialog.dispose();
+            registerDialog.dispose();
+        }));
     }
 
     public void setUsername(String username){
-        window.getAccountSettings().setUsername(username);
+        SwingUtilities.invokeLater(() -> window.getAccountSettings().setUsername(username));
     }
 
     public void addPeer(String name){
-        window.addPeer(name);
+        SwingUtilities.invokeLater(() -> window.addPeer(name));
     }
 
     public void removePeer(String name){
-        window.removePeer(name);
+        SwingUtilities.invokeLater(() -> window.removePeer(name));
     }
 
     public void setPeers(String[] names){
-        window.setPeers(names);
+        SwingUtilities.invokeLater(() -> window.setPeers(names));
     }
 
     public void setPeerStatus(String peer, boolean status){
-        window.setPeerStatus(peer, status);
+        SwingUtilities.invokeLater(() -> window.setPeerStatus(peer, status));
     }
 
     public void appendLine(String line){
-        window.appendLine(line);
+        SwingUtilities.invokeLater(() -> window.appendLine(line));
     }
 
     public void append(String text, AttributeSet attributeSet){
-        window.append(text, attributeSet);
+        SwingUtilities.invokeLater(() -> window.append(text, attributeSet));
     }
 
     public void newLine(){
-        window.newLine();
+        SwingUtilities.invokeLater(window::newLine);
     }
 
     public void appendMessage(String sender, String message){
-        window.appendMessage(sender, message);
+        SwingUtilities.invokeLater(() -> window.appendMessage(sender, message));
     }
 
     public void showLocalisedError(String id){
-        showError(Localisation.get(id), "");
+        SwingUtilities.invokeLater(() -> showError(Localisation.get(id), ""));
     }
 
     public void showError(String message){
-        JOptionPane.showMessageDialog(window, message, "", JOptionPane.ERROR_MESSAGE);
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, "", JOptionPane.ERROR_MESSAGE));
     }
 
     public void showError(String message, String title){
-        JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE);
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE));
     }
 
     public void showLoading(boolean load){
-        window.showLoading(load);
+        SwingUtilities.invokeLater(() -> window.showLoading(load));
     }
 
     public void repaint(){
-        window.repaint();
-        SettingsWindow settingsWindow = window.getSettingsWindow();
-        if(settingsWindow != null){
-            settingsWindow.repaint();
-        }
-        AccountSettings accountSettings = window.getAccountSettings();
-        if(accountSettings != null){
-            accountSettings.repaint();
-        }
+        SwingUtilities.invokeLater(() -> {
+            window.repaint();
+            SettingsWindow settingsWindow = window.getSettingsWindow();
+            if(settingsWindow != null){
+                settingsWindow.repaint();
+            }
+            AccountSettings accountSettings = window.getAccountSettings();
+            if(accountSettings != null){
+                accountSettings.repaint();
+            }
+        });
     }
 
     public void pack(){
-        window.pack();
-        SettingsWindow settingsWindow = window.getSettingsWindow();
-        if(settingsWindow != null){
-            settingsWindow.pack();
-        }
-        AccountSettings accountSettings = window.getAccountSettings();
-        if(accountSettings != null){
-            accountSettings.pack();
-        }
+        SwingUtilities.invokeLater(() -> {
+            window.pack();
+            SettingsWindow settingsWindow = window.getSettingsWindow();
+            if (settingsWindow != null) {
+                settingsWindow.pack();
+            }
+            AccountSettings accountSettings = window.getAccountSettings();
+            if (accountSettings != null) {
+                accountSettings.pack();
+            }
+        });
     }
 
     public void updateComponentTree(){
-        SwingUtilities.updateComponentTreeUI(window);
-        SettingsWindow settingsWindow = window.getSettingsWindow();
-        if(settingsWindow != null){
-            SwingUtilities.updateComponentTreeUI(settingsWindow);
-        }
-        AccountSettings accountSettings = window.getAccountSettings();
-        if(accountSettings != null){
-            SwingUtilities.updateComponentTreeUI(accountSettings);
-        }
+        SwingUtilities.invokeLater(() -> {
+            SwingUtilities.updateComponentTreeUI(window);
+            SettingsWindow settingsWindow = window.getSettingsWindow();
+            if (settingsWindow != null) {
+                SwingUtilities.updateComponentTreeUI(settingsWindow);
+            }
+            AccountSettings accountSettings = window.getAccountSettings();
+            if (accountSettings != null) {
+                SwingUtilities.updateComponentTreeUI(accountSettings);
+            }
+        });
     }
 
-    public LoginData showLoginDialog(ActionListener registerListener){
-        Object lockObj = new Object();
-        AtomicReference<String> username = new AtomicReference<>();
-        AtomicReference<String> password = new AtomicReference<>();
-        LoginDialog loginDialog = new LoginDialog("", "", "", true, window);
-        loginDialog.addConfirmButtonActionListener(l -> {
-            synchronized (lockObj) {
-                username.set(loginDialog.getUsername());
-                password.set(loginDialog.getPassword());
-                lockObj.notifyAll();
-            }
-        });
-        loginDialog.addCancelListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                ShutdownManager.shutdown(0);
-            }
-        });
-        loginDialog.addRegisterButtonActionListener(registerListener);
-        loginDialog.setVisible(true);
-        synchronized (lockObj){
-            while (username.get() == null && password.get() == null){
-                try {
-                    lockObj.wait();
-                } catch (InterruptedException e) {
-                    Logger.error(e);
-                }
-            }
+    public LoginDialog.LoginData showLoginDialog(Runnable register){
+        LoginDialog.LoginDataResult result = loginDialog.showDialog();
+        if(result.resultType() == ResultType.CONFIRM){
+            return result.loginData();
+        }else if(result.resultType() == ResultType.CANCEL){
+            ShutdownManager.shutdown(0);
+        }else {
+            register.run();
         }
-        return new LoginData(username.get(), password.get());
+        return null;
     }
 
-    public LoginData showRegisterDialog(boolean securePasswords, ActionListener loginListener){
-        Object lockObj = new Object();
-        AtomicReference<String> username = new AtomicReference<>();
-        AtomicReference<String> password = new AtomicReference<>();
-        RegisterDialog registerDialog = new RegisterDialog(securePasswords, window);
-        registerDialog.addConfirmButtonActionListener(l -> {
-            synchronized (lockObj) {
-                username.set(registerDialog.getUsername());
-                password.set(registerDialog.getPassword());
-                lockObj.notifyAll();
-            }
-        });
-        registerDialog.addCancelListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                ShutdownManager.shutdown(0);
-            }
-        });
-        registerDialog.addLoginButtonActionListener(loginListener);
-        registerDialog.showDialog();
-        synchronized (lockObj){
-            while (username.get() == null && password.get() == null){
-                try {
-                    lockObj.wait();
-                } catch (InterruptedException e) {
-                    Logger.error(e);
-                }
-            }
+    public RegisterDialog.RegisterData showRegisterDialog(Runnable login){
+        RegisterDialog.RegisterDataResult result = registerDialog.showDialog();
+        if(result.resultType() == ResultType.CONFIRM){
+            return result.registerData();
+        }else if(result.resultType() == ResultType.CANCEL){
+            ShutdownManager.shutdown(0);
+        }else {
+            login.run();
         }
-        return new LoginData(username.get(), password.get());
+        return null;
     }
 
-    public static record LoginData(String username, String password){ }
+
+
+    public enum ResultType {CONFIRM, OTHER, CANCEL}
 
 }

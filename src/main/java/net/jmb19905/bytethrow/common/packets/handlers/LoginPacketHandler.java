@@ -1,6 +1,20 @@
 /*
- * Copyright (c) $ Jared M. Bennett today.year. Please refer to LICENSE.txt
- */
+    A simple Messenger written in Java
+    Copyright (C) 2020-2021  Jared M. Bennett
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 package net.jmb19905.bytethrow.common.packets.handlers;
 
@@ -29,7 +43,7 @@ public class LoginPacketHandler extends PacketHandler {
     @Override
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
         LoginPacket loginPacket = (LoginPacket) packet;
-        String username = loginPacket.name;
+        String username = loginPacket.username;
         String password = loginPacket.password;
         DatabaseManager.UserData userData = DatabaseManager.getUserDataByName(username);
         if(userData != null){
@@ -54,9 +68,9 @@ public class LoginPacketHandler extends PacketHandler {
      */
     private void handleSuccessfulLogin(Channel channel, LoginPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
-        if(manager.isClientOnline(packet.name)) {
+        if(manager.isClientOnline(packet.username)) {
             for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
-                if(manager.getClientName(otherHandler).equals(packet.name)){
+                if(manager.getClientName(otherHandler).equals(packet.username)){
                     SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
                     ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
                     ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
@@ -64,7 +78,7 @@ public class LoginPacketHandler extends PacketHandler {
                 }
             }
         }
-        manager.addOnlineClient(packet.name, handler);
+        manager.addOnlineClient(packet.username, handler);
         Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
 
         sendLoginSuccess(channel, packet, handler); // confirms the login to the current client
