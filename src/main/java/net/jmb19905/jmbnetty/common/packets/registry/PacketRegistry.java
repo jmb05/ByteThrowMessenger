@@ -19,30 +19,21 @@
 package net.jmb19905.jmbnetty.common.packets.registry;
 
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.util.registry.Registry;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PacketRegistry {
+public class PacketRegistry extends Registry {
 
     private static final PacketRegistry instance = new PacketRegistry();
 
-    private final Map<String, PacketType<? extends Packet>> packetTypes;
-
-    public PacketRegistry() {
-        this.packetTypes = new ConcurrentHashMap<>();
-    }
-
     public <P extends Packet> void register(String id, Class<P> packetClass, PacketHandler handler){
-        packetTypes.put(id, new PacketType<>(packetClass, handler));
+        register(id, new PacketType<>(packetClass, handler));
     }
 
     public PacketType<? extends Packet> getPacketType(String id) throws NullPointerException{
-        PacketType<? extends Packet> packetType = packetTypes.get(id);
-        if(packetType == null){
-            throw new NullPointerException("No Such PacketType");
-        }
-        return packetType;
+        return (PacketType<? extends Packet>) getRegistry(id);
     }
 
     public static PacketRegistry getInstance() {

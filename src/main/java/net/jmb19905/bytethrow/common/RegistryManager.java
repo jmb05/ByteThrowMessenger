@@ -20,11 +20,13 @@ package net.jmb19905.bytethrow.common;
 
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.packets.handlers.*;
+import net.jmb19905.bytethrow.server.commands.StopCommand;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.util.commands.registry.CommandRegistry;
 
 public class RegistryManager {
 
-    public static void registerAll(){
+    public static void registerPackets(){
         PacketRegistry.getInstance().register("change_user_data", ChangeUserDataPacket.class, new ChangeUserDataPacketHandler());
         PacketRegistry.getInstance().register("chats", ChatsPacket.class, new ChatsPacketHandler());
         PacketRegistry.getInstance().register("chats_request", ChatsRequestPacket.class, new ChatsRequestPacketHandler());
@@ -37,6 +39,10 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());
+    }
+
+    public static void registerCommands(){
+        CommandRegistry.getInstance().register("stop", StopCommand.class, new StopCommand.StopCommandHandler());
     }
 
 }

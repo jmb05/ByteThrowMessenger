@@ -60,7 +60,7 @@ public class StartClient {
             ConfigManager.saveClientConfig();
             Logger.close();
         });
-        RegistryManager.registerAll();
+        RegistryManager.registerPackets();
         ConfigManager.init();
         config = ConfigManager.loadClientConfig();
         Logger.info("Loaded configs from: " + ConfigManager.getConfigPath());

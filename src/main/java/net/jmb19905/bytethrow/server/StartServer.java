@@ -28,6 +28,7 @@ import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
+import net.jmb19905.util.commands.CommandManager;
 
 public class StartServer {
 
@@ -51,10 +52,14 @@ public class StartServer {
         if(isDevEnv){
             Logger.info("Is in DEV Environment");
         }
-        RegistryManager.registerAll();
+        RegistryManager.registerPackets();
+        RegistryManager.registerCommands();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
         Logger.info("Loaded configs");
         Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
+
+        CommandManager.init();
+        ShutdownManager.addCleanUp(CommandManager::close);
 
         DatabaseManager.open();
         ShutdownManager.addCleanUp(DatabaseManager::close);
