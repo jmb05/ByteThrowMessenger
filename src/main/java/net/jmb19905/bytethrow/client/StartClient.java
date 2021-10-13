@@ -29,7 +29,6 @@ import net.jmb19905.util.ShutdownManager;
 
 import java.net.ConnectException;
 import java.util.Arrays;
-import java.util.Locale;
 
 public class StartClient {
 
@@ -50,36 +49,25 @@ public class StartClient {
             isDevEnv = Arrays.asList(args).contains("dev");
         }
 
-        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.INFO);
-
-        Arrays.stream(args).filter(s -> s.startsWith("Level=")).forEach(s -> Logger.setLevel(Logger.Level.valueOf(s.split("=")[1].toUpperCase(Locale.ROOT))));
-
-
         Logger.initLogFile(false);
-
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Client - Version: " + version);
         if(isDevEnv){
             Logger.info("Is in DEV Environment");
         }
-
         ShutdownManager.addCleanUp(() -> {
             manager.stop();
             ConfigManager.saveClientConfig();
             Logger.close();
         });
-
         RegistryManager.registerAll();
-
         ConfigManager.init();
         config = ConfigManager.loadClientConfig();
         Logger.info("Loaded configs from: " + ConfigManager.getConfigPath());
-
+        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
         Localisation.reload();
-
         //On Some Linux Systems Java doesn't automatically use Anti-Aliasing
         System.setProperty("awt.useSystemAAFontSettings","on");
-
         ThemeManager.init();
         try {
             manager = new ClientManager(config.server, config.port);

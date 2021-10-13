@@ -29,10 +29,6 @@ import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Locale;
-
 public class StartServer {
 
     public static Version version;
@@ -48,8 +44,7 @@ public class StartServer {
      */
     public static void main(String[] args) {
         isDevEnv = args.length > 0;
-        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.INFO);
-        Arrays.stream(args).filter(s -> s.startsWith("Level=")).forEach(s -> Logger.setLevel(Logger.Level.valueOf(s.split("=")[1].toUpperCase(Locale.ROOT))));
+
         Logger.initLogFile(true);
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Server - Version: " + version);
@@ -59,6 +54,7 @@ public class StartServer {
         RegistryManager.registerAll();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
         Logger.info("Loaded configs");
+        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
 
         DatabaseManager.open();
         ShutdownManager.addCleanUp(DatabaseManager::close);

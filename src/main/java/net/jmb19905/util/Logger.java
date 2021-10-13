@@ -40,7 +40,7 @@ public class Logger {
     public static final String ANSI_CYAN = "\u001B\\[36m";
     public static final String ANSI_WHITE = "\u001b\\[37;1m";
 
-    private static Level level = Level.TRACE;
+    private static Level level = Level.INFO;
 
     private static boolean isOnNewLine = true;
 
@@ -243,7 +243,7 @@ public class Logger {
      * Tells the console the color of the message.
      */
     public enum Level{
-        TRACE(0, ANSIColors.getBlue()), INFO(1, ANSIColors.getWhite()), DEBUG(2,ANSIColors.getGreen()), WARN(3,ANSIColors.getYellow()), ERROR(4,ANSIColors.getRed()), FATAL(5,ANSIColors.getRed());
+        TRACE(0, ANSIColors.getBlue()), DEBUG(1,ANSIColors.getGreen()), INFO(2, ANSIColors.getWhite()), WARN(3,ANSIColors.getYellow()), ERROR(4,ANSIColors.getRed()), FATAL(5,ANSIColors.getRed());
 
         private final int tier;
         /**
