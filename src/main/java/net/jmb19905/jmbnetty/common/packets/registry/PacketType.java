@@ -20,11 +20,24 @@ package net.jmb19905.jmbnetty.common.packets.registry;
 
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.util.Logger;
+import net.jmb19905.util.registry.Type;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public record PacketType<P extends Packet>(Class<P> packetClass, PacketHandler handler) {
+public class PacketType<P extends Packet> extends Type<P> {
+
+    private final Class<P> packetClass;
+    private final PacketHandler handler;
+
+    public PacketType(Class<P> packetClass, PacketHandler handler){
+        this.packetClass = packetClass;
+        this.handler = handler;
+    }
+
+    public PacketHandler handler() {
+        return handler;
+    }
 
     public P newPacketInstance() throws NoSuchMethodException{
         try {
@@ -35,5 +48,4 @@ public record PacketType<P extends Packet>(Class<P> packetClass, PacketHandler h
             return null;
         }
     }
-
 }

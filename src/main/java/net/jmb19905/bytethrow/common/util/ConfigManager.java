@@ -145,6 +145,7 @@ public class ConfigManager {
         public int port = 10101;
         public boolean autoLogin = false;
         public String lang = "en_US";
+        public String loggerLevel = "INFO";
 
     }
 
@@ -155,6 +156,7 @@ public class ConfigManager {
 
         public int port = 10101;
         public boolean securePasswords = true;
+        public String loggerLevel = "INFO";
 
     }
 

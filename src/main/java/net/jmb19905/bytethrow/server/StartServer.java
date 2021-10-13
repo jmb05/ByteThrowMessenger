@@ -28,10 +28,7 @@ import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Locale;
+import net.jmb19905.util.commands.CommandManager;
 
 public class StartServer {
 
@@ -48,17 +45,27 @@ public class StartServer {
      */
     public static void main(String[] args) {
         isDevEnv = args.length > 0;
-        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.INFO);
-        Arrays.stream(args).filter(s -> s.startsWith("Level=")).forEach(s -> Logger.setLevel(Logger.Level.valueOf(s.split("=")[1].toUpperCase(Locale.ROOT))));
+
         Logger.initLogFile(true);
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Server - Version: " + version);
+        Logger.info("""
+                ByteThrow Messenger  Copyright (C) 2020-2021  Jared M. Bennett
+                This program comes with ABSOLUTELY NO WARRANTY; for details type `help --warranty'.
+                This is free software, and you are welcome to redistribute it
+                under certain conditions; type `help --conditions' for details.
+                """);
         if(isDevEnv){
             Logger.info("Is in DEV Environment");
         }
-        RegistryManager.registerAll();
+        RegistryManager.registerPackets();
+        RegistryManager.registerCommands();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
         Logger.info("Loaded configs");
+        Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
+
+        CommandManager.init();
+        ShutdownManager.addCleanUp(CommandManager::close);
 
         DatabaseManager.open();
         ShutdownManager.addCleanUp(DatabaseManager::close);
