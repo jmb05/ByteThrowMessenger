@@ -41,10 +41,4 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());
     }
-
-    public static void registerCommands(){
-        CommandRegistry.getInstance().register("stop", StopCommand.class, new StopCommand.StopCommandHandler());
-        CommandRegistry.getInstance().register("help", HelpCommand.class, new HelpCommand.HelpCommandHandler());
-    }
-
 }
