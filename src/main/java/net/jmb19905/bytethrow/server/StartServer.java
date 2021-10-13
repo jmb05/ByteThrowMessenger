@@ -59,7 +59,7 @@ public class StartServer {
             Logger.info("Is in DEV Environment");
         }
         RegistryManager.registerPackets();
-        RegistryManager.registerCommands();
+        ServerRegistryManager.registerCommands();
         config = ConfigManager.loadServerConfigFile("config/server_config.json");
         Logger.info("Loaded configs");
         Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
