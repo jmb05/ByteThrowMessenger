@@ -20,6 +20,7 @@ package net.jmb19905.bytethrow.common;
 
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.packets.handlers.*;
+import net.jmb19905.bytethrow.server.commands.HelpCommand;
 import net.jmb19905.bytethrow.server.commands.StopCommand;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 import net.jmb19905.util.commands.registry.CommandRegistry;
@@ -43,6 +44,7 @@ public class RegistryManager {
 
     public static void registerCommands(){
         CommandRegistry.getInstance().register("stop", StopCommand.class, new StopCommand.StopCommandHandler());
+        CommandRegistry.getInstance().register("help", HelpCommand.class, new HelpCommand.HelpCommandHandler());
     }
 
 }

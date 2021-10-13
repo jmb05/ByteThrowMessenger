@@ -49,6 +49,12 @@ public class StartServer {
         Logger.initLogFile(true);
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Server - Version: " + version);
+        Logger.info("""
+                ByteThrow Messenger  Copyright (C) 2020-2021  Jared M. Bennett
+                This program comes with ABSOLUTELY NO WARRANTY; for details type `help --warranty'.
+                This is free software, and you are welcome to redistribute it
+                under certain conditions; type `help --conditions' for details.
+                """);
         if(isDevEnv){
             Logger.info("Is in DEV Environment");
         }
