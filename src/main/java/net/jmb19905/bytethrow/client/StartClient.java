@@ -56,7 +56,6 @@ public class StartClient {
             Logger.info("Is in DEV Environment");
         }
         ShutdownManager.addCleanUp(() -> {
-            manager.stop();
             ConfigManager.saveClientConfig();
             Logger.close();
         });

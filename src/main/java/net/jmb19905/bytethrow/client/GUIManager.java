@@ -85,15 +85,15 @@ public class GUIManager {
     }
 
     public void showLocalisedError(String id){
-        SwingUtilities.invokeLater(() -> showError(Localisation.get(id), ""));
+        showError(Localisation.get(id), "");
     }
 
     public void showError(String message){
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, "", JOptionPane.ERROR_MESSAGE));
+        showError(message, "");
     }
 
     public void showError(String message, String title){
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE));
+        JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     public void showLoading(boolean load){

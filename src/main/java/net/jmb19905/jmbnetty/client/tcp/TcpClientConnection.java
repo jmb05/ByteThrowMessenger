@@ -19,6 +19,7 @@
 package net.jmb19905.jmbnetty.client.tcp;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -56,7 +57,8 @@ public class TcpClientConnection extends ClientConnection {
                         }
                     })
                     .option(ChannelOption.SO_KEEPALIVE, true);
-            b.connect(getRemoteAddress(), getPort()).sync().channel().closeFuture().await();
+            ChannelFuture closeFuture  = b.connect(getRemoteAddress(), getPort()).sync().channel().closeFuture();
+            closeFuture.await();
         } catch (InterruptedException e) {
             Logger.fatal(e, "Client closed in non-standard way -> crashing");
             ShutdownManager.shutdown(-1);

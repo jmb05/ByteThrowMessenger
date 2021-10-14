@@ -19,6 +19,7 @@
 package net.jmb19905.util;
 
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -210,8 +211,12 @@ public class Logger {
             try {
                 writer.close();
                 Path file = Paths.get("logs/latest_" + side + ".log");
+                Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH:mm").replace(" ", "_") + "_" + side + ".log");
+                if(Files.exists(newFile)){
+                    Files.delete(newFile);
+                }
                 if(Files.exists(file)) {
-                    Files.move(file, Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH:mm").replace(" ", "_") + "_" + side + ".log"));
+                    Files.move(file, newFile);
                 }
             } catch (IOException e) {
                 System.out.println(ANSIColors.getRed() + "Logger Error:");

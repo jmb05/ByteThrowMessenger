@@ -157,7 +157,7 @@ public class LoginDialog extends JDialog {
     protected void registerActionPerformed(ActionEvent e) {
         username = "";
         password = "";
-        setVisible(false);
+        hideDialog();
         if(registerListener != null) {
             registerListener.actionPerformed(e);
         }
@@ -167,7 +167,7 @@ public class LoginDialog extends JDialog {
     protected void cancelActionPerformed(WindowEvent e) {
         username = "";
         password = "";
-        setVisible(false);
+        hideDialog();
         if(cancelListener != null) {
             cancelListener.windowClosing(e);
         }
@@ -177,7 +177,7 @@ public class LoginDialog extends JDialog {
     protected void confirmActionPerformed(ActionEvent e) {
         username = usernameInputField.getText();
         password = new String(passwordInputField.getPassword());
-        setVisible(false);
+        hideDialog();
         if(confirmListener != null) {
             confirmListener.actionPerformed(e);
         }
@@ -223,6 +223,11 @@ public class LoginDialog extends JDialog {
             setVisible(true);
         });
         return initializer.get();
+    }
+
+    public void hideDialog(){
+        setVisible(false);
+        usernameInputField.requestFocus();
     }
 
     public static record LoginData(String username, String password){ }

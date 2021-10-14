@@ -103,7 +103,7 @@ public class RegisterDialog extends JDialog {
             }else if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
-                setVisible(false);
+                hideDialog();
                 confirmAction.actionPerformed(l);
             }
         });
@@ -118,7 +118,7 @@ public class RegisterDialog extends JDialog {
             if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
-                setVisible(false);
+                hideDialog();
                 confirmAction.actionPerformed(l);
             }
         });
@@ -134,7 +134,7 @@ public class RegisterDialog extends JDialog {
                 Logger.debug(new String(passwordInputField1.getPassword()));
                 Logger.debug(new String(passwordInputField2.getPassword()));
             }
-            setVisible(false);
+            hideDialog();
             confirmAction.actionPerformed(l);
         });
         add(passwordInputField2, constraints);
@@ -147,7 +147,7 @@ public class RegisterDialog extends JDialog {
 
         JButton confirm = new JButton(Localisation.get("confirm"));
         confirm.addActionListener(l -> {
-            setVisible(false);
+            hideDialog();
             confirmAction.actionPerformed(l);
         });
         constraints.gridx = 0;
@@ -176,7 +176,7 @@ public class RegisterDialog extends JDialog {
         login.addActionListener(e -> {
             username = "";
             password = "";
-            setVisible(false);
+            hideDialog();
             loginListener.actionPerformed(e);
         });
         add(login, constraints);
@@ -219,6 +219,11 @@ public class RegisterDialog extends JDialog {
             setVisible(true);
         });
         return initializer.get();
+    }
+
+    public void hideDialog(){
+        setVisible(false);
+        usernameInputField.requestFocus();
     }
 
     private void showPasswordsDoNotMatchPane(){

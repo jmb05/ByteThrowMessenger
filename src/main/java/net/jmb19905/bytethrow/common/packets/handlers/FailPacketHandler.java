@@ -52,7 +52,7 @@ public class FailPacketHandler extends PacketHandler {
         }
         StartClient.guiManager.showError(message);
         switch (cause.split(":")[0]) {
-            case "login" -> manager.login(ctx.channel(), encryption);
+            case "login" -> manager.relogin(ctx.channel(), encryption);
             case "register" -> manager.register(ctx.channel(), encryption);
             case "version" -> {
                 Logger.fatal("Version mismatch: " + failPacket.message);

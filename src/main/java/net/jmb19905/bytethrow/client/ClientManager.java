@@ -93,10 +93,6 @@ public class ClientManager {
         this.client.start();
     }
 
-    public void stop(){
-        this.client.stop();
-    }
-
     public void connectToPeer(String peerName){
         if(getChat(peerName) != null){
             JOptionPane.showMessageDialog(null, "You have already started a conversation with this peer.", "", JOptionPane.WARNING_MESSAGE);
@@ -204,6 +200,15 @@ public class ClientManager {
             }
         }
 
+        LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(channel, encryption));
+        if(loginData != null) {
+            UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
+            sendLoginPacket(channel, encryption, loginData.username(), loginData.password());
+        }
+        ConfigManager.saveClientConfig();
+    }
+
+    public void relogin(Channel channel, Encryption encryption){
         LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(channel, encryption));
         if(loginData != null) {
             UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
