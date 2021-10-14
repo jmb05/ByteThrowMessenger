@@ -18,17 +18,22 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ChatsPacket extends Packet {
 
     private static final String ID = "chats";
 
-    public String[] names;
     public boolean update = false;
+    public List<ChatData> chatData = new ArrayList<>();
 
     /**
      * Contains all the names of the peers of a client
@@ -39,20 +44,41 @@ public class ChatsPacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        names = new String[data.length - 2];
-        System.arraycopy(data, 1, names, 0, data.length - 2);
-        update = Boolean.parseBoolean(data[data.length - 1]);
+        update = Boolean.parseBoolean(data[1]);
+
+        String[] parts = Arrays.copyOfRange(data, 2, data.length);
+        Arrays.stream(parts).forEach(s -> chatData.add(ChatData.fromString(s)));
     }
 
     @Override
     public byte[] deconstruct() {
         StringBuilder namesBuilder = new StringBuilder();
-        for (String name : names) {
-            if(name != null) {
-                namesBuilder.append("|").append(name);
+        for (ChatData chatData : chatData) {
+            if(chatData != null) {
+                namesBuilder.append("|").append(chatData);
             }
         }
-        return (ID + namesBuilder + "|" + update).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + update + namesBuilder).getBytes(StandardCharsets.UTF_8);
+    }
+
+    public static record ChatData(String name, List<String> members) {
+        public ChatData(Chat chat) {
+            this(chat instanceof GroupChat ? ((GroupChat) chat).getName() : null, chat.getMembers());
+        }
+
+        public static ChatData fromString(String s){
+            String[] parts = s.split(",");
+            String name = parts[0];
+            String[] members = parts[1].replace("(", "").replace(")", "").split("\\\\");
+            return new ChatData(name, new ArrayList<>(List.of(members)));
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            members.forEach(s -> builder.append(s).append("\\"));
+            return name + ",(" + builder + ")";
+        }
     }
 
 }

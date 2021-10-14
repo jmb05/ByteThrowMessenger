@@ -21,10 +21,11 @@ package net.jmb19905.bytethrow.client;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.util.UserDataUtility;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.*;
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -38,7 +39,6 @@ import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
 import java.io.File;
-import java.net.ConnectException;
 import java.util.Timer;
 import java.util.*;
 
@@ -51,7 +51,7 @@ public class ClientManager {
 
     public String name = "";
 
-    public List<Chat> chats = new ArrayList<>();
+    private final List<Chat> chats = new ArrayList<>();
 
     public SuccessPacket confirmIdentityPacket = null;
     public boolean securePasswords = true;
@@ -89,12 +89,8 @@ public class ClientManager {
     /**
      * Starts the Client
      */
-    public void start() throws ConnectException {
+    public void start() {
         this.client.start();
-    }
-
-    public void stop(){
-        this.client.stop();
     }
 
     public void connectToPeer(String peerName){
@@ -103,36 +99,77 @@ public class ClientManager {
             return;
         }
 
-        Chat chat = createNewChat(peerName);
+        PeerChat chat = createNewChat(peerName);
 
         ConnectPacket connectPacket = new ConnectPacket();
         connectPacket.name = peerName;
-        connectPacket.key = chat.encryption.getPublicKey().getEncoded();
+        connectPacket.key = chat.getEncryption().getPublicKey().getEncoded();
         connectPacket.connectType = ConnectPacket.ConnectType.FIRST_CONNECT;
 
         NetworkingUtility.sendPacket(connectPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
         Logger.trace("Connecting with peer: " + peerName);
     }
 
-    private Chat createNewChat(String peerName) {
-        Chat chat = new Chat();
+    private PeerChat createNewChat(String peerName) {
+        PeerChat chat = new PeerChat(peerName);
         chat.initClient();
-        chat.addClient(name);
-        chat.addClient(peerName);
         chats.add(chat);
+        Logger.debug("Added Peer");
         StartClient.guiManager.addPeer(peerName);
         return chat;
+    }
+
+    public void addChat(PeerChat chat){
+        chats.add(chat);
+        Logger.debug("Added Peer");
+        StartClient.guiManager.addPeer(chat.getOther(name));
+    }
+
+    public void removeChat(PeerChat chat){
+        Logger.debug("Removing Chat: " + chat);
+        chats.remove(chat);
+        StartClient.guiManager.removePeer(chat.getOther(name));
+    }
+
+    public void addGroup(GroupChat chat){
+        if(chat.getName() == null){
+            Logger.warn("Cannot add Group! Has no name!");
+            return;
+        }
+        Logger.debug("Adding Group: " + chat.getName());
+        chats.add(chat);
+        StartClient.guiManager.addGroup(chat.getName());
+    }
+
+    public void removeGroup(GroupChat chat){
+        Logger.debug("Removing Group: " + chat.getName());
+        chats.remove(chat);
+        StartClient.guiManager.removeGroup(chat.getName());
+    }
+
+    public GroupChat getGroup(String name){
+        for(Chat chat : chats){
+            Logger.debug(chat.toString());
+        }
+        return (GroupChat) chats.stream().filter(chat -> chat instanceof GroupChat).filter(chat -> ((GroupChat) chat).getName().equals(name)).findFirst().orElse(null);
+    }
+
+    public void clearChats(){
+        Logger.warn("Clearing Chats");
+        chats.clear();
     }
 
     /**
      * Sends a message to the peer
      * @param message the message as String
      */
-    public boolean sendMessage(String recipient, String message){
-        MessagePacket packet = new MessagePacket();
-        Chat chat = getChat(recipient);
-        if(chat != null && chat.isActive()) {
-            packet.message = new Chat.Message(name, recipient, EncryptionUtility.encryptString(chat.encryption, message));
+    public boolean sendPeerMessage(String recipient, String message){
+        PeerMessagePacket packet = new PeerMessagePacket();
+        PeerChat chat = getChat(recipient);
+        Logger.debug("Trying to send to Chat: " + chat + " from: " + recipient);
+        if(chat != null) {
+            String encryptedMessage = EncryptionUtility.encryptString(chat.getEncryption(), message);
+            packet.message = new PeerMessage(name, recipient, encryptedMessage);
             NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
             Logger.trace("Sent Message: " + message);
             return true;
@@ -140,13 +177,25 @@ public class ClientManager {
         return false;
     }
 
-    public Chat getChat(String peerName){
-        for(Chat chat : chats){
-            if(chat.getClients().contains(peerName)){
-                return chat;
-            }
+    /**
+     * Sends a message to the group
+     * @param message the message as String
+     */
+    public boolean sendGroupMessage(String groupName, String message){
+        GroupMessagePacket packet = new GroupMessagePacket();
+        GroupChat chat = getGroup(groupName);
+        Logger.debug("Group: " + groupName + " = " + chat);
+        if(chat != null){
+            packet.message = new GroupMessage(name, groupName, message);
+            NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
+            Logger.trace("Sent Message: " + message);
+            return true;
         }
-        return null;
+        return false;
+    }
+
+    public PeerChat getChat(String peerName){
+        return (PeerChat) chats.stream().filter(chat -> chat instanceof PeerChat).filter(chat -> chat.getMembers().contains(peerName)).findFirst().orElse(null);
     }
 
     /**
@@ -212,6 +261,15 @@ public class ClientManager {
         ConfigManager.saveClientConfig();
     }
 
+    public void relogin(Channel channel, Encryption encryption){
+        LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(channel, encryption));
+        if(loginData != null) {
+            UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
+            sendLoginPacket(channel, encryption, loginData.username(), loginData.password());
+        }
+        ConfigManager.saveClientConfig();
+    }
+
     private void sendLoginPacket(Channel channel, Encryption encryption, String username, String password){
         name = username;
         StartClient.guiManager.setUsername(name);
@@ -223,6 +281,27 @@ public class ClientManager {
 
         ChannelFuture future = NetworkingUtility.sendPacket(loginPacket, channel, encryption);
         future.addListener(l -> Logger.debug("LoginPacket sent"));
+    }
+
+    public void createGroup(){
+        Thread thread = new Thread(() -> {
+            CreateGroupDialog.CreateGroupData data = StartClient.guiManager.showCreateGroup();
+            if(data != null) {
+                CreateGroupPacket createGroupPacket = new CreateGroupPacket();
+                createGroupPacket.groupName = data.groupName();
+                NetworkingUtility.sendPacket(createGroupPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
+                Logger.debug("Sent Packet: " + createGroupPacket);
+
+                Arrays.stream(data.members()).filter(member -> !member.isBlank()).filter(member -> !member.equals(name)).forEach(member -> {
+                    AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
+                    addGroupMemberPacket.groupName = data.groupName();
+                    addGroupMemberPacket.member = member;
+                    NetworkingUtility.sendPacket(addGroupMemberPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
+                    Logger.debug("Sent Packet: " + addGroupMemberPacket);
+                });
+            }
+        });
+        thread.start();
     }
 
     public boolean isIdentityConfirmed(){

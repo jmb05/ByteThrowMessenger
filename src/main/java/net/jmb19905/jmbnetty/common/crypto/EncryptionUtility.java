@@ -72,7 +72,7 @@ public class EncryptionUtility {
      * @return the encrypted String
      */
     public static String encryptString(Encryption encryption, String value) {
-        return new String(encryption.encrypt(value.getBytes(StandardCharsets.UTF_8)));
+        return new String(encryption.encrypt(value.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 
     /**
@@ -82,7 +82,7 @@ public class EncryptionUtility {
      * @return the decrypted String
      */
     public static String decryptString(Encryption encryption, String value) {
-        return new String(encryption.decrypt(value.getBytes(StandardCharsets.UTF_8)));
+        return new String(encryption.decrypt(value.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 
     /**

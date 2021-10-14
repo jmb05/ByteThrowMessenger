@@ -20,7 +20,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -42,26 +43,34 @@ public class ChatsPacketHandler extends PacketHandler {
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler handler) {
         ChatsPacket chatsPacket = (ChatsPacket) packet;
         if(chatsPacket.update) {
-            StartClient.manager.chats.clear();
+            StartClient.manager.clearChats();
         }
-        for(String name : chatsPacket.names){
-            Chat chat = new Chat();
-            chat.initClient();
-            chat.addClient(StartClient.manager.name);
-            chat.addClient(name);
+        for(ChatsPacket.ChatData chatData : chatsPacket.chatData){
+            if (chatData.name().equals("null")) {
+                String peerName = chatData.members().stream().filter(s -> !s.equals(StartClient.manager.name)).findFirst().orElse(null);
 
-            StartClient.manager.chats.add(chat);
+                PeerChat chat = new PeerChat(peerName);
+                chatData.members().forEach(chat::addClient);
 
-            if(!chatsPacket.update) {
-                ConnectPacket connectPacket = new ConnectPacket();
-                connectPacket.connectType = ConnectPacket.ConnectType.FIRST_RECONNECT;
-                connectPacket.name = name;
-                connectPacket.key = chat.encryption.getPublicKey().getEncoded();
+                StartClient.manager.addChat(chat);
 
-                NetworkingUtility.sendPacket(connectPacket, channelHandlerContext.channel(), handler.getEncryption());
-                Logger.trace("Sent " + connectPacket);
+                chat.initClient();
+
+                if (!chatsPacket.update) {
+                    ConnectPacket connectPacket = new ConnectPacket();
+                    connectPacket.connectType = ConnectPacket.ConnectType.FIRST_RECONNECT;
+                    connectPacket.name = peerName;
+                    connectPacket.key = chat.getEncryption().getPublicKey().getEncoded();
+
+                    NetworkingUtility.sendPacket(connectPacket, channelHandlerContext.channel(), handler.getEncryption());
+                    Logger.trace("Sent " + connectPacket);
+                }
+            }else {
+                GroupChat chat = new GroupChat(chatData.name());
+                chatData.members().forEach(chat::addClient);
+
+                StartClient.manager.addGroup(chat);
             }
         }
-        StartClient.guiManager.setPeers(chatsPacket.names);
     }
 }

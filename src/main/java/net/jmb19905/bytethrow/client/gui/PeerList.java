@@ -18,6 +18,9 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.common.util.ResourceUtility;
+import net.jmb19905.util.Logger;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;
@@ -41,19 +44,23 @@ public class PeerList extends JList<String> {
      * @param names the names to be put into the list
      */
     public void setPeers(String[] names){
-        listModel.removeAllElements();
+        listModel.elements().asIterator().forEachRemaining(s -> {
+            if(s.startsWith("Peer: ")){
+                listModel.removeElement(s);
+            }
+        });
         for(String name : names) {
-            listModel.addElement(name + " ✗");
+            listModel.addElement("Peer: " + name + " x");
         }
     }
 
     public void addPeer(String peerName){
-        listModel.addElement(peerName + " ✗");
+        listModel.addElement("Peer: " + peerName + " x");
     }
 
     public void removePeer(String peerName){
-        listModel.removeElement(peerName + " ✗");
-        listModel.removeElement(peerName + " ✓");
+        listModel.removeElement("Peer: " + peerName + " x");
+        listModel.removeElement("Peer: " + peerName + " v");
     }
 
     public void setPeerStatus(String name, boolean status){
@@ -61,14 +68,33 @@ public class PeerList extends JList<String> {
             int index;
             String modifiedName;
             if (status) {
-                modifiedName = name + " ✓";
-                index = listModel.indexOf(name + " ✗");
+                modifiedName = name + " v";
+                index = listModel.indexOf("Peer: " + name + " x");
             } else {
-                modifiedName = name + " ✗";
-                index = listModel.indexOf(name + " ✓");
+                modifiedName = name + " x";
+                index = listModel.indexOf("Peer: " + name + " v");
             }
-            listModel.set(index, modifiedName);
+            listModel.set(index, "Peer: " + modifiedName);
         }catch (IndexOutOfBoundsException ignored){}
+    }
+
+    public void setGroups(String[] names){
+        listModel.elements().asIterator().forEachRemaining(s -> {
+            if(s.startsWith("Group: ")){
+                listModel.removeElement(s);
+            }
+        });
+        for(String name : names) {
+            listModel.addElement("Group: " + name + " !");
+        }
+    }
+
+    public void addGroup(String name){
+        listModel.addElement("Group: " + name + " !");
+    }
+
+    public void removeGroup(String name){
+        listModel.removeElement("Group: " + name + " !");
     }
 
     @Override
@@ -77,14 +103,34 @@ public class PeerList extends JList<String> {
         if(selectedValue == null){
             return null;
         }
-        return selectedValue.replace("✓", "").replace("✗", "").strip();
+        return selectedValue.replace(" v", "").replace(" x", "").replace(" !", "").strip();
     }
 
     private static class PeerListRenderer extends JLabel implements ListCellRenderer<String>{
 
+        private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
+        private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
+        private static final ImageIcon warningIcon = new ImageIcon(ResourceUtility.getImageResource("icons/warning.png"));
+
         @Override
         public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-            setText(value);
+            String[] parts = value.split(" ");
+            boolean group = parts[0].equals("Group:");
+
+            setText(" " + (group ? parts[1].replaceAll("_", " ") : parts[1]));
+
+
+            setHorizontalTextPosition(JLabel.LEFT);
+
+            switch (parts[2]) {
+                case "v" -> setIcon(tickIcon);
+                case "x" -> setIcon(crossIcon);
+                case "!" -> {
+                    setIcon(warningIcon);
+                    setToolTipText("Groups are not yet encrypted!");
+                }
+            }
+
             setEnabled(list.isEnabled());
             setOpaque(true);
             if(isSelected){

@@ -19,6 +19,7 @@
 package net.jmb19905.jmbnetty.common.packets.registry;
 
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.util.Logger;
 import net.jmb19905.util.registry.Registry;
 
 import java.util.Map;
@@ -32,8 +33,13 @@ public class PacketRegistry extends Registry {
         register(id, new PacketType<>(packetClass, handler));
     }
 
-    public PacketType<? extends Packet> getPacketType(String id) throws NullPointerException{
-        return (PacketType<? extends Packet>) getRegistry(id);
+    public PacketType<? extends Packet> getPacketType(String id) {
+        try {
+            return (PacketType<? extends Packet>) getRegistry(id);
+        }catch (NullPointerException e){
+            Logger.error("No such PacketType registered");
+            return null;
+        }
     }
 
     public static PacketRegistry getInstance() {

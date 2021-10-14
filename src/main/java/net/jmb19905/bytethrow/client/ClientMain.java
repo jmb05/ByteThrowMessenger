@@ -19,16 +19,23 @@
 package net.jmb19905.bytethrow.client;
 
 import net.jmb19905.bytethrow.client.util.GenClientData;
+import net.jmb19905.util.Logger;
+
+import java.net.ConnectException;
 
 public class ClientMain {
 
     public static void main(String[] args) {
-        if(args.length == 0){
-            StartClient.main(args);
-        }else if(args[0].equals("genData")){
-            GenClientData.main(args);
-        }else {
-            StartClient.main(args);
+        try {
+            if (args.length == 0) {
+                StartClient.main(args);
+            } else if (args[0].equals("genData")) {
+                GenClientData.main(args);
+            } else {
+                StartClient.main(args);
+            }
+        }catch (Exception e){
+            Logger.error("caughr");
         }
     }
 

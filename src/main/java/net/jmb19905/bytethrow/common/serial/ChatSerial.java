@@ -18,7 +18,9 @@
 
 package net.jmb19905.bytethrow.common.serial;
 
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.util.Logger;
 
 import java.io.*;
@@ -26,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,15 +42,28 @@ public class ChatSerial {
         } catch (IOException e) {
             Logger.error(e);
         }
+        Logger.debug("Loaded Chats: " + chats);
         return chats;
     }
 
     public static Chat read(UUID uuid) {
         Path chatFilePath = Paths.get("chats/" + uuid.toString());
         if(Files.exists(chatFilePath)) {
-            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(chatFilePath.toFile()))) {
-                return (Chat) inputStream.readObject();
-            } catch (IOException | ClassNotFoundException e) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(chatFilePath.toFile()))) {
+                String name = reader.readLine();
+                String[] clients = reader.readLine().split(",");
+
+                Chat chat;
+
+                if(!name.equals("null")){
+                    chat = new GroupChat(name);
+                    chat.setMembers(new ArrayList<>(Arrays.asList(clients)));
+                }else {
+                    chat = new PeerChat(clients[0], clients[1]);
+                }
+
+                return chat;
+            } catch (IOException e) {
                 Logger.error(e);
             }
         }
@@ -55,18 +71,32 @@ public class ChatSerial {
     }
 
     public static void write(Chat chat) {
+        Logger.debug("Wrote Chat: " + chat.getUniqueId());
         Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
         try {
             if(!Files.exists(chatFilePath)){
                 Files.createDirectories(chatFilePath.getParent());
                 Files.createFile(chatFilePath);
             }
-            try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(chatFilePath.toFile()))) {
-                outputStream.writeObject(chat);
-                outputStream.flush();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(chatFilePath.toFile()))) {
+                writer.write(chat instanceof PeerChat ? "null" : ((GroupChat) chat).getName());
+                writer.newLine();
+                StringBuilder members = new StringBuilder();
+                chat.getMembers().forEach(member -> members.append(member).append(","));
+                writer.write(members.toString());
+                writer.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void deleteChatFile(Chat chat){
+        Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
+        try {
+            Files.delete(chatFilePath);
+        } catch (IOException e) {
+            Logger.error(e);
         }
     }
 }

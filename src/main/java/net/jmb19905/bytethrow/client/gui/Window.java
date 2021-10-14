@@ -103,9 +103,16 @@ public class Window extends JFrame {
         peerPanelConstraints.gridy = 1;
         peerPanelConstraints.weightx = 0;
         peerPanelConstraints.weighty = 0;
-        peerPanelConstraints.insets = new Insets(5,0,5,0);
+        peerPanelConstraints.insets = new Insets(5,0,0,0);
         peerPanel.add(addPeer, peerPanelConstraints);
 
+        JButton createGroup = new JButton(Localisation.get("create_group"));
+        createGroup.addActionListener(l -> StartClient.manager.createGroup());
+        peerPanelConstraints.gridy = 2;
+        peerPanelConstraints.weightx = 0;
+        peerPanelConstraints.weighty = 0;
+        peerPanelConstraints.insets = new Insets(0,0,5,0);
+        peerPanel.add(createGroup, peerPanelConstraints);
 
         JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, peerPanel, messagingPanel);
         pane.setDividerSize(0);
@@ -273,6 +280,14 @@ public class Window extends JFrame {
         list.setPeerStatus(name, status);
     }
 
+    public void addGroup(String name) {
+        list.addGroup(name);
+    }
+
+    public void removeGroup(String name) {
+        list.removeGroup(name);
+    }
+
     public static SimpleAttributeSet getBold() {
         return bold;
     }
@@ -284,8 +299,13 @@ public class Window extends JFrame {
     /**
      * @return the current selected peer name
      */
-    public String getSelectedPeer(){
-        return list.getSelectedValue();
+    public String getSelected(){
+        String selected = list.getSelectedValue();
+        return selected.replace("Peer: ", "").replace("Group: ", "");
+    }
+
+    public boolean isSelectedGroup(){
+        return list.getSelectedValue().startsWith("Group: ");
     }
 
     public SettingsWindow getSettingsWindow() {
@@ -340,21 +360,36 @@ public class Window extends JFrame {
     }
 
     private void send(){
-        if(StartClient.manager != null){
-            if(list.getSelectedValue() != null) {
-                String text = field.getText();
-                if(StartClient.manager.sendMessage(getSelectedPeer(), text)) {
-                    appendMessage("You", text);
-                    field.setText("");
-                }else {
-                    JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelectedPeer()));
-                }
-            }else {
-                appendLine(Localisation.get("select_peer"));
-            }
-        } else {
+        if(StartClient.manager == null) {
             appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
+            return;
+        }if(list.getSelectedValue() == null){
+            appendLine(Localisation.get("select_peer"));
+            return;
+        }
+        String text = field.getText();
+        if(isSelectedGroup()){
+            sendToGroup(text);
+        }else {
+            sendToPeer(text);
         }
     }
 
+    private void sendToGroup(String text){
+        if (StartClient.manager.sendGroupMessage(getSelected(), text)) {
+            appendMessage((getSelected() + " - ") + "You", text);
+            field.setText("");
+        } else {
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
+        }
+    }
+
+    private void sendToPeer(String text){
+        if (StartClient.manager.sendPeerMessage(getSelected(), text)) {
+            appendMessage("You " + Localisation.get("to") + " " + getSelected(), text);
+            field.setText("");
+        } else {
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
+        }
+    }
 }

@@ -18,33 +18,50 @@
 
 package net.jmb19905.bytethrow.client;
 
+import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
+import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.text.AttributeSet;
+import java.awt.*;
+import java.util.Enumeration;
 
 public class GUIManager {
 
     private final Window window;
     private final LoginDialog loginDialog;
     private final RegisterDialog registerDialog;
+    private final CreateGroupDialog createGroupDialog;
 
     public GUIManager(){
+        Enumeration<Object> keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get (key);
+            if (value instanceof javax.swing.plaf.FontUIResource) {
+                UIManager.put(key, new FontUIResource("Noto Sans", Font.PLAIN, 14));
+            }
+        }
+
         this.window = new Window();
-        loginDialog = new LoginDialog("", "", "", true, window);
+        loginDialog = new LoginDialog(true, window);
         registerDialog = new RegisterDialog(true, window);
+        createGroupDialog = new CreateGroupDialog(window);
 
         ShutdownManager.addCleanUp(() -> SwingUtilities.invokeLater(() -> {
             window.setEnabled(false);
             window.dispose();
             loginDialog.dispose();
             registerDialog.dispose();
+            createGroupDialog.dispose();
         }));
     }
 
@@ -68,6 +85,14 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.setPeerStatus(peer, status));
     }
 
+    public void addGroup(String name){
+        SwingUtilities.invokeLater(() -> window.addGroup(name));
+    }
+
+    public void removeGroup(String name) {
+        SwingUtilities.invokeLater(() -> window.removeGroup(name));
+    }
+
     public void appendLine(String line){
         SwingUtilities.invokeLater(() -> window.appendLine(line));
     }
@@ -85,15 +110,15 @@ public class GUIManager {
     }
 
     public void showLocalisedError(String id){
-        SwingUtilities.invokeLater(() -> showError(Localisation.get(id), ""));
+        showError(Localisation.get(id), "");
     }
 
     public void showError(String message){
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, "", JOptionPane.ERROR_MESSAGE));
+        showError(message, "");
     }
 
     public void showError(String message, String title){
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE));
+        JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     public void showLoading(boolean load){
@@ -143,9 +168,9 @@ public class GUIManager {
     }
 
     public LoginDialog.LoginData showLoginDialog(Runnable register){
-        LoginDialog.LoginDataResult result = loginDialog.showDialog();
+        LoginDialog.LoginData result = loginDialog.showDialog();
         if(result.resultType() == ResultType.CONFIRM){
-            return result.loginData();
+            return result;
         }else if(result.resultType() == ResultType.CANCEL){
             ShutdownManager.shutdown(0);
         }else {
@@ -155,9 +180,9 @@ public class GUIManager {
     }
 
     public RegisterDialog.RegisterData showRegisterDialog(Runnable login){
-        RegisterDialog.RegisterDataResult result = registerDialog.showDialog();
+        RegisterDialog.RegisterData result = registerDialog.showDialog();
         if(result.resultType() == ResultType.CONFIRM){
-            return result.registerData();
+            return result;
         }else if(result.resultType() == ResultType.CANCEL){
             ShutdownManager.shutdown(0);
         }else {
@@ -166,7 +191,13 @@ public class GUIManager {
         return null;
     }
 
-
+    public CreateGroupDialog.CreateGroupData showCreateGroup(){
+        CreateGroupDialog.CreateGroupData result = createGroupDialog.showDialog();
+        if(!result.cancel()){
+            return result;
+        }
+        return null;
+    }
 
     public enum ResultType {CONFIRM, OTHER, CANCEL}
 

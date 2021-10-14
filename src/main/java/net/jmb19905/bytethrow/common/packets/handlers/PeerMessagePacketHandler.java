@@ -20,11 +20,12 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.Chat;
-import net.jmb19905.bytethrow.common.packets.MessagePacket;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
+import net.jmb19905.bytethrow.common.chat.PeerMessage;
+import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.networking.ServerManager;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -32,21 +33,20 @@ import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class MessagePacketHandler extends PacketHandler {
+public class PeerMessagePacketHandler extends PacketHandler {
 
     @Override
     public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
-        MessagePacket messagePacket = (MessagePacket) packet;
-        Chat.Message message = messagePacket.message;
+        PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
+        PeerMessage message = messagePacket.message;
         ServerManager manager = StartServer.manager;
         String name = manager.getClientName(serverHandler);
-        if(name.equals(message.sender())) {
-            String peerName = message.receiver();
+        if(name.equals(message.getSender())) {
             if (!name.isBlank()) {
-                Chat chat = manager.getChats(name, peerName);
+                String peerName = message.getReceiver();
+                PeerChat chat = manager.getChat(name, peerName);
                 if (chat != null) {
                     if (chat.isActive()) {
-                        chat.addMessage(message);
                         manager.sendPacketToPeer(peerName, messagePacket, serverHandler);
                         Logger.trace("Sent message to recipient: " + peerName);
                     } else {
@@ -65,18 +65,16 @@ public class MessagePacketHandler extends PacketHandler {
 
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
-        MessagePacket messagePacket = (MessagePacket) packet;
-        Chat.Message message = messagePacket.message;
-        String sender = message.sender();
-        String receiver = message.receiver();
-        String encryptedMessage = message.message();
+        PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
+        PeerMessage message = messagePacket.message;
+        String sender = message.getSender();
+        String receiver = message.getReceiver();
+        String encryptedMessage = message.getMessage();
         if(receiver.equals(StartClient.manager.name)) {
-            Chat chat = StartClient.manager.getChat(sender);
+            PeerChat chat = StartClient.manager.getChat(sender);
             if (chat != null) {
-                String decryptedMessage = EncryptionUtility.decryptString(chat.encryption, encryptedMessage);
-                chat.addMessage(new Chat.Message(sender, receiver, decryptedMessage));
+                String decryptedMessage = chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage;
                 StartClient.guiManager.appendMessage(sender, decryptedMessage);
-                //Notify.create().title("ByteThrow Messenger").text("[" + sender + "] " + decryptedMessage).darkStyle().show();
             }else {
                 Logger.warn("Received Packet from unknown user");
             }

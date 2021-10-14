@@ -56,7 +56,6 @@ public class StartClient {
             Logger.info("Is in DEV Environment");
         }
         ShutdownManager.addCleanUp(() -> {
-            manager.stop();
             ConfigManager.saveClientConfig();
             Logger.close();
         });
@@ -74,10 +73,7 @@ public class StartClient {
             guiManager = new GUIManager();
             guiManager.showLoading(true);
             manager.start();
-        }catch (ConnectException e) {
-            guiManager.showLocalisedError(Localisation.get("no_internet"));
-            ShutdownManager.shutdown(0);
-        }catch (Exception e){
+        } catch (Exception e){
             Logger.error(e);
             guiManager.appendLine("Error: " + e.getMessage());
         }

@@ -18,7 +18,8 @@
 
 package net.jmb19905.bytethrow.server.database;
 
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.Logger;
 
@@ -48,7 +49,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
     public boolean addChat(Chat chat) {
         try {
             PreparedStatement statement = connection.prepareStatement("INSERT into chats (names) VALUES (?);");
-            List<String> names = Util.sortStringsAlphabetically(chat.getClients());
+            List<String> names = Util.sortStringsAlphabetically(chat.getMembers());
             StringBuilder builder = new StringBuilder();
             names.forEach(s -> builder.append(s).append(","));
             statement.setString(1, builder.toString());
@@ -73,10 +74,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
 
             String[] names = namesString.split("\\.");
 
-            Chat chat = new Chat();
-            chat.addClients(List.of(names));
-
-            return chat;
+            return new PeerChat(names[0], names[1]);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -94,9 +92,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
 
             ResultSet resultSet = statement.getResultSet();
             if (resultSet.next()) {
-                Chat chat = new Chat();
-                chat.addClients(names);
-                return chat;
+                return new PeerChat(names.get(0), names.get(1));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -105,7 +101,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
     }
 
     public boolean hasChat(Chat chat){
-        return getChat(chat.getClients()) != null;
+        return getChat(chat.getMembers()) != null;
     }
 
 }

@@ -20,10 +20,7 @@ package net.jmb19905.bytethrow.common;
 
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.packets.handlers.*;
-import net.jmb19905.bytethrow.server.commands.HelpCommand;
-import net.jmb19905.bytethrow.server.commands.StopCommand;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-import net.jmb19905.util.commands.registry.CommandRegistry;
 
 public class RegistryManager {
 
@@ -36,9 +33,13 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("fail", FailPacket.class, new FailPacketHandler());
         PacketRegistry.getInstance().register("handshake", HandshakePacket.class, new HandshakePacketHandler());
         PacketRegistry.getInstance().register("login", LoginPacket.class, new LoginPacketHandler());
-        PacketRegistry.getInstance().register("message", MessagePacket.class, new MessagePacketHandler());
+        PacketRegistry.getInstance().register("peer_message", PeerMessagePacket.class, new PeerMessagePacketHandler());
+        PacketRegistry.getInstance().register("group_message", GroupMessagePacket.class, new GroupMessagePacketHandler());
         PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());
+        PacketRegistry.getInstance().register("create_group", CreateGroupPacket.class, new CreateGroupPacketHandler());
+        PacketRegistry.getInstance().register("group_invite", GroupInvitePacket.class, new GroupInvitePacketHandler());
+        PacketRegistry.getInstance().register("add_group_member", AddGroupMemberPacket.class, new AddGroupMemberPacketHandler());
     }
 }

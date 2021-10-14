@@ -19,16 +19,19 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
+import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.bytethrow.server.networking.ServerManager;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
+
+import java.util.List;
 
 public class ChatsRequestPacketHandler extends PacketHandler {
 
@@ -37,7 +40,9 @@ public class ChatsRequestPacketHandler extends PacketHandler {
         ServerManager manager = StartServer.manager;
         String clientName = manager.getClientName(serverHandler);
         ChatsPacket chatsPacket = new ChatsPacket();
-        chatsPacket.names = manager.getPeerNames(clientName);
+
+        List<Chat> chats = manager.getChats();
+        chats.stream().filter(chat -> chat.hasClient(clientName)).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
         Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());
         NetworkingUtility.sendPacket(chatsPacket, ctx.channel(), serverHandler.getEncryption());

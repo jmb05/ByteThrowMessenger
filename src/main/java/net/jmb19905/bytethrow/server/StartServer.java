@@ -24,7 +24,6 @@ import net.jmb19905.bytethrow.common.Version;
 import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.bytethrow.server.networking.ServerManager;
 import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;

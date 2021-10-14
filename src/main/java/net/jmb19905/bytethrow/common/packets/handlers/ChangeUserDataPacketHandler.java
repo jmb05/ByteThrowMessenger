@@ -28,7 +28,7 @@ import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.bytethrow.server.networking.ServerManager;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
@@ -66,16 +66,10 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                         ChatsPacket chatsPacket = new ChatsPacket();
                         chatsPacket.update = true;
 
-                        String[] peers = manager.getPeerNames(newUsername);
+                        manager.getOnlineClients().keySet().forEach(client -> {
+                            manager.getChats(client).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
-                        for(String peer : peers) {
-                            if(peer.equals(newUsername)){
-                                chatsPacket.names = peers;
-                            }else {
-                                chatsPacket.names = manager.getPeerNames(peer);
-                            }
-
-                            Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(handler -> manager.getClientName(handler).equals(peer)).findFirst();
+                            Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(handler -> manager.getClientName(handler).equals(client)).findFirst();
                             if(optionalServerHandler.isPresent()){
                                 TcpServerHandler peerHandler = optionalServerHandler.get();
                                 SocketChannel peerChannel = serverConnection.getClientConnections().get(peerHandler);
@@ -83,7 +77,7 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                                 Logger.trace("Sending packet " + packet + " to " + peerChannel.remoteAddress());
                                 NetworkingUtility.sendPacket(packet, peerChannel, peerHandler.getEncryption());
                             }
-                        }
+                        });
                     });
                 } else {
                     NetworkingUtility.sendFail(ctx.channel(), "change_username", "error_change_username", newUsername, serverHandler);

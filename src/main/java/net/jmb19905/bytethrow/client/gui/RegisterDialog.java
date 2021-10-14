@@ -34,7 +34,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 public class RegisterDialog extends JDialog {
 
@@ -103,7 +102,7 @@ public class RegisterDialog extends JDialog {
             }else if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
-                setVisible(false);
+                hideDialog();
                 confirmAction.actionPerformed(l);
             }
         });
@@ -118,7 +117,7 @@ public class RegisterDialog extends JDialog {
             if(passwordInputField2.getPassword().length == 0){
                 passwordInputField2.requestFocus();
             }else {
-                setVisible(false);
+                hideDialog();
                 confirmAction.actionPerformed(l);
             }
         });
@@ -134,7 +133,7 @@ public class RegisterDialog extends JDialog {
                 Logger.debug(new String(passwordInputField1.getPassword()));
                 Logger.debug(new String(passwordInputField2.getPassword()));
             }
-            setVisible(false);
+            hideDialog();
             confirmAction.actionPerformed(l);
         });
         add(passwordInputField2, constraints);
@@ -147,7 +146,7 @@ public class RegisterDialog extends JDialog {
 
         JButton confirm = new JButton(Localisation.get("confirm"));
         confirm.addActionListener(l -> {
-            setVisible(false);
+            hideDialog();
             confirmAction.actionPerformed(l);
         });
         constraints.gridx = 0;
@@ -176,7 +175,7 @@ public class RegisterDialog extends JDialog {
         login.addActionListener(e -> {
             username = "";
             password = "";
-            setVisible(false);
+            hideDialog();
             loginListener.actionPerformed(e);
         });
         add(login, constraints);
@@ -205,20 +204,25 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public RegisterDataResult showDialog(){
-        AsynchronousInitializer<RegisterDataResult> initializer = new AsynchronousInitializer<>();
+    public RegisterData showDialog(){
+        AsynchronousInitializer<RegisterData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
-            addConfirmButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CONFIRM)));
+            addConfirmButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.CONFIRM)));
             addCancelListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CANCEL));
+                    initializer.init(new RegisterData(username, password, GUIManager.ResultType.CANCEL));
                 }
             });
-            addLoginButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.OTHER)));
+            addLoginButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.OTHER)));
             setVisible(true);
         });
         return initializer.get();
+    }
+
+    public void hideDialog(){
+        setVisible(false);
+        usernameInputField.requestFocus();
     }
 
     private void showPasswordsDoNotMatchPane(){
@@ -229,8 +233,5 @@ public class RegisterDialog extends JDialog {
         JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static record RegisterData(String username, String password){}
-
-    public record RegisterDataResult(RegisterData registerData, GUIManager.ResultType resultType) {}
-
+    public static record RegisterData(String username, String password, GUIManager.ResultType resultType){}
 }
