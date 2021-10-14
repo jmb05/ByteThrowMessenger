@@ -71,6 +71,7 @@ public class ChatSerial {
     }
 
     public static void write(Chat chat) {
+        Logger.debug("Wrote Chat: " + chat.getUniqueId());
         Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
         try {
             if(!Files.exists(chatFilePath)){
@@ -87,6 +88,15 @@ public class ChatSerial {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void deleteChatFile(Chat chat){
+        Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
+        try {
+            Files.delete(chatFilePath);
+        } catch (IOException e) {
+            Logger.error(e);
         }
     }
 }

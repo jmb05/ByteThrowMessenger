@@ -24,6 +24,7 @@ import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
+import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.Server;
@@ -92,13 +93,20 @@ public class ServerManager {
 
     public void setChats(List<Chat> chats){
         this.chats = chats;
+        chats.forEach(ChatSerial::write);
     }
 
     public void addChat(Chat chat){
         if(!chats.contains(chat)){
             Logger.debug("Adding Chat: " + chat);
             chats.add(chat);
+            ChatSerial.write(chat);
         }
+    }
+
+    public void removeChat(Chat chat){
+        chats.remove(chat);
+        ChatSerial.deleteChatFile(chat);
     }
 
     public PeerChat getChat(String user1, String user2){

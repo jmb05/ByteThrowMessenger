@@ -26,6 +26,7 @@ import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
+import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.ServerManager;
@@ -50,6 +51,7 @@ public class GroupInvitePacketHandler extends PacketHandler {
 
         Chat chat = manager.getGroup(groupInvitePacket.groupName);
         chat.addClient(memberName);
+        ChatSerial.write(chat);
 
         AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
         addGroupMemberPacket.groupName = groupInvitePacket.groupName;

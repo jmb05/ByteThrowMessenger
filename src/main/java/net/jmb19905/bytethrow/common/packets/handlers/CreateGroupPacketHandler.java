@@ -30,7 +30,6 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
-import net.jmb19905.util.Logger;
 
 public class CreateGroupPacketHandler extends PacketHandler {
     @Override
