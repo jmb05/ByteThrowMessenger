@@ -386,7 +386,7 @@ public class Window extends JFrame {
 
     private void sendToPeer(String text){
         if (StartClient.manager.sendPeerMessage(getSelected(), text)) {
-            appendMessage("You", text);
+            appendMessage("You " + Localisation.get("to") + " " + getSelected(), text);
             field.setText("");
         } else {
             JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
