@@ -37,8 +37,10 @@ import java.awt.event.WindowEvent;
  */
 public class LoginDialog extends JDialog {
 
-    protected final JTextField usernameInputField;
+    protected JTextField usernameInputField = null;
     protected JPasswordField passwordInputField = null;
+
+    protected JLabel extraInformationLabel = null;
 
     protected ActionListener confirmListener = null;
     protected ActionListener registerListener = null;
@@ -47,8 +49,20 @@ public class LoginDialog extends JDialog {
     protected String username = "";
     protected String password = "";
 
-    public LoginDialog(String usernameText, String passwordText, String extraText, boolean showRegisterButton, Window window){
+    public LoginDialog(boolean showRegisterButton, Window window){
         super(window);
+        initUI(showRegisterButton);
+    }
+
+    protected LoginDialog(String username, String password, String extra, boolean showRegisterButton, Window window){
+        super(window);
+        initUI(showRegisterButton);
+        usernameInputField.setText(username);
+        passwordInputField.setText(password);
+        extraInformationLabel.setText(extra);
+    }
+
+    private void initUI(boolean showRegisterButton) {
         setModal(true);
         setResizable(false);
         setLayout(new GridBagLayout());
@@ -76,19 +90,16 @@ public class LoginDialog extends JDialog {
         constraints.weighty = 1;
         constraints.anchor = GridBagConstraints.WEST;
 
-        JLabel extraInformationLabel = new JLabel(extraText);
+        extraInformationLabel = new JLabel();
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.CENTER;
-        if(extraText.trim().equals("")){
-            constraints.insets = new Insets(0, 0, 0, 0);
-        }
+        constraints.insets = new Insets(0, 0, 0, 0);
         add(extraInformationLabel, constraints);
 
         usernameInputField = new HintTextField(Localisation.get("username"));
-        usernameInputField.setText(usernameText);
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -105,7 +116,6 @@ public class LoginDialog extends JDialog {
         add(usernameInputField, constraints);
 
         passwordInputField = new HintPasswordField(Localisation.get("password"));
-        passwordInputField.setText(passwordText);
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;

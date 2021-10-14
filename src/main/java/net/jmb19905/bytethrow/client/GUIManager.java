@@ -27,7 +27,10 @@ import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.text.AttributeSet;
+import java.awt.*;
+import java.util.Enumeration;
 
 public class GUIManager {
 
@@ -36,8 +39,17 @@ public class GUIManager {
     private final RegisterDialog registerDialog;
 
     public GUIManager(){
+        Enumeration<Object> keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get (key);
+            if (value instanceof javax.swing.plaf.FontUIResource) {
+                UIManager.put(key, new FontUIResource("Noto Sans", Font.PLAIN, 14));
+            }
+        }
+
         this.window = new Window();
-        loginDialog = new LoginDialog("", "", "", true, window);
+        loginDialog = new LoginDialog(true, window);
         registerDialog = new RegisterDialog(true, window);
 
         ShutdownManager.addCleanUp(() -> SwingUtilities.invokeLater(() -> {

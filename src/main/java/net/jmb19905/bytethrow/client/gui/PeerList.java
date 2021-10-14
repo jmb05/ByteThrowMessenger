@@ -18,6 +18,8 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.common.util.ResourceUtility;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;
@@ -43,17 +45,17 @@ public class PeerList extends JList<String> {
     public void setPeers(String[] names){
         listModel.removeAllElements();
         for(String name : names) {
-            listModel.addElement(name + " ✗");
+            listModel.addElement(name + " x");
         }
     }
 
     public void addPeer(String peerName){
-        listModel.addElement(peerName + " ✗");
+        listModel.addElement(peerName + " x");
     }
 
     public void removePeer(String peerName){
-        listModel.removeElement(peerName + " ✗");
-        listModel.removeElement(peerName + " ✓");
+        listModel.removeElement(peerName + " x");
+        listModel.removeElement(peerName + " v");
     }
 
     public void setPeerStatus(String name, boolean status){
@@ -61,11 +63,11 @@ public class PeerList extends JList<String> {
             int index;
             String modifiedName;
             if (status) {
-                modifiedName = name + " ✓";
-                index = listModel.indexOf(name + " ✗");
+                modifiedName = name + " v";
+                index = listModel.indexOf(name + " x");
             } else {
-                modifiedName = name + " ✗";
-                index = listModel.indexOf(name + " ✓");
+                modifiedName = name + " x";
+                index = listModel.indexOf(name + " v");
             }
             listModel.set(index, modifiedName);
         }catch (IndexOutOfBoundsException ignored){}
@@ -77,14 +79,26 @@ public class PeerList extends JList<String> {
         if(selectedValue == null){
             return null;
         }
-        return selectedValue.replace("✓", "").replace("✗", "").strip();
+        return selectedValue.replace(" v", "").replace(" x", "").strip();
     }
 
     private static class PeerListRenderer extends JLabel implements ListCellRenderer<String>{
 
+        private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
+        private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
+
         @Override
         public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-            setText(value);
+            String[] parts = value.split(" ");
+            setText(" " + parts[0]);
+            setHorizontalTextPosition(JLabel.LEFT);
+
+            if(parts[1].equals("v")){
+                setIcon(tickIcon);
+            }else {
+                setIcon(crossIcon);
+            }
+
             setEnabled(list.isEnabled());
             setOpaque(true);
             if(isSelected){
