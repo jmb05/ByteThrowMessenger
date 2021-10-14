@@ -34,7 +34,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 public class RegisterDialog extends JDialog {
 
@@ -205,17 +204,17 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public RegisterDataResult showDialog(){
-        AsynchronousInitializer<RegisterDataResult> initializer = new AsynchronousInitializer<>();
+    public RegisterData showDialog(){
+        AsynchronousInitializer<RegisterData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
-            addConfirmButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CONFIRM)));
+            addConfirmButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.CONFIRM)));
             addCancelListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.CANCEL));
+                    initializer.init(new RegisterData(username, password, GUIManager.ResultType.CANCEL));
                 }
             });
-            addLoginButtonActionListener(evt -> initializer.init(new RegisterDataResult(new RegisterData(username, password), GUIManager.ResultType.OTHER)));
+            addLoginButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.OTHER)));
             setVisible(true);
         });
         return initializer.get();
@@ -234,8 +233,5 @@ public class RegisterDialog extends JDialog {
         JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static record RegisterData(String username, String password){}
-
-    public record RegisterDataResult(RegisterData registerData, GUIManager.ResultType resultType) {}
-
+    public static record RegisterData(String username, String password, GUIManager.ResultType resultType){}
 }

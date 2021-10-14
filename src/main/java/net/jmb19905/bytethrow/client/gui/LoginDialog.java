@@ -219,17 +219,17 @@ public class LoginDialog extends JDialog {
         return password;
     }
 
-    public LoginDataResult showDialog(){
-        AsynchronousInitializer<LoginDataResult> initializer = new AsynchronousInitializer<>();
+    public LoginData showDialog(){
+        AsynchronousInitializer<LoginData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
-            addConfirmButtonActionListener(evt -> initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.CONFIRM)));
+            addConfirmButtonActionListener(evt -> initializer.init(new LoginData(username, password, GUIManager.ResultType.CONFIRM)));
             addCancelListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.CANCEL));
+                    initializer.init(new LoginData(username, password, GUIManager.ResultType.CANCEL));
                 }
             });
-            addRegisterButtonActionListener(evt -> initializer.init(new LoginDataResult(new LoginData(username, password), GUIManager.ResultType.OTHER)));
+            addRegisterButtonActionListener(evt -> initializer.init(new LoginData(username, password, GUIManager.ResultType.OTHER)));
             setVisible(true);
         });
         return initializer.get();
@@ -240,8 +240,6 @@ public class LoginDialog extends JDialog {
         usernameInputField.requestFocus();
     }
 
-    public static record LoginData(String username, String password){ }
-
-    public record LoginDataResult(LoginData loginData, GUIManager.ResultType resultType) {}
+    public static record LoginData(String username, String password, GUIManager.ResultType resultType){ }
 
 }

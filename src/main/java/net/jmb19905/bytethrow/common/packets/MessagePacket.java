@@ -39,11 +39,11 @@ public class MessagePacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        message = new Chat.Message(data[1], data[2], data[3]);
+        message = new Chat.Message(data[1], data[2], data[3], Boolean.parseBoolean(data[4]));
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + message.sender() + "|" + message.receiver() + "|" + message.message()).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + message.sender() + "|" + message.receiver() + "|" + message.message() + "|" + message.group()).getBytes(StandardCharsets.UTF_8);
     }
 }

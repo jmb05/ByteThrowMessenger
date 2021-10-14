@@ -43,19 +43,23 @@ public class PeerList extends JList<String> {
      * @param names the names to be put into the list
      */
     public void setPeers(String[] names){
-        listModel.removeAllElements();
+        listModel.elements().asIterator().forEachRemaining(s -> {
+            if(s.startsWith("Peer: ")){
+                listModel.removeElement(s);
+            }
+        });
         for(String name : names) {
-            listModel.addElement(name + " x");
+            listModel.addElement("Peer: " + name + " x");
         }
     }
 
     public void addPeer(String peerName){
-        listModel.addElement(peerName + " x");
+        listModel.addElement("Peer: " + peerName + " x");
     }
 
     public void removePeer(String peerName){
-        listModel.removeElement(peerName + " x");
-        listModel.removeElement(peerName + " v");
+        listModel.removeElement("Peer: " + peerName + " x");
+        listModel.removeElement("Peer: " + peerName + " v");
     }
 
     public void setPeerStatus(String name, boolean status){
@@ -64,13 +68,32 @@ public class PeerList extends JList<String> {
             String modifiedName;
             if (status) {
                 modifiedName = name + " v";
-                index = listModel.indexOf(name + " x");
+                index = listModel.indexOf("Peer: " + name + " x");
             } else {
                 modifiedName = name + " x";
-                index = listModel.indexOf(name + " v");
+                index = listModel.indexOf("Peer: " + name + " v");
             }
             listModel.set(index, modifiedName);
         }catch (IndexOutOfBoundsException ignored){}
+    }
+
+    public void setGroups(String[] names){
+        listModel.elements().asIterator().forEachRemaining(s -> {
+            if(s.startsWith("Group: ")){
+                listModel.removeElement(s);
+            }
+        });
+        for(String name : names) {
+            listModel.addElement("Group: " + name + " !");
+        }
+    }
+
+    public void addGroup(String name){
+        listModel.addElement("Group: " + name + " !");
+    }
+
+    public void removeGroup(String name){
+        listModel.removeElement("Group: " + name + " !");
     }
 
     @Override
@@ -79,24 +102,28 @@ public class PeerList extends JList<String> {
         if(selectedValue == null){
             return null;
         }
-        return selectedValue.replace(" v", "").replace(" x", "").strip();
+        return selectedValue.replace(" v", "").replace(" x", "").replace(" !", "").strip();
     }
 
     private static class PeerListRenderer extends JLabel implements ListCellRenderer<String>{
 
         private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
         private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
+        private static final ImageIcon warningIcon = new ImageIcon(ResourceUtility.getImageResource("icons/warning.png"));
 
         @Override
         public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
             String[] parts = value.split(" ");
-            setText(" " + parts[0]);
+            setText(" " + parts[1]);
             setHorizontalTextPosition(JLabel.LEFT);
 
-            if(parts[1].equals("v")){
-                setIcon(tickIcon);
-            }else {
-                setIcon(crossIcon);
+            switch (parts[2]) {
+                case "v" -> setIcon(tickIcon);
+                case "x" -> setIcon(crossIcon);
+                case "!" -> {
+                    setIcon(warningIcon);
+                    setToolTipText("Groups are not yet encrypted!");
+                }
             }
 
             setEnabled(list.isEnabled());

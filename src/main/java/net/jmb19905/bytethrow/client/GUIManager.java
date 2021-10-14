@@ -18,12 +18,14 @@
 
 package net.jmb19905.bytethrow.client;
 
+import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
+import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
@@ -37,6 +39,7 @@ public class GUIManager {
     private final Window window;
     private final LoginDialog loginDialog;
     private final RegisterDialog registerDialog;
+    private final CreateGroupDialog createGroupDialog;
 
     public GUIManager(){
         Enumeration<Object> keys = UIManager.getDefaults().keys();
@@ -51,12 +54,14 @@ public class GUIManager {
         this.window = new Window();
         loginDialog = new LoginDialog(true, window);
         registerDialog = new RegisterDialog(true, window);
+        createGroupDialog = new CreateGroupDialog(window);
 
         ShutdownManager.addCleanUp(() -> SwingUtilities.invokeLater(() -> {
             window.setEnabled(false);
             window.dispose();
             loginDialog.dispose();
             registerDialog.dispose();
+            createGroupDialog.dispose();
         }));
     }
 
@@ -78,6 +83,10 @@ public class GUIManager {
 
     public void setPeerStatus(String peer, boolean status){
         SwingUtilities.invokeLater(() -> window.setPeerStatus(peer, status));
+    }
+
+    public void addGroup(String name){
+        SwingUtilities.invokeLater(() -> window.addGroup(name));
     }
 
     public void appendLine(String line){
@@ -155,9 +164,9 @@ public class GUIManager {
     }
 
     public LoginDialog.LoginData showLoginDialog(Runnable register){
-        LoginDialog.LoginDataResult result = loginDialog.showDialog();
+        LoginDialog.LoginData result = loginDialog.showDialog();
         if(result.resultType() == ResultType.CONFIRM){
-            return result.loginData();
+            return result;
         }else if(result.resultType() == ResultType.CANCEL){
             ShutdownManager.shutdown(0);
         }else {
@@ -167,9 +176,9 @@ public class GUIManager {
     }
 
     public RegisterDialog.RegisterData showRegisterDialog(Runnable login){
-        RegisterDialog.RegisterDataResult result = registerDialog.showDialog();
+        RegisterDialog.RegisterData result = registerDialog.showDialog();
         if(result.resultType() == ResultType.CONFIRM){
-            return result.registerData();
+            return result;
         }else if(result.resultType() == ResultType.CANCEL){
             ShutdownManager.shutdown(0);
         }else {
@@ -178,7 +187,13 @@ public class GUIManager {
         return null;
     }
 
-
+    public CreateGroupDialog.CreateGroupData showCreateGroup(){
+        CreateGroupDialog.CreateGroupData result = createGroupDialog.showDialog();
+        if(!result.cancel()){
+            return result;
+        }
+        return null;
+    }
 
     public enum ResultType {CONFIRM, OTHER, CANCEL}
 

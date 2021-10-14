@@ -54,8 +54,6 @@ public class Decoder extends ByteToMessageDecoder {
             byte[] rawData = new byte[in.readableBytes()];
             in.readBytes(rawData);
 
-            Logger.debug("Raw Data: " + new String(rawData, StandardCharsets.UTF_8));
-
             byte[] data;
             int lastEnd = 0;
             for(int i=0;i<rawData.length;i++){
@@ -73,6 +71,7 @@ public class Decoder extends ByteToMessageDecoder {
                     }
 
                     Packet packet = PacketUtil.construct(data);
+                    Logger.trace("Decoded Packet: " + packet);
                     out.add(packet);
                 }
             }

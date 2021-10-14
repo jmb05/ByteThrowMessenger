@@ -30,12 +30,18 @@ public class GUITest {
         StartClient.version = Util.loadVersion(args[0].equals("dev"));
         ConfigManager.init();
         StartClient.config = ConfigManager.loadClientConfig();
+
+        //On Some Linux Systems Java doesn't automatically use Anti-Aliasing
+        System.setProperty("awt.useSystemAAFontSettings","on");
+
         FlatDarculaLaf.setup();
         Localisation.reload();
 
+
+
         Window window = new Window();
         window.appendLine("This is a GUI Test");
-        TrayIconDemo.initSystemTray(window);
+        //TrayIconDemo.initSystemTray(window);
 
         /*BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/Me.png");
         ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));

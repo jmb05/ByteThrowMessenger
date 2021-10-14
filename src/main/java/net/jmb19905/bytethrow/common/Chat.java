@@ -26,6 +26,8 @@ import java.util.*;
 
 public class Chat implements Serializable {
 
+    private String name;
+
     /**
      * All the clients that participate in this chat.
      */
@@ -64,11 +66,7 @@ public class Chat implements Serializable {
     }
 
     public void addClient(String name){
-        if(clients.size() < 2) {
-            clients.add(name);
-        }else {
-            Logger.warn("Group chats are not supported yet!");
-        }
+        clients.add(name);
     }
 
     public void addClients(List<String> names){
@@ -103,6 +101,14 @@ public class Chat implements Serializable {
         this.clients = clients;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -123,8 +129,8 @@ public class Chat implements Serializable {
     @Override
     public String toString() {
         return "Chat{" +
-                "clients=" + clients +
-                ", messages=" + messages +
+                "name=" + name +
+                ", clients=" + clients +
                 ", active=" + active +
                 ", encryption=" + encryption +
                 '}';
@@ -134,18 +140,18 @@ public class Chat implements Serializable {
         return chat.getClients().containsAll(clients);
     }
 
-    public static record Message(String sender, String receiver, String message) implements Serializable{
+    public static record Message(String sender, String receiver, String message, boolean group) implements Serializable{
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Message message1 = (Message) o;
-            return Objects.equals(sender, message1.sender) && Objects.equals(receiver, message1.receiver) && Objects.equals(message, message1.message);
+            return Objects.equals(sender, message1.sender) && Objects.equals(receiver, message1.receiver) && Objects.equals(message, message1.message) && group == message1.group;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(sender, receiver, message);
+            return Objects.hash(sender, receiver, message, group);
         }
     }
 

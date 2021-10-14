@@ -20,10 +20,7 @@ package net.jmb19905.bytethrow.common;
 
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.packets.handlers.*;
-import net.jmb19905.bytethrow.server.commands.HelpCommand;
-import net.jmb19905.bytethrow.server.commands.StopCommand;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-import net.jmb19905.util.commands.registry.CommandRegistry;
 
 public class RegistryManager {
 
@@ -40,5 +37,8 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());
+        PacketRegistry.getInstance().register("create_group", CreateGroupPacket.class, new CreateGroupPacketHandler());
+        PacketRegistry.getInstance().register("group_invite", GroupInvitePacket.class, new GroupInvitePacketHandler());
+        PacketRegistry.getInstance().register("add_group_member", AddGroupMemberPacket.class, new AddGroupMemberPacketHandler());
     }
 }

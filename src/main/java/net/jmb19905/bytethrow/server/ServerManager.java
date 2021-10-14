@@ -1,22 +1,22 @@
 /*
-    A simple Messenger written in Java
-    Copyright (C) 2020-2021  Jared M. Bennett
+ * A simple Messenger written in Java
+ * Copyright (C) 2020-2021  Jared M. Bennett
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-package net.jmb19905.bytethrow.server.networking;
+package net.jmb19905.bytethrow.server;
 
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.Chat;
@@ -30,6 +30,7 @@ import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The Server
@@ -94,6 +95,7 @@ public class ServerManager {
 
     public void addChat(Chat chat){
         if(!chats.contains(chat)){
+            Logger.debug("Adding Chat: " + chat);
             chats.add(chat);
         }
     }
@@ -117,6 +119,12 @@ public class ServerManager {
             }
         }
         return chatsContainingUser;
+    }
+
+    public Chat getGroup(String name) {
+        AtomicReference<Chat> chatAtomicReference = new AtomicReference<>();
+        chats.stream().filter(chat -> chat.getName() != null).filter(chat -> chat.getName().equals(name)).findFirst().ifPresent(chatAtomicReference::set);
+        return chatAtomicReference.get();
     }
 
     public List<Chat> getChats() {
@@ -182,14 +190,26 @@ public class ServerManager {
         }
     }
 
+    public void sendPacketToGroup(String groupName, Packet packet, TcpServerHandler serverHandler){
+        Chat groupChat = getGroup(groupName);
+        groupChat.getClients().stream().filter(this::isClientOnline).forEach(peer -> {
+            TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
+            if(peerHandler != null) {
+                SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+                Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
+                NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+            }
+        });
+    }
+
     /**
      * @return the ServerHandler of the current peer
      */
-    public TcpServerHandler getPeerHandler(String name, TcpServerHandler ownHandler){
+    public TcpServerHandler getPeerHandler(String peerName, TcpServerHandler ownHandler){
         for(TcpServerHandler peerHandler : ((TcpServerConnection) ownHandler.getConnection()).getClientConnections().keySet()) {
             if (peerHandler != ownHandler) {
-                String peerName = getClientName(peerHandler);
-                if (peerName.equals(name) && !peerName.isBlank()) {
+                String currentPeerName = getClientName(peerHandler);
+                if (peerName.equals(currentPeerName) && !peerName.isBlank()) {
                     return peerHandler;
                 }
             }
@@ -203,6 +223,10 @@ public class ServerManager {
                 .filter(name -> onlineClients.get(name).equals(handler))
                 .findFirst();
         return clientName.orElse("");
+    }
+
+    public TcpServerHandler getClientHandler(String name){
+        return onlineClients.get(name);
     }
 
 }
