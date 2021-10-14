@@ -284,6 +284,10 @@ public class Window extends JFrame {
         list.addGroup(name);
     }
 
+    public void removeGroup(String name) {
+        list.removeGroup(name);
+    }
+
     public static SimpleAttributeSet getBold() {
         return bold;
     }
@@ -356,20 +360,36 @@ public class Window extends JFrame {
     }
 
     private void send(){
-        if(StartClient.manager != null){
-            if(list.getSelectedValue() != null) {
-                String text = field.getText();
-                if(StartClient.manager.sendMessage(getSelected(), text, isSelectedGroup())) {
-                    appendMessage((isSelectedGroup() ? getSelected() + " - " : "") + "You", text);
-                    field.setText("");
-                }else {
-                    JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
-                }
-            }else {
-                appendLine(Localisation.get("select_peer"));
-            }
-        } else {
+        if(StartClient.manager == null) {
             appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
+            return;
+        }if(list.getSelectedValue() == null){
+            appendLine(Localisation.get("select_peer"));
+            return;
+        }
+        String text = field.getText();
+        if(isSelectedGroup()){
+            sendToGroup(text);
+        }else {
+            sendToPeer(text);
+        }
+    }
+
+    private void sendToGroup(String text){
+        if (StartClient.manager.sendGroupMessage(getSelected(), text)) {
+            appendMessage((getSelected() + " - ") + "You", text);
+            field.setText("");
+        } else {
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
+        }
+    }
+
+    private void sendToPeer(String text){
+        if (StartClient.manager.sendPeerMessage(getSelected(), text)) {
+            appendMessage("You", text);
+            field.setText("");
+        } else {
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
         }
     }
 }

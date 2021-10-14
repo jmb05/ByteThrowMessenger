@@ -89,6 +89,10 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.addGroup(name));
     }
 
+    public void removeGroup(String name) {
+        SwingUtilities.invokeLater(() -> window.removeGroup(name));
+    }
+
     public void appendLine(String line){
         SwingUtilities.invokeLater(() -> window.appendLine(line));
     }

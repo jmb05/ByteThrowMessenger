@@ -33,7 +33,8 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("fail", FailPacket.class, new FailPacketHandler());
         PacketRegistry.getInstance().register("handshake", HandshakePacket.class, new HandshakePacketHandler());
         PacketRegistry.getInstance().register("login", LoginPacket.class, new LoginPacketHandler());
-        PacketRegistry.getInstance().register("message", MessagePacket.class, new MessagePacketHandler());
+        PacketRegistry.getInstance().register("peer_message", PeerMessagePacket.class, new PeerMessagePacketHandler());
+        PacketRegistry.getInstance().register("group_message", GroupMessagePacket.class, new GroupMessagePacketHandler());
         PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());

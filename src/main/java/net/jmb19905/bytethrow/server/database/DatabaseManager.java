@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.server.database;
 
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.util.Logger;
 
 import java.io.IOException;

@@ -19,6 +19,7 @@
 package net.jmb19905.bytethrow.client.gui;
 
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
+import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
@@ -73,7 +74,7 @@ public class PeerList extends JList<String> {
                 modifiedName = name + " x";
                 index = listModel.indexOf("Peer: " + name + " v");
             }
-            listModel.set(index, modifiedName);
+            listModel.set(index, "Peer: " + modifiedName);
         }catch (IndexOutOfBoundsException ignored){}
     }
 
@@ -114,7 +115,11 @@ public class PeerList extends JList<String> {
         @Override
         public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
             String[] parts = value.split(" ");
-            setText(" " + parts[1]);
+            boolean group = parts[0].equals("Group:");
+
+            setText(" " + (group ? parts[1].replaceAll("_", " ") : parts[1]));
+
+
             setHorizontalTextPosition(JLabel.LEFT);
 
             switch (parts[2]) {

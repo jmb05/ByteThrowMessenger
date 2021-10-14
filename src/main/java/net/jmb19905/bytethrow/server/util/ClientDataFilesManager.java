@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.server.util;
 
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.server.StartServer;
 

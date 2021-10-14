@@ -22,7 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -46,7 +46,7 @@ public class AddGroupMemberPacketHandler extends PacketHandler {
         if(memberHandler != null){
             GroupInvitePacket groupInvitePacket = new GroupInvitePacket();
             groupInvitePacket.groupName = addGroupMemberPacket.groupName;
-            groupInvitePacket.members = groupChat.getClients().toArray(new String[0]);
+            groupInvitePacket.members = groupChat.getMembers().toArray(new String[0]);
 
             SocketChannel channel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(memberHandler);
             NetworkingUtility.sendPacket(groupInvitePacket, channel, memberHandler.getEncryption());
@@ -61,6 +61,5 @@ public class AddGroupMemberPacketHandler extends PacketHandler {
         ClientManager manager = StartClient.manager;
         Chat groupChat = manager.getGroup(addGroupMemberPacket.groupName);
         groupChat.addClient(addGroupMemberPacket.member);
-        groupChat.setActive(true);
     }
 }

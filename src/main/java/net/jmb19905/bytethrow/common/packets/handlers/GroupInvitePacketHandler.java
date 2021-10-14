@@ -18,12 +18,12 @@
 
 package net.jmb19905.bytethrow.common.packets.handlers;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -35,7 +35,10 @@ import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
-import java.util.List;
+import net.jmb19905.util.Logger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GroupInvitePacketHandler extends PacketHandler {
     @Override
@@ -47,13 +50,12 @@ public class GroupInvitePacketHandler extends PacketHandler {
 
         Chat chat = manager.getGroup(groupInvitePacket.groupName);
         chat.addClient(memberName);
-        chat.setActive(true);
 
         AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
         addGroupMemberPacket.groupName = groupInvitePacket.groupName;
         addGroupMemberPacket.member = memberName;
 
-        chat.getClients().stream().filter(member -> !member.equals(memberName)).forEach(member -> {
+        chat.getMembers().stream().filter(member -> !member.equals(memberName)).forEach(member -> {
             TcpServerHandler otherHandler = manager.getClientHandler(member);
             SocketChannel channel = ((TcpServerConnection) otherHandler.getConnection()).getClientConnections().get(otherHandler);
             NetworkingUtility.sendPacket(addGroupMemberPacket, channel, otherHandler.getEncryption());
@@ -65,12 +67,11 @@ public class GroupInvitePacketHandler extends PacketHandler {
         GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
         ClientManager manager = StartClient.manager;
 
-        Chat chat = new Chat();
-        chat.setName(groupInvitePacket.groupName);
-        chat.setClients(List.of(groupInvitePacket.members));
-        chat.setActive(true);
+        GroupChat chat = new GroupChat(groupInvitePacket.groupName);
+        chat.setMembers(new ArrayList<>(Arrays.asList(groupInvitePacket.members)));
 
         manager.addGroup(chat);
+        Logger.debug("Adding Group (GroupInvitePacketHandler): " + chat.getName());
 
         NetworkingUtility.sendPacket(packet, ctx.channel(), handler.getEncryption());
     }

@@ -41,7 +41,6 @@ public class GUITest {
 
         Window window = new Window();
         window.appendLine("This is a GUI Test");
-        //TrayIconDemo.initSystemTray(window);
 
         /*BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/Me.png");
         ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));

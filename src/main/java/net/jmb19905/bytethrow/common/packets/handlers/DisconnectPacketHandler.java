@@ -21,7 +21,7 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.Window;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
@@ -40,7 +40,7 @@ public class DisconnectPacketHandler extends PacketHandler {
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
         String peerName = ((DisconnectPacket) packet).name;
-        Chat chat = StartClient.manager.getChat(peerName);
+        PeerChat chat = StartClient.manager.getChat(peerName);
         if(chat != null){
             chat.setActive(false);
             StartClient.guiManager.setPeerStatus(peerName, false);

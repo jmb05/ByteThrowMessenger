@@ -26,15 +26,10 @@ import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Arrays;
+import java.awt.event.*;
 
 public class CreateGroupDialog extends JDialog {
 
-    private final Window window;
     private HintTextField groupNameTextField;
     private DefaultListModel<String> memberListModel;
 
@@ -45,16 +40,15 @@ public class CreateGroupDialog extends JDialog {
     private String[] members = new String[10];
 
     public CreateGroupDialog(Window window){
-        this.window = window;
+        super(window);
         initUI();
     }
 
     private void initUI(){
         setModal(true);
-        setResizable(false);
+        setResizable(true);
         setLayout(new GridBagLayout());
 
-        setPreferredSize(new Dimension(250, 250));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(Localisation.get("create_group"));
 
@@ -75,20 +69,23 @@ public class CreateGroupDialog extends JDialog {
         constraints.gridy = 0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.anchor = GridBagConstraints.NORTH;
+        constraints.insets = new Insets(5, 15, 5, 15);
         add(groupNameTextField, constraints);
 
         JList<String> memberList = new JList<>();
         this.memberListModel = new DefaultListModel<>();
         memberList.setModel(memberListModel);
+        memberList.setCellRenderer(new MemberListRenderer());
+
+        JScrollPane scrollPane = new JScrollPane(memberList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(220, 100));
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, 0, 0);
-        add(memberList, constraints);
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.anchor = GridBagConstraints.NORTH;
+        add(scrollPane, constraints);
 
         this.memberListModel.addElement(StartClient.manager.name);
 
@@ -101,8 +98,7 @@ public class CreateGroupDialog extends JDialog {
         constraints.gridy = 2;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.anchor = GridBagConstraints.NORTH;
         add(addButton, constraints);
 
         JButton confirmButton = new JButton(Localisation.get("confirm"));
@@ -111,8 +107,7 @@ public class CreateGroupDialog extends JDialog {
         constraints.gridy = 3;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.anchor = GridBagConstraints.NORTH;
         add(confirmButton, constraints);
 
         pack();
@@ -130,7 +125,7 @@ public class CreateGroupDialog extends JDialog {
     }
 
     protected void confirmActionPerformed(ActionEvent e) {
-        groupName = groupNameTextField.getText();
+        groupName = groupNameTextField.getText().strip().replaceAll(" ", "_");
         Object[] objArray = memberListModel.toArray();
         String[] membersArray = new String[objArray.length];
         for(int i=0;i<objArray.length;i++){
@@ -180,5 +175,40 @@ public class CreateGroupDialog extends JDialog {
     }
 
     public record CreateGroupData(String groupName, String[] members, boolean cancel){}
+
+    private static class MemberListRenderer extends JLabel implements ListCellRenderer<String>{
+        @SuppressWarnings("unchecked")
+        @Override
+        public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+            DefaultListModel<? extends String> model = (DefaultListModel<? extends String>) list.getModel();
+
+            setText(value);
+            setEnabled(list.isEnabled());
+            setOpaque(true);
+
+            JPopupMenu popupMenu = new JPopupMenu();
+            JMenuItem removeItem = new JMenuItem(Localisation.get("remove"));
+            removeItem.addActionListener(l -> list.getSelectedValuesList().forEach(model::removeElement));
+            popupMenu.add(removeItem);
+
+            list.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if(e.isPopupTrigger()){
+                        popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            });
+
+            if(isSelected){
+                setBackground(Color.WHITE);
+                setForeground(Color.BLACK);
+            }else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            return this;
+        }
+    }
 
 }

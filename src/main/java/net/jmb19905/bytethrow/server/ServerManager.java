@@ -19,7 +19,9 @@
 package net.jmb19905.bytethrow.server;
 
 import io.netty.channel.socket.SocketChannel;
-import net.jmb19905.bytethrow.common.Chat;
+import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -30,7 +32,6 @@ import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The Server
@@ -100,11 +101,13 @@ public class ServerManager {
         }
     }
 
-    public Chat getChats(String user1, String user2){
+    public PeerChat getChat(String user1, String user2){
         for(Chat chat : chats){
-            List<String> users = chat.getClients();
-            if(users.contains(user1) && users.contains(user2)){
-                return chat;
+            if(chat instanceof PeerChat) {
+                List<String> users = chat.getMembers();
+                if (users.contains(user1) && users.contains(user2)) {
+                    return ((PeerChat) chat);
+                }
             }
         }
         return null;
@@ -113,7 +116,7 @@ public class ServerManager {
     public List<Chat> getChats(String user){
         List<Chat> chatsContainingUser = new ArrayList<>();
         for(Chat chat : chats){
-            List<String> users = chat.getClients();
+            List<String> users = chat.getMembers();
             if(users.contains(user)){
                 chatsContainingUser.add(chat);
             }
@@ -121,10 +124,8 @@ public class ServerManager {
         return chatsContainingUser;
     }
 
-    public Chat getGroup(String name) {
-        AtomicReference<Chat> chatAtomicReference = new AtomicReference<>();
-        chats.stream().filter(chat -> chat.getName() != null).filter(chat -> chat.getName().equals(name)).findFirst().ifPresent(chatAtomicReference::set);
-        return chatAtomicReference.get();
+    public GroupChat getGroup(String name) {
+        return (GroupChat) chats.stream().filter(chat -> chat instanceof GroupChat).filter(chat -> ((GroupChat) chat).getName().equals(name)).findFirst().orElse(null);
     }
 
     public List<Chat> getChats() {
@@ -135,19 +136,23 @@ public class ServerManager {
         return onlineClients.get(name) != null;
     }
 
+    public Map<String, TcpServerHandler> getOnlineClients() {
+        return onlineClients;
+    }
+
     public void changeName(String oldName, String newName){
         for (Chat chat : chats) {
-            List<String> chatParticipants = chat.getClients();
+            List<String> chatParticipants = chat.getMembers();
             chatParticipants.remove(oldName);
             chatParticipants.add(newName);
-            chat.setClients(chatParticipants);
+            chat.setMembers(chatParticipants);
         }
     }
 
     public String[] getPeerNames(String clientName) {
         List<String> names = new ArrayList<>();
         for (Chat chat : chats) {
-            List<String> chatParticipants = chat.getClients();
+            List<String> chatParticipants = chat.getMembers();
             if (chatParticipants.contains(clientName)) {
                 for (String otherName : chatParticipants) {
                     if (!otherName.equals(clientName)) {
@@ -164,7 +169,7 @@ public class ServerManager {
      */
     private void notifyPeersOfDisconnect(String disconnectedClientName, TcpServerHandler serverHandler) {
         for(Chat chat : getChats(disconnectedClientName)){
-            List<String> clients = chat.getClients();
+            List<String> clients = chat.getMembers();
             for(String clientName : clients){
                 if(!clientName.equals(disconnectedClientName)){
                     DisconnectPacket disconnectPacket = new DisconnectPacket();
@@ -192,7 +197,7 @@ public class ServerManager {
 
     public void sendPacketToGroup(String groupName, Packet packet, TcpServerHandler serverHandler){
         Chat groupChat = getGroup(groupName);
-        groupChat.getClients().stream().filter(this::isClientOnline).forEach(peer -> {
+        groupChat.getMembers().stream().filter(this::isClientOnline).forEach(peer -> {
             TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
             if(peerHandler != null) {
                 SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
