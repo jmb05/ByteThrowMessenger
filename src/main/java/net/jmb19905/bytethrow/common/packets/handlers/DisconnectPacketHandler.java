@@ -41,13 +41,13 @@ public class DisconnectPacketHandler extends PacketHandler {
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
         String peerName = ((DisconnectPacket) packet).name;
         PeerChat chat = StartClient.manager.getChat(peerName);
-        if(chat != null){
+        if (chat != null) {
             chat.setActive(false);
             StartClient.guiManager.setPeerStatus(peerName, false);
             StartClient.guiManager.append(peerName, Window.getBold());
             StartClient.guiManager.append(" disconnected", null);
             StartClient.guiManager.newLine();
-        }else {
+        } else {
             Logger.warn("Received invalid DisconnectPacket");
         }
     }

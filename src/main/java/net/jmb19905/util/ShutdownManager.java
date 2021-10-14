@@ -25,20 +25,20 @@ public class ShutdownManager {
 
     private static final List<CleanUpAction> cleanUpActions = new ArrayList<>();
 
-    public static void addCleanUp(CleanUpAction cleanUpAction){
+    public static void addCleanUp(CleanUpAction cleanUpAction) {
         cleanUpActions.add(cleanUpAction);
     }
 
-    public static void shutdown(int code){
+    public static void shutdown(int code) {
         Logger.info("Stopping...");
-        for(CleanUpAction action : cleanUpActions){
+        for (CleanUpAction action : cleanUpActions) {
             action.cleanUp();
         }
         Logger.info("Cleaned up");
         System.exit(code);
     }
 
-    public interface CleanUpAction{
+    public interface CleanUpAction {
         void cleanUp();
     }
 }

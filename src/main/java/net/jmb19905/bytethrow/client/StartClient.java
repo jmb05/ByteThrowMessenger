@@ -27,7 +27,6 @@ import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
-import java.net.ConnectException;
 import java.util.Arrays;
 
 public class StartClient {
@@ -45,14 +44,14 @@ public class StartClient {
      * Starts the Client and it's Window
      */
     public static void main(String[] args) {
-        if(args.length > 0){
+        if (args.length > 0) {
             isDevEnv = Arrays.asList(args).contains("dev");
         }
 
         Logger.initLogFile(false);
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Client - Version: " + version);
-        if(isDevEnv){
+        if (isDevEnv) {
             Logger.info("Is in DEV Environment");
         }
         ShutdownManager.addCleanUp(() -> {
@@ -66,14 +65,14 @@ public class StartClient {
         Logger.setLevel(isDevEnv ? Logger.Level.TRACE : Logger.Level.valueOf(config.loggerLevel));
         Localisation.reload();
         //On Some Linux Systems Java doesn't automatically use Anti-Aliasing
-        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("awt.useSystemAAFontSettings", "on");
         ThemeManager.init();
         try {
             manager = new ClientManager(config.server, config.port);
             guiManager = new GUIManager();
             guiManager.showLoading(true);
             manager.start();
-        } catch (Exception e){
+        } catch (Exception e) {
             Logger.error(e);
             guiManager.appendLine("Error: " + e.getMessage());
         }

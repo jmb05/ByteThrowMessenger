@@ -22,7 +22,6 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.util.Localisation;
-import net.jmb19905.bytethrow.common.chat.Chat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
@@ -48,7 +47,7 @@ public class FailPacketHandler extends PacketHandler {
         String cause = failPacket.cause;
         String message = Localisation.get(failPacket.message);
         Encryption encryption = tcpClientHandler.getEncryption();
-        if(!failPacket.extra.equals(" ")){
+        if (!failPacket.extra.equals(" ")) {
             message = Localisation.get(failPacket.message, failPacket.extra);
         }
         StartClient.guiManager.showError(message);

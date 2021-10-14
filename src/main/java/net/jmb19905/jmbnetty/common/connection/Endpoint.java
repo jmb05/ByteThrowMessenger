@@ -24,7 +24,7 @@ public abstract class Endpoint {
 
     protected final int port;
 
-    public Endpoint(int port){
+    public Endpoint(int port) {
         this.port = port;
         ShutdownManager.addCleanUp(this::stop);
     }

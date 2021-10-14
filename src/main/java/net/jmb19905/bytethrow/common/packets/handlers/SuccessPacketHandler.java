@@ -61,18 +61,18 @@ public class SuccessPacketHandler extends PacketHandler {
         }
     }
 
-    private void doOnLoginSuccess(SuccessPacket packet, Encryption encryption, Channel channel){
+    private void doOnLoginSuccess(SuccessPacket packet, Encryption encryption, Channel channel) {
         ClientManager manager = StartClient.manager;
-        if(!packet.confirmIdentity) {
-            if(!manager.loggedIn) {
+        if (!packet.confirmIdentity) {
+            if (!manager.loggedIn) {
                 StartClient.guiManager.appendLine("Login successful");
                 manager.loggedIn = true;
                 ChatsRequestPacket chatsRequestPacket = new ChatsRequestPacket();
                 NetworkingUtility.sendPacket(chatsRequestPacket, channel, encryption);
-            }else {
+            } else {
                 Logger.warn("Already logged in");
             }
-        }else {
+        } else {
             manager.confirmIdentityPacket = packet;
         }
         manager.confirmIdentity();

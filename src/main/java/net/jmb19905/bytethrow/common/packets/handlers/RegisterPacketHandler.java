@@ -25,9 +25,9 @@ import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.packets.RegisterPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -51,13 +51,14 @@ public class RegisterPacketHandler extends PacketHandler {
     /**
      * Things to do when a client logs in: -> set the client name -> create client file if it doesn't exist yet ->
      * tell the Client that the login succeeded -> tell the client which conversations he has started
+     *
      * @param packet the login packet containing the login packet of the client
      */
     private void handleSuccessfulRegister(Channel channel, RegisterPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
-        if(manager.isClientOnline(packet.username)) {
-            for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
-                if(manager.getClientName(otherHandler).equals(packet.username)){
+        if (manager.isClientOnline(packet.username)) {
+            for (TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()) {
+                if (manager.getClientName(otherHandler).equals(packet.username)) {
                     SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
                     ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
                     future.addListener(future1 -> otherHandler.getConnection().markClosed());

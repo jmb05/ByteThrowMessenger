@@ -24,7 +24,7 @@ public abstract class ClientConnection extends AbstractConnection {
 
     private final String remoteAddress;
 
-    public ClientConnection(int port, String remoteAddress){
+    public ClientConnection(int port, String remoteAddress) {
         super();
         this.port = port;
         this.remoteAddress = remoteAddress;

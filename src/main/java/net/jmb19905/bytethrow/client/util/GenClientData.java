@@ -33,26 +33,26 @@ public class GenClientData {
         System.out.print((genConfig() ? "Success" : "Failed") + "\n");
     }
 
-    public static boolean genLogDir(){
+    public static boolean genLogDir() {
         File logDir = new File("logs");
-        if(!logDir.exists()) {
+        if (!logDir.exists()) {
             return logDir.mkdirs();
         }
         return true;
     }
 
-    public static boolean genUserDataDir(){
+    public static boolean genUserDataDir() {
         File userDataDir = new File("userdata");
-        if(!userDataDir.exists()) {
+        if (!userDataDir.exists()) {
             return userDataDir.mkdirs();
         }
         return true;
     }
 
-    public static boolean genConfig(){
+    public static boolean genConfig() {
         String configFilePath = ConfigManager.getConfigPath() + "client_config.json";
         File configFile = new File(configFilePath);
-        if(!configFile.exists()) {
+        if (!configFile.exists()) {
             return ConfigManager.saveClientConfig(new ConfigManager.ClientConfig(), configFilePath);
         }
         return true;

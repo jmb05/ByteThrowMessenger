@@ -49,12 +49,12 @@ public class LoginDialog extends JDialog {
     protected String username = "";
     protected String password = "";
 
-    public LoginDialog(boolean showRegisterButton, Window window){
+    public LoginDialog(boolean showRegisterButton, Window window) {
         super(window);
         initUI(showRegisterButton);
     }
 
-    protected LoginDialog(String username, String password, String extra, boolean showRegisterButton, Window window){
+    protected LoginDialog(String username, String password, String extra, boolean showRegisterButton, Window window) {
         super(window);
         initUI(showRegisterButton);
         usernameInputField.setText(username);
@@ -107,9 +107,9 @@ public class LoginDialog extends JDialog {
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.insets = new Insets(5, 15, 5, 15);
         usernameInputField.addActionListener(l -> {
-            if(passwordInputField.getPassword().length == 0){
+            if (passwordInputField.getPassword().length == 0) {
                 passwordInputField.requestFocus();
-            }else {
+            } else {
                 confirmAction.actionPerformed(l);
             }
         });
@@ -124,7 +124,7 @@ public class LoginDialog extends JDialog {
         passwordInputField.addActionListener(confirmAction);
         add(passwordInputField, constraints);
 
-        if(showRegisterButton) {
+        if (showRegisterButton) {
             JCheckBox rememberLogin = new JCheckBox(Localisation.get("automatic_login"));
             rememberLogin.setSelected(StartClient.config.autoLogin);
             constraints.gridy = 3;
@@ -140,7 +140,7 @@ public class LoginDialog extends JDialog {
         constraints.anchor = GridBagConstraints.CENTER;
         add(confirm, constraints);
 
-        if(showRegisterButton) {
+        if (showRegisterButton) {
             JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
             constraints.gridx = 0;
             constraints.gridy = 5;
@@ -168,7 +168,7 @@ public class LoginDialog extends JDialog {
         username = "";
         password = "";
         hideDialog();
-        if(registerListener != null) {
+        if (registerListener != null) {
             registerListener.actionPerformed(e);
         }
         clearTextFields();
@@ -178,7 +178,7 @@ public class LoginDialog extends JDialog {
         username = "";
         password = "";
         hideDialog();
-        if(cancelListener != null) {
+        if (cancelListener != null) {
             cancelListener.windowClosing(e);
         }
         clearTextFields();
@@ -188,26 +188,26 @@ public class LoginDialog extends JDialog {
         username = usernameInputField.getText();
         password = new String(passwordInputField.getPassword());
         hideDialog();
-        if(confirmListener != null) {
+        if (confirmListener != null) {
             confirmListener.actionPerformed(e);
         }
         clearTextFields();
     }
 
-    protected void clearTextFields(){
+    protected void clearTextFields() {
         usernameInputField.setText("");
         passwordInputField.setText("");
     }
 
-    public void addConfirmButtonActionListener(ActionListener listener){
+    public void addConfirmButtonActionListener(ActionListener listener) {
         this.confirmListener = listener;
     }
 
-    public void addRegisterButtonActionListener(ActionListener listener){
+    public void addRegisterButtonActionListener(ActionListener listener) {
         this.registerListener = listener;
     }
 
-    public void addCancelListener(WindowAdapter windowAdapter){
+    public void addCancelListener(WindowAdapter windowAdapter) {
         this.cancelListener = windowAdapter;
     }
 
@@ -219,7 +219,7 @@ public class LoginDialog extends JDialog {
         return password;
     }
 
-    public LoginData showDialog(){
+    public LoginData showDialog() {
         AsynchronousInitializer<LoginData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
             addConfirmButtonActionListener(evt -> initializer.init(new LoginData(username, password, GUIManager.ResultType.CONFIRM)));
@@ -235,11 +235,12 @@ public class LoginDialog extends JDialog {
         return initializer.get();
     }
 
-    public void hideDialog(){
+    public void hideDialog() {
         setVisible(false);
         usernameInputField.requestFocus();
     }
 
-    public static record LoginData(String username, String password, GUIManager.ResultType resultType){ }
+    public static record LoginData(String username, String password, GUIManager.ResultType resultType) {
+    }
 
 }

@@ -30,25 +30,24 @@ public abstract class Chat {
      */
     protected List<String> members = new ArrayList<>();
 
-    public Chat(){
+    public Chat() {
         uniqueId = UUID.randomUUID();
     }
 
-    public Chat(UUID uniqueId){
+    public Chat(UUID uniqueId) {
         this.uniqueId = uniqueId;
     }
 
 
-
-    public void addClient(String name){
-        if(!members.contains(name)) members.add(name);
+    public void addClient(String name) {
+        if (!members.contains(name)) members.add(name);
     }
 
-    public void addClients(List<String> names){
+    public void addClients(List<String> names) {
         names.stream().filter(name -> !members.contains(name)).forEach(name -> members.add(name));
     }
 
-    public boolean hasClient(String name){
+    public boolean hasClient(String name) {
         return members.contains(name);
     }
 
@@ -65,10 +64,9 @@ public abstract class Chat {
     }
 
 
-
-    public boolean equivalent(Chat o){
-        if(this == o) return true;
-        if(o == null) return false;
+    public boolean equivalent(Chat o) {
+        if (this == o) return true;
+        if (o == null) return false;
         return listEqualsIgnoreOrder(members, o.members) && Objects.equals(uniqueId, o.uniqueId);
     }
 
@@ -97,7 +95,7 @@ public abstract class Chat {
                 '}';
     }
 
-    public boolean clientsEquals(Chat chat){
+    public boolean clientsEquals(Chat chat) {
         return chat.getMembers().containsAll(members) && members.containsAll(chat.getMembers());
     }
 }

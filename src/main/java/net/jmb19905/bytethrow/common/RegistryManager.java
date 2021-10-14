@@ -24,7 +24,7 @@ import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
 public class RegistryManager {
 
-    public static void registerPackets(){
+    public static void registerPackets() {
         PacketRegistry.getInstance().register("change_user_data", ChangeUserDataPacket.class, new ChangeUserDataPacketHandler());
         PacketRegistry.getInstance().register("chats", ChatsPacket.class, new ChatsPacketHandler());
         PacketRegistry.getInstance().register("chats_request", ChatsRequestPacket.class, new ChatsRequestPacketHandler());

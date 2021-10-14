@@ -25,12 +25,12 @@ public class AsynchronousInitializer<T> {
     private final CountDownLatch cancelLatch = new CountDownLatch(1);
     private T t = null;
 
-    public void init(T initT){
+    public void init(T initT) {
         t = initT;
         cancel();
     }
 
-    public void cancel(){
+    public void cancel() {
         cancelLatch.countDown();
     }
 

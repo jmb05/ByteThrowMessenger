@@ -24,8 +24,8 @@ import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.ServerManager;
+import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -41,7 +41,7 @@ public class PeerMessagePacketHandler extends PacketHandler {
         PeerMessage message = messagePacket.message;
         ServerManager manager = StartServer.manager;
         String name = manager.getClientName(serverHandler);
-        if(name.equals(message.getSender())) {
+        if (name.equals(message.getSender())) {
             if (!name.isBlank()) {
                 String peerName = message.getReceiver();
                 PeerChat chat = manager.getChat(name, peerName);
@@ -58,7 +58,7 @@ public class PeerMessagePacketHandler extends PacketHandler {
             } else {
                 Logger.warn("Client is trying to communicate but isn't logged in!");
             }
-        }else {
+        } else {
             Logger.warn("Received Message with wrong Sender!");
         }
     }
@@ -70,15 +70,15 @@ public class PeerMessagePacketHandler extends PacketHandler {
         String sender = message.getSender();
         String receiver = message.getReceiver();
         String encryptedMessage = message.getMessage();
-        if(receiver.equals(StartClient.manager.name)) {
+        if (receiver.equals(StartClient.manager.name)) {
             PeerChat chat = StartClient.manager.getChat(sender);
             if (chat != null) {
                 String decryptedMessage = chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage;
                 StartClient.guiManager.appendMessage(sender, decryptedMessage);
-            }else {
+            } else {
                 Logger.warn("Received Packet from unknown user");
             }
-        }else {
+        } else {
             Logger.warn("Received Packet destined for someone else");
         }
     }

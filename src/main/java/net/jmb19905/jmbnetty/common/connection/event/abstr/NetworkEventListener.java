@@ -22,5 +22,6 @@ import java.util.EventListener;
 
 public interface NetworkEventListener<E extends NetworkEvent> extends EventListener {
     void perform(E evt);
+
     String getId();
 }

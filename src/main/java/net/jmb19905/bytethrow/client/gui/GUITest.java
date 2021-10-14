@@ -32,11 +32,10 @@ public class GUITest {
         StartClient.config = ConfigManager.loadClientConfig();
 
         //On Some Linux Systems Java doesn't automatically use Anti-Aliasing
-        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("awt.useSystemAAFontSettings", "on");
 
         FlatDarculaLaf.setup();
         Localisation.reload();
-
 
 
         Window window = new Window();

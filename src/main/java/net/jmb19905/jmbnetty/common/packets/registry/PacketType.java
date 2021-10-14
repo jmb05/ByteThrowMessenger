@@ -30,7 +30,7 @@ public class PacketType<P extends Packet> extends Type<P> {
     private final Class<P> packetClass;
     private final PacketHandler handler;
 
-    public PacketType(Class<P> packetClass, PacketHandler handler){
+    public PacketType(Class<P> packetClass, PacketHandler handler) {
         this.packetClass = packetClass;
         this.handler = handler;
     }
@@ -39,7 +39,7 @@ public class PacketType<P extends Packet> extends Type<P> {
         return handler;
     }
 
-    public P newPacketInstance() throws NoSuchMethodException{
+    public P newPacketInstance() throws NoSuchMethodException {
         try {
             Constructor<P> constructor = packetClass.getConstructor();
             return constructor.newInstance();

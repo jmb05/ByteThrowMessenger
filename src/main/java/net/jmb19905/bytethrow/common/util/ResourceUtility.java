@@ -38,7 +38,7 @@ import java.util.jar.JarFile;
 
 public class ResourceUtility {
 
-    public static Properties readResourceProperties(String s){
+    public static Properties readResourceProperties(String s) {
         Properties prop = new Properties();
         try {
             InputStream stream = getResource(s);
@@ -51,6 +51,7 @@ public class ResourceUtility {
 
     /**
      * Loads an image from the classpath
+     *
      * @param s the path of the image
      * @return the loaded image
      */
@@ -66,6 +67,7 @@ public class ResourceUtility {
 
     /**
      * Gets a Resource as a Stream
+     *
      * @param s path for the resource
      * @return the stream
      */
@@ -73,7 +75,7 @@ public class ResourceUtility {
         return ResourceUtility.class.getClassLoader().getResourceAsStream(s);
     }
 
-    public static URL getResourceAsURL(String s){
+    public static URL getResourceAsURL(String s) {
         return ResourceUtility.class.getClassLoader().getResource(s);
     }
 
@@ -82,8 +84,8 @@ public class ResourceUtility {
      * This is basically a brute-force implementation.
      * Works for regular files and also JARs.
      *
-     * @author Greg Briggs - taken from: http://www.uofr.net/~greg/java/get-resource-listing.html
      * @return Just the name of each member item, not the full paths.
+     * @author Greg Briggs - taken from: http://www.uofr.net/~greg/java/get-resource-listing.html
      */
     public static String[] getResourceFiles(String path) {
         URL dirURL = getResourceAsURL(path);
@@ -101,7 +103,7 @@ public class ResourceUtility {
              * In case of a jar file, we can't actually find a directory.
              * Have to assume the same jar as clazz.
              */
-            String me = ResourceUtility.class.getName().replace(".", "/")+".class";
+            String me = ResourceUtility.class.getName().replace(".", "/") + ".class";
             dirURL = getResourceAsURL(me);
         }
 
@@ -116,11 +118,11 @@ public class ResourceUtility {
             }
             Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
             Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
-            while(entries.hasMoreElements()) {
+            while (entries.hasMoreElements()) {
                 String name = entries.nextElement().getName();
                 if (name.startsWith(path)) { //filter according to the path
                     String entry = name.substring(path.length() + 1);
-                    if(!entry.equals("")) {
+                    if (!entry.equals("")) {
                         int checkSubdir = entry.indexOf("/");
                         if (checkSubdir >= 0) {
                             // if it is a subdirectory, we just return the directory name
@@ -133,6 +135,6 @@ public class ResourceUtility {
             return result.toArray(new String[0]);
         }
 
-        throw new UnsupportedOperationException("Cannot list files for URL "+dirURL);
+        throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
     }
 }

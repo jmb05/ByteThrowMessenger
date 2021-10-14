@@ -29,32 +29,32 @@ public class CommandManager {
 
     private static CommandThread thread;
 
-    public static void init(){
+    public static void init() {
         thread = new CommandThread();
         thread.start();
     }
 
-    public static void close(){
+    public static void close() {
         thread.stop();
     }
 
-    private static class CommandThread implements Runnable{
+    private static class CommandThread implements Runnable {
 
         private Thread thread;
 
-        public void start(){
+        public void start() {
             this.thread = new Thread(this);
             this.thread.start();
         }
 
-        public void stop(){
+        public void stop() {
             this.thread.interrupt();
         }
 
         @Override
         public void run() {
             Scanner scanner = new Scanner(System.in);
-            while (!thread.isInterrupted()){
+            while (!thread.isInterrupted()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(" ");
                 String id = parts[0];

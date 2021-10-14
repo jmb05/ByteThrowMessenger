@@ -30,30 +30,30 @@ public class Localisation {
 
     private static ResourceBundle resourceBundle;
 
-    public static void reload(){
+    public static void reload() {
         String[] localeParts = StartClient.config.lang.split("_");
         Locale locale = new Locale(localeParts[0], localeParts[1]);
         resourceBundle = ResourceBundle.getBundle("lang.bundle", locale);
     }
 
-    public static String[] getLocales(){
+    public static String[] getLocales() {
         String[] locales = ResourceUtility.getResourceFiles("lang");
-        for(int i=0;i<locales.length;i++){
+        for (int i = 0; i < locales.length; i++) {
             locales[i] = locales[i].replace("bundle_", "").replace(".properties", "");
         }
         return locales;
     }
 
-    public static String get(String key){
+    public static String get(String key) {
         try {
             return resourceBundle.getString(key);
-        }catch (MissingResourceException e){
+        } catch (MissingResourceException e) {
             Logger.warn(e);
             return key;
         }
     }
 
-    public static String get(String key, String input){
+    public static String get(String key, String input) {
         return get(key).replaceAll("~", input);
     }
 

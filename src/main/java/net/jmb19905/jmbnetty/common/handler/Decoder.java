@@ -26,7 +26,6 @@ import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketUtil;
 import net.jmb19905.util.Logger;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,16 +34,16 @@ public class Decoder extends ByteToMessageDecoder {
 
     private final List<DecoderTask> tasks = new ArrayList<>();
 
-    public Decoder(Encryption encryption){
+    public Decoder(Encryption encryption) {
         addTask(in -> {
-            if(encryption == null || !encryption.isUsable()){
+            if (encryption == null || !encryption.isUsable()) {
                 return in;
             }
             return encryption.decrypt(in);
         });
     }
 
-    public void addTask(DecoderTask task){
+    public void addTask(DecoderTask task) {
         tasks.add(task);
     }
 
@@ -56,16 +55,16 @@ public class Decoder extends ByteToMessageDecoder {
 
             byte[] data;
             int lastEnd = 0;
-            for(int i=0;i<rawData.length;i++){
-                if(rawData[i] == '%'){
+            for (int i = 0; i < rawData.length; i++) {
+                if (rawData[i] == '%') {
                     data = Arrays.copyOfRange(rawData, lastEnd, i);
                     lastEnd = i + 1;
 
-                    for(DecoderTask task : tasks){
+                    for (DecoderTask task : tasks) {
                         data = task.decode(data);
                     }
 
-                    if(data == null || data.length < 1){
+                    if (data == null || data.length < 1) {
                         Logger.warn("Ignoring faulty Packet");
                         return;
                     }
@@ -76,15 +75,15 @@ public class Decoder extends ByteToMessageDecoder {
                 }
             }
 
-            if(out.isEmpty()){
+            if (out.isEmpty()) {
                 throw new IllegalStateException("Error decoding: Could not find End of Packet");
             }
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             Logger.warn(e);
         }
     }
 
-    public interface DecoderTask{
+    public interface DecoderTask {
         byte[] decode(byte[] in);
     }
 

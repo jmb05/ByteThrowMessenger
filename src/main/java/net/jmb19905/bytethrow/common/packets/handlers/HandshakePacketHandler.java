@@ -42,7 +42,7 @@ public class HandshakePacketHandler extends PacketHandler {
         HandshakePacket handshakePacket = (HandshakePacket) packet;
         Version packetVersion = new Version(handshakePacket.version);
         TcpServerConnection serverConnection = (TcpServerConnection) tcpServerHandler.getConnection();
-        if(packetVersion.isInCompatible(StartServer.version)){
+        if (packetVersion.isInCompatible(StartServer.version)) {
             NetworkingUtility.sendFail(channelHandlerContext.channel(), "version", "client_outdated", "", tcpServerHandler);
             Logger.warn("Client tried to connect with outdated version: " + handshakePacket.version + " current version: " + StartServer.version);
             return;
@@ -67,7 +67,7 @@ public class HandshakePacketHandler extends PacketHandler {
         ClientManager manager = StartClient.manager;
         HandshakePacket handshakePacket = (HandshakePacket) packet;
         Version packetVersion = new Version(handshakePacket.version);
-        if(packetVersion.isInCompatible(StartClient.version)){
+        if (packetVersion.isInCompatible(StartClient.version)) {
             StartClient.guiManager.showError("Client is outdated!");
             return;
         }

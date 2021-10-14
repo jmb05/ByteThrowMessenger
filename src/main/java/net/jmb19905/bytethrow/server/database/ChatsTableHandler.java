@@ -100,7 +100,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
         return null;
     }
 
-    public boolean hasChat(Chat chat){
+    public boolean hasChat(Chat chat) {
         return getChat(chat.getMembers()) != null;
     }
 

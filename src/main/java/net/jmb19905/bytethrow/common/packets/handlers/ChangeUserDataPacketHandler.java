@@ -26,9 +26,9 @@ import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
@@ -70,7 +70,7 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                             manager.getChats(client).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
                             Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(handler -> manager.getClientName(handler).equals(client)).findFirst();
-                            if(optionalServerHandler.isPresent()){
+                            if (optionalServerHandler.isPresent()) {
                                 TcpServerHandler peerHandler = optionalServerHandler.get();
                                 SocketChannel peerChannel = serverConnection.getClientConnections().get(peerHandler);
 
@@ -101,21 +101,21 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
         }
     }
 
-    private ChannelFuture sendUsernameSuccessPacket(Channel channel, Encryption encryption){
+    private ChannelFuture sendUsernameSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = "change_username";
 
         return NetworkingUtility.sendPacket(successPacket, channel, encryption);
     }
 
-    private void sendPasswordSuccessPacket(Channel channel, Encryption encryption){
+    private void sendPasswordSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = "change_password";
 
         NetworkingUtility.sendPacket(successPacket, channel, encryption);
     }
 
-    private void sendDeleteSuccessPacket(Channel channel, Encryption encryption){
+    private void sendDeleteSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = "delete";
 

@@ -29,7 +29,7 @@ public class CommandType<P extends ICommand> extends Type<P> {
     private final Class<P> commandClass;
     private final CommandHandler handler;
 
-    public CommandType(Class<P> commandClass, CommandHandler handler){
+    public CommandType(Class<P> commandClass, CommandHandler handler) {
         this.commandClass = commandClass;
         this.handler = handler;
     }

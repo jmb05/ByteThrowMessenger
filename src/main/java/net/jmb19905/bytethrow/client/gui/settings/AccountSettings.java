@@ -42,7 +42,7 @@ public class AccountSettings extends JDialog {
 
     private final ClientManager manager;
 
-    public AccountSettings(Icon userIcon, Window window){
+    public AccountSettings(Icon userIcon, Window window) {
         super(window);
         this.manager = StartClient.manager;
 
@@ -71,7 +71,8 @@ public class AccountSettings extends JDialog {
         String name = "";
         try {
             name = manager.name;
-        }catch (NullPointerException ignored){}
+        } catch (NullPointerException ignored) {
+        }
         nameLabel = new JLabel(name);
         constraints.gridx = 0;
         constraints.gridy = 1;
@@ -109,14 +110,14 @@ public class AccountSettings extends JDialog {
         Action changePasswordAction = new AbstractAction("Change Password") {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if(isIdentityConfirmed()){
+                if (isIdentityConfirmed()) {
                     String newPassword = JOptionPane.showInputDialog("New Password: ");
-                    if(!newPassword.strip().equals("")) {
+                    if (!newPassword.strip().equals("")) {
                         changePassword(newPassword);
-                    }else {
+                    } else {
                         JOptionPane.showMessageDialog(null, "Nothing changed");
                     }
-                }else {
+                } else {
                     confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
                     confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
                     confirmIdentityDialog.setVisible(true);
@@ -164,26 +165,28 @@ public class AccountSettings extends JDialog {
         this.nameLabel.setText(username);
     }
 
-    private void sendConfirmIdentityPacket(String username, String password){
+    private void sendConfirmIdentityPacket(String username, String password) {
         try {
             manager.name = username;
             setUsername(username);
 
             PacketManager.confirmIdentity(username, password, manager.getChannel(), manager.getHandler().getEncryption());
-        }catch (NullPointerException ignored){}
+        } catch (NullPointerException ignored) {
+        }
     }
 
-    private void changeUsername(String username){
+    private void changeUsername(String username) {
         PacketManager.sendChangeUsername(username, manager.getChannel(), manager.getHandler().getEncryption());
     }
 
-    private void changePassword(String password){
+    private void changePassword(String password) {
         try {
             PacketManager.sendChangePassword(password, manager.getChannel(), manager.getHandler().getEncryption());
-        }catch (NullPointerException ignored){}
+        } catch (NullPointerException ignored) {
+        }
     }
 
-    private void changeAvatar(){
+    private void changeAvatar() {
         JOptionPane.showMessageDialog(this, "An avatar is currently not implemented!");
         Logger.warn("Avatar isn't implemented yet!");//TODO: implement an avatar
     }

@@ -24,7 +24,7 @@ import net.jmb19905.util.commands.registry.CommandRegistry;
 
 public class ServerRegistryManager {
 
-    public static void registerCommands(){
+    public static void registerCommands() {
         CommandRegistry.getInstance().register("stop", StopCommand.class, new StopCommand.StopCommandHandler());
         CommandRegistry.getInstance().register("help", HelpCommand.class, new HelpCommand.HelpCommandHandler());
     }

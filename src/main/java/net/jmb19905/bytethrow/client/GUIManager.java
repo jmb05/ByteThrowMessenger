@@ -25,7 +25,6 @@ import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
-import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
@@ -41,11 +40,11 @@ public class GUIManager {
     private final RegisterDialog registerDialog;
     private final CreateGroupDialog createGroupDialog;
 
-    public GUIManager(){
+    public GUIManager() {
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
-            Object value = UIManager.get (key);
+            Object value = UIManager.get(key);
             if (value instanceof javax.swing.plaf.FontUIResource) {
                 UIManager.put(key, new FontUIResource("Noto Sans", Font.PLAIN, 14));
             }
@@ -65,27 +64,27 @@ public class GUIManager {
         }));
     }
 
-    public void setUsername(String username){
+    public void setUsername(String username) {
         SwingUtilities.invokeLater(() -> window.getAccountSettings().setUsername(username));
     }
 
-    public void addPeer(String name){
+    public void addPeer(String name) {
         SwingUtilities.invokeLater(() -> window.addPeer(name));
     }
 
-    public void removePeer(String name){
+    public void removePeer(String name) {
         SwingUtilities.invokeLater(() -> window.removePeer(name));
     }
 
-    public void setPeers(String[] names){
+    public void setPeers(String[] names) {
         SwingUtilities.invokeLater(() -> window.setPeers(names));
     }
 
-    public void setPeerStatus(String peer, boolean status){
+    public void setPeerStatus(String peer, boolean status) {
         SwingUtilities.invokeLater(() -> window.setPeerStatus(peer, status));
     }
 
-    public void addGroup(String name){
+    public void addGroup(String name) {
         SwingUtilities.invokeLater(() -> window.addGroup(name));
     }
 
@@ -93,53 +92,53 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.removeGroup(name));
     }
 
-    public void appendLine(String line){
+    public void appendLine(String line) {
         SwingUtilities.invokeLater(() -> window.appendLine(line));
     }
 
-    public void append(String text, AttributeSet attributeSet){
+    public void append(String text, AttributeSet attributeSet) {
         SwingUtilities.invokeLater(() -> window.append(text, attributeSet));
     }
 
-    public void newLine(){
+    public void newLine() {
         SwingUtilities.invokeLater(window::newLine);
     }
 
-    public void appendMessage(String sender, String message){
+    public void appendMessage(String sender, String message) {
         SwingUtilities.invokeLater(() -> window.appendMessage(sender, message));
     }
 
-    public void showLocalisedError(String id){
+    public void showLocalisedError(String id) {
         showError(Localisation.get(id), "");
     }
 
-    public void showError(String message){
+    public void showError(String message) {
         showError(message, "");
     }
 
-    public void showError(String message, String title){
+    public void showError(String message, String title) {
         JOptionPane.showMessageDialog(window, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
-    public void showLoading(boolean load){
+    public void showLoading(boolean load) {
         SwingUtilities.invokeLater(() -> window.showLoading(load));
     }
 
-    public void repaint(){
+    public void repaint() {
         SwingUtilities.invokeLater(() -> {
             window.repaint();
             SettingsWindow settingsWindow = window.getSettingsWindow();
-            if(settingsWindow != null){
+            if (settingsWindow != null) {
                 settingsWindow.repaint();
             }
             AccountSettings accountSettings = window.getAccountSettings();
-            if(accountSettings != null){
+            if (accountSettings != null) {
                 accountSettings.repaint();
             }
         });
     }
 
-    public void pack(){
+    public void pack() {
         SwingUtilities.invokeLater(() -> {
             window.pack();
             SettingsWindow settingsWindow = window.getSettingsWindow();
@@ -153,7 +152,7 @@ public class GUIManager {
         });
     }
 
-    public void updateComponentTree(){
+    public void updateComponentTree() {
         SwingUtilities.invokeLater(() -> {
             SwingUtilities.updateComponentTreeUI(window);
             SettingsWindow settingsWindow = window.getSettingsWindow();
@@ -167,33 +166,33 @@ public class GUIManager {
         });
     }
 
-    public LoginDialog.LoginData showLoginDialog(Runnable register){
+    public LoginDialog.LoginData showLoginDialog(Runnable register) {
         LoginDialog.LoginData result = loginDialog.showDialog();
-        if(result.resultType() == ResultType.CONFIRM){
+        if (result.resultType() == ResultType.CONFIRM) {
             return result;
-        }else if(result.resultType() == ResultType.CANCEL){
+        } else if (result.resultType() == ResultType.CANCEL) {
             ShutdownManager.shutdown(0);
-        }else {
+        } else {
             register.run();
         }
         return null;
     }
 
-    public RegisterDialog.RegisterData showRegisterDialog(Runnable login){
+    public RegisterDialog.RegisterData showRegisterDialog(Runnable login) {
         RegisterDialog.RegisterData result = registerDialog.showDialog();
-        if(result.resultType() == ResultType.CONFIRM){
+        if (result.resultType() == ResultType.CONFIRM) {
             return result;
-        }else if(result.resultType() == ResultType.CANCEL){
+        } else if (result.resultType() == ResultType.CANCEL) {
             ShutdownManager.shutdown(0);
-        }else {
+        } else {
             login.run();
         }
         return null;
     }
 
-    public CreateGroupDialog.CreateGroupData showCreateGroup(){
+    public CreateGroupDialog.CreateGroupData showCreateGroup() {
         CreateGroupDialog.CreateGroupData result = createGroupDialog.showDialog();
-        if(!result.cancel()){
+        if (!result.cancel()) {
             return result;
         }
         return null;

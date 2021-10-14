@@ -24,21 +24,21 @@ import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 public class PacketManager {
 
-    public static void sendChangeUsername(String name, Channel channel, Encryption encryption){
+    public static void sendChangeUsername(String name, Channel channel, Encryption encryption) {
         ChangeUserDataPacket packet = new ChangeUserDataPacket();
         packet.type = "username";
         packet.value = name;
         NetworkingUtility.sendPacket(packet, channel, encryption);
     }
 
-    public static void sendChangePassword(String password, Channel channel, Encryption encryption){
+    public static void sendChangePassword(String password, Channel channel, Encryption encryption) {
         ChangeUserDataPacket packet = new ChangeUserDataPacket();
         packet.type = "password";
         packet.value = password;
         NetworkingUtility.sendPacket(packet, channel, encryption);
     }
 
-    public static void confirmIdentity(String username, String password, Channel channel, Encryption encryption){
+    public static void confirmIdentity(String username, String password, Channel channel, Encryption encryption) {
         LoginPacket loginPacket = new LoginPacket();
         loginPacket.username = username;
         loginPacket.password = password;

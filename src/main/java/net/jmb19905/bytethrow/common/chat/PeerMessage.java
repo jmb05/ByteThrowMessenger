@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public class PeerMessage extends Message{
+public class PeerMessage extends Message {
 
     private final String sender;
     private final String receiver;

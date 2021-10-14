@@ -43,9 +43,10 @@ public class Encryption {
 
     /**
      * This Constructor is for loading from a file
-     * @param encodedPublicKey the PublicKey encoded in a byte-array
+     *
+     * @param encodedPublicKey  the PublicKey encoded in a byte-array
      * @param encodedPrivateKey the PrivateKey encoded in a byte-array
-     * @param sharedSecret  the Shared Key encoded in a byte-array
+     * @param sharedSecret      the Shared Key encoded in a byte-array
      * @throws InvalidEncryptionException if the public or private key is invalid
      */
     public Encryption(byte[] encodedPublicKey, byte[] encodedPrivateKey, byte[] sharedSecret) throws InvalidEncryptionException {
@@ -88,6 +89,7 @@ public class Encryption {
 
     /**
      * Generates the Shared Key from the other side's PublicKey
+     *
      * @param publicKey the PublicKey of the other side
      */
     public void setReceiverPublicKey(PublicKey publicKey) {
@@ -101,6 +103,7 @@ public class Encryption {
 
     /**
      * Encrypts a byte-array using the Shared Key
+     *
      * @param in the byte-array that will be encrypted
      * @return the encrypted byte-array
      */
@@ -121,6 +124,7 @@ public class Encryption {
 
     /**
      * Decrypts a byte-array using the Shared Key
+     *
      * @param encryptedData the encrypted byte-array that will be decrypted
      * @return the decrypted byte-array
      */
@@ -133,7 +137,7 @@ public class Encryption {
             return c.doFinal(decodedValue);
         } catch (InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | IllegalArgumentException e) {
             Logger.error(e, "Error decrypting");
-        } catch (BadPaddingException e){
+        } catch (BadPaddingException e) {
             Logger.error(e, "Error decrypting - wrong key");
         }
         return encryptedData;
@@ -148,6 +152,7 @@ public class Encryption {
 
     /**
      * THIS KEY SHOULD NEVER BE USED OUTSIDE THIS DEVICE
+     *
      * @return the PrivateKey
      */
     public PrivateKey getPrivateKey() {
@@ -161,13 +166,14 @@ public class Encryption {
 
     /**
      * THIS KEY SHOULD NEVER BE USED OUTSIDE THIS DEVICE
+     *
      * @return the Shared Key
      */
     public byte[] getSharedSecret() {
         return sharedSecret;
     }
 
-    public boolean isUsable(){
+    public boolean isUsable() {
         return sharedSecret != null;
     }
 

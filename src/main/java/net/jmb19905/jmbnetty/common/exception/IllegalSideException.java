@@ -18,9 +18,9 @@
 
 package net.jmb19905.jmbnetty.common.exception;
 
-public class IllegalSideException extends Exception{
+public class IllegalSideException extends Exception {
 
-    public IllegalSideException(String message){
+    public IllegalSideException(String message) {
         super(message);
     }
 

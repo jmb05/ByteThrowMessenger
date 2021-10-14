@@ -27,8 +27,8 @@ import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.ServerManager;
+import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -44,14 +44,14 @@ public class AddGroupMemberPacketHandler extends PacketHandler {
         GroupChat groupChat = manager.getGroup(addGroupMemberPacket.groupName);
 
         TcpServerHandler memberHandler = manager.getClientHandler(addGroupMemberPacket.member);
-        if(memberHandler != null){
+        if (memberHandler != null) {
             GroupInvitePacket groupInvitePacket = new GroupInvitePacket();
             groupInvitePacket.groupName = addGroupMemberPacket.groupName;
             groupInvitePacket.members = groupChat.getMembers().toArray(new String[0]);
 
             SocketChannel channel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(memberHandler);
             NetworkingUtility.sendPacket(groupInvitePacket, channel, memberHandler.getEncryption());
-        }else {
+        } else {
             NetworkingUtility.sendFail(ctx.channel(), "connect:" + addGroupMemberPacket.member, "_not_online", addGroupMemberPacket.member, handler);
         }
     }

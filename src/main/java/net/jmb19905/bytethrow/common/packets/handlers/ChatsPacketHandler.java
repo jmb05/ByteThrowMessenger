@@ -42,10 +42,10 @@ public class ChatsPacketHandler extends PacketHandler {
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler handler) {
         ChatsPacket chatsPacket = (ChatsPacket) packet;
-        if(chatsPacket.update) {
+        if (chatsPacket.update) {
             StartClient.manager.clearChats();
         }
-        for(ChatsPacket.ChatData chatData : chatsPacket.chatData){
+        for (ChatsPacket.ChatData chatData : chatsPacket.chatData) {
             if (chatData.name().equals("null")) {
                 String peerName = chatData.members().stream().filter(s -> !s.equals(StartClient.manager.name)).findFirst().orElse(null);
 
@@ -65,7 +65,7 @@ public class ChatsPacketHandler extends PacketHandler {
                     NetworkingUtility.sendPacket(connectPacket, channelHandlerContext.channel(), handler.getEncryption());
                     Logger.trace("Sent " + connectPacket);
                 }
-            }else {
+            } else {
                 GroupChat chat = new GroupChat(chatData.name());
                 chatData.members().forEach(chat::addClient);
 

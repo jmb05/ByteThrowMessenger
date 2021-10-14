@@ -32,7 +32,7 @@ import java.util.TimerTask;
 /**
  * Shows a Login Dialog
  */
-public class ConfirmIdentityDialog extends LoginDialog{
+public class ConfirmIdentityDialog extends LoginDialog {
 
     protected ActionListener identityConfirmedListener = null;
 
@@ -45,7 +45,7 @@ public class ConfirmIdentityDialog extends LoginDialog{
         //Copied from Superclass
         super.username = super.usernameInputField.getText();
         super.password = new String(super.passwordInputField.getPassword());
-        if(ConfirmIdentityDialog.super.confirmListener != null) {
+        if (ConfirmIdentityDialog.super.confirmListener != null) {
             ConfirmIdentityDialog.super.confirmListener.actionPerformed(e);
         }
 
@@ -56,14 +56,14 @@ public class ConfirmIdentityDialog extends LoginDialog{
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                if(manager.confirmIdentityPacket != null){
+                if (manager.confirmIdentityPacket != null) {
                     dispose();
-                    if(identityConfirmedListener != null) {
+                    if (identityConfirmedListener != null) {
                         identityConfirmedListener.actionPerformed(e);
                     }
                     manager.confirmIdentityPacket = null;
                     timer.cancel();
-                }else if(System.currentTimeMillis() - approximateStartTime >= 30000){ //Timeout at 30 seconds
+                } else if (System.currentTimeMillis() - approximateStartTime >= 30000) { //Timeout at 30 seconds
                     JOptionPane.showMessageDialog(null, Localisation.get("confirm_id_error"), "", JOptionPane.ERROR_MESSAGE);
                     timer.cancel();
                 }
@@ -73,7 +73,7 @@ public class ConfirmIdentityDialog extends LoginDialog{
         clearTextFields();
     }
 
-    public void addIdentityConfirmedActionListener(ActionListener listener){
+    public void addIdentityConfirmedActionListener(ActionListener listener) {
         identityConfirmedListener = listener;
     }
 

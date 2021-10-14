@@ -23,7 +23,7 @@ import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 import java.security.PublicKey;
 
-public class PeerChat extends Chat{
+public class PeerChat extends Chat {
 
     private Encryption encryption;
     private boolean active = false;
@@ -31,25 +31,25 @@ public class PeerChat extends Chat{
     /**
      * Initializes the EncryptedConnection for the client
      */
-    public PeerChat(String peer){
+    public PeerChat(String peer) {
         addClient(StartClient.manager.name);
         addClient(peer);
     }
 
-    public PeerChat(String peer1, String peer2){
+    public PeerChat(String peer1, String peer2) {
         addClient(peer1);
         addClient(peer2);
     }
 
-    public String getOther(String peer){
+    public String getOther(String peer) {
         return members.stream().filter(s -> !s.equals(peer)).findFirst().orElse(null);
     }
 
-    public void initClient(){
+    public void initClient() {
         encryption = new Encryption();
     }
 
-    public void setReceiverPublicKey(PublicKey key){
+    public void setReceiverPublicKey(PublicKey key) {
         encryption.setReceiverPublicKey(key);
     }
 

@@ -29,9 +29,9 @@ public class ConfigManager {
 
     private static String configPath;
 
-    public static void init(){
-        if(!StartClient.isDevEnv){
-            if(System.getProperty("os.name").equals("Linux")){
+    public static void init() {
+        if (!StartClient.isDevEnv) {
+            if (System.getProperty("os.name").equals("Linux")) {
                 configPath = Util.getUserHome() + "/.config/bytethrowmessenger/";
                 return;
             }
@@ -43,16 +43,17 @@ public class ConfigManager {
         ConfigManager.configPath = configPath;
     }
 
-    public static String getConfigPath(){
+    public static String getConfigPath() {
         return configPath;
     }
 
-    public static ClientConfig loadClientConfig(){
+    public static ClientConfig loadClientConfig() {
         return loadClientConfigFile(getConfigPath() + "client_config.json");
     }
 
     /**
      * Loads the config for the Client
+     *
      * @param configFilePath the path of the config file
      * @return the ClientConfig
      */
@@ -62,20 +63,21 @@ public class ConfigManager {
             return objectMapper.readValue(new File(configFilePath), ClientConfig.class);
         } catch (IOException e) {
             Logger.warn(e, "Error reading config... writing new one");
-            if(saveClientConfig(new ClientConfig(), configFilePath)){
+            if (saveClientConfig(new ClientConfig(), configFilePath)) {
                 return loadClientConfigFile(configFilePath);
             }
         }
         return new ClientConfig();
     }
 
-    public static void saveClientConfig(){
+    public static void saveClientConfig() {
         saveClientConfig(StartClient.config, getConfigPath() + "client_config.json");
     }
 
     /**
      * Saves the config from the Client
-     * @param config the Config that will be saved
+     *
+     * @param config         the Config that will be saved
      * @param configFilePath the path to the config file
      */
     public static boolean saveClientConfig(ClientConfig config, String configFilePath) {
@@ -90,7 +92,7 @@ public class ConfigManager {
         } catch (IOException e) {
             Logger.warn(e, "Error saving config file.");
             return false;
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Logger.warn(e, "Error saving config file");
         }
         return true;
@@ -98,6 +100,7 @@ public class ConfigManager {
 
     /**
      * Loads the config for the Server
+     *
      * @param configFilePath the path of the config file
      * @return the ServerConfig
      */
@@ -106,7 +109,7 @@ public class ConfigManager {
         try {
             return objectMapper.readValue(new File(configFilePath), ServerConfig.class);
         } catch (IOException e) {
-            if(saveServerConfig(new ServerConfig(), configFilePath)){
+            if (saveServerConfig(new ServerConfig(), configFilePath)) {
                 return loadServerConfigFile(configFilePath);
             }
         }
@@ -115,7 +118,8 @@ public class ConfigManager {
 
     /**
      * Saves the config from the Server
-     * @param config the Config that will be saved
+     *
+     * @param config         the Config that will be saved
      * @param configFilePath the path to the config file
      */
     public static boolean saveServerConfig(ServerConfig config, String configFilePath) {
@@ -127,7 +131,7 @@ public class ConfigManager {
                 file.createNewFile();
             }
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, config);
-        }catch (IOException e) {
+        } catch (IOException e) {
             Logger.warn(e, "Error saving config file: " + configFilePath);
             return false;
         }

@@ -34,7 +34,7 @@ public class ThemeManager {
     private static final Map<String, ImageIcon> iconPack = new HashMap<>();
     private static boolean dark;
 
-    public static void init(){
+    public static void init() {
         String themeStringID = StartClient.config.theme;
         switch (themeStringID) {
             case "Darcula" -> {
@@ -57,13 +57,13 @@ public class ThemeManager {
         initIcons();
     }
 
-    private static void initIcons(){
+    private static void initIcons() {
         String pathAddition = dark ? "" : "_dark";
         iconPack.put("settings_wheel", new ImageIcon(ResourceUtility.getImageResource("icons/settings_wheel" + pathAddition + ".png")));
         iconPack.put("send", new ImageIcon(ResourceUtility.getImageResource("icons/send" + pathAddition + ".png")));
     }
 
-    public static ImageIcon getIcon(String id){
+    public static ImageIcon getIcon(String id) {
         return iconPack.get(id);
     }
 

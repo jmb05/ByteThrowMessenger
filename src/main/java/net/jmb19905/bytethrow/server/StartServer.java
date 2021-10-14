@@ -40,6 +40,7 @@ public class StartServer {
 
     /**
      * Starts the server
+     *
      * @param args program arguments
      */
     public static void main(String[] args) {
@@ -54,7 +55,7 @@ public class StartServer {
                 This is free software, and you are welcome to redistribute it
                 under certain conditions; type `help --conditions' for details.
                 """);
-        if(isDevEnv){
+        if (isDevEnv) {
             Logger.info("Is in DEV Environment");
         }
         RegistryManager.registerPackets();

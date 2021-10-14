@@ -36,6 +36,7 @@ public class EncryptionUtility {
 
     /**
      * Decodes a PublicKey from a byte-array
+     *
      * @param encodedKey the key encoded as byte-array
      * @return the decoded PublicKey
      */
@@ -51,11 +52,12 @@ public class EncryptionUtility {
 
     /**
      * Decodes a PrivateKey from a byte-array
+     *
      * @param encodedKey the key encoded as byte-array
      * @return the decoded PublicKey
      * @throws InvalidKeySpecException when the encoded key parameter is invalid
      */
-    public static PrivateKey createPrivateKeyFromData(byte[] encodedKey) throws InvalidKeySpecException{
+    public static PrivateKey createPrivateKeyFromData(byte[] encodedKey) throws InvalidKeySpecException {
         try {
             KeyFactory factory = KeyFactory.getInstance("EC");
             return factory.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
@@ -67,8 +69,9 @@ public class EncryptionUtility {
 
     /**
      * Encrypts a String in the UTF-8 encoding
+     *
      * @param encryption the Encryption that will encrypt the String
-     * @param value the String to be encrypted
+     * @param value      the String to be encrypted
      * @return the encrypted String
      */
     public static String encryptString(Encryption encryption, String value) {
@@ -77,8 +80,9 @@ public class EncryptionUtility {
 
     /**
      * Decrypts a String in the UTF-8 encoding
+     *
      * @param encryption the Encryption that will decrypt the String
-     * @param value the String to be decrypted
+     * @param value      the String to be decrypted
      * @return the decrypted String
      */
     public static String decryptString(Encryption encryption, String value) {
@@ -87,12 +91,13 @@ public class EncryptionUtility {
 
     /**
      * Encrypts a 2-Dimensional array of bytes
+     *
      * @param encryption the EncryptedConnection that will be used for encryption
-     * @param data the 2D byte-array
+     * @param data       the 2D byte-array
      * @return an encrypted 2D byte-array
      */
-    public static byte[][] encrypt2DBytes(Encryption encryption, byte[][] data){
-        for(int i=0;i<data.length;i++){
+    public static byte[][] encrypt2DBytes(Encryption encryption, byte[][] data) {
+        for (int i = 0; i < data.length; i++) {
             data[i] = encryption.encrypt(data[i]);
         }
         return data;
@@ -100,12 +105,13 @@ public class EncryptionUtility {
 
     /**
      * Decrypts a 2-Dimensional array of bytes
+     *
      * @param encryption the EncryptedConnection that will be used for decryption
-     * @param data the 2D byte-array
+     * @param data       the 2D byte-array
      * @return an decrypted 2D byte-array
      */
-    public static byte[][] decrypt2DBytes(Encryption encryption, byte[][] data){
-        for(int i=0;i<data.length;i++){
+    public static byte[][] decrypt2DBytes(Encryption encryption, byte[][] data) {
+        for (int i = 0; i < data.length; i++) {
             data[i] = encryption.decrypt(data[i]);
         }
         return data;

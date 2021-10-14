@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Sent to the server to tell him the client's name. Sent from the server to the peer to tell him the client's name.
  */
-public class  LoginPacket extends IdentificationPacket {
+public class LoginPacket extends IdentificationPacket {
 
     private static final String ID = "login";
 

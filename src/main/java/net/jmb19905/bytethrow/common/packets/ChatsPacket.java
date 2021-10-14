@@ -54,7 +54,7 @@ public class ChatsPacket extends Packet {
     public byte[] deconstruct() {
         StringBuilder namesBuilder = new StringBuilder();
         for (ChatData chatData : chatData) {
-            if(chatData != null) {
+            if (chatData != null) {
                 namesBuilder.append("|").append(chatData);
             }
         }
@@ -66,7 +66,7 @@ public class ChatsPacket extends Packet {
             this(chat instanceof GroupChat ? ((GroupChat) chat).getName() : null, chat.getMembers());
         }
 
-        public static ChatData fromString(String s){
+        public static ChatData fromString(String s) {
             String[] parts = s.split(",");
             String name = parts[0];
             String[] members = parts[1].replace("(", "").replace(")", "").split("\\\\");
