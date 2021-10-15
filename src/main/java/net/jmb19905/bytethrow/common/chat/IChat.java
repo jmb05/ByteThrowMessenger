@@ -18,34 +18,10 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public abstract class Message implements Comparable<Message>{
+import java.util.List;
+import java.util.UUID;
 
-    protected String message;
-    protected long timestamp;
-
-    protected Message(){}
-
-    public Message(String message, long timestamp) {
-        this.message = message;
-        this.timestamp = timestamp;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public abstract String deconstruct();
-
-    @Override
-    public int compareTo(Message o) {
-        return Long.compare(timestamp, o.timestamp);
-    }
+public interface IChat {
+    UUID getUniqueId();
+    List<String> getMembers();
 }

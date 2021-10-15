@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public class GroupChat extends Chat {
+public class GroupChat extends AbstractChat {
 
     private final String name;
 

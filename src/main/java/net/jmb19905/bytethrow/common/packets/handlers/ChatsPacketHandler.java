@@ -19,9 +19,11 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
+import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.chat.GroupChat;
-import net.jmb19905.bytethrow.common.chat.PeerChat;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -42,17 +44,19 @@ public class ChatsPacketHandler extends PacketHandler {
     @Override
     public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler handler) {
         ChatsPacket chatsPacket = (ChatsPacket) packet;
+        ClientManager manager = StartClient.manager;
         if (chatsPacket.update) {
-            StartClient.manager.clearChats();
+            manager.clearChats();
         }
         for (ChatsPacket.ChatData chatData : chatsPacket.chatData) {
             if (chatData.name().equals("null")) {
-                String peerName = chatData.members().stream().filter(s -> !s.equals(StartClient.manager.name)).findFirst().orElse(null);
+                String peerName = chatData.members().stream().filter(s -> !s.equals(manager.name)).findFirst().orElse(null);
 
-                PeerChat chat = new PeerChat(peerName);
-                chatData.members().forEach(chat::addClient);
+                ClientPeerChat chat = new ClientPeerChat(chatData);
+                chat.merge(ChatHistorySerialisation.readChat(manager.name, chat.getUniqueId()));
+                ChatHistorySerialisation.saveChat(manager.name, chat);
 
-                StartClient.manager.addChat(chat);
+                manager.addChat(chat);
 
                 chat.initClient();
 
@@ -66,8 +70,9 @@ public class ChatsPacketHandler extends PacketHandler {
                     Logger.trace("Sent " + connectPacket);
                 }
             } else {
-                GroupChat chat = new GroupChat(chatData.name());
-                chatData.members().forEach(chat::addClient);
+                ClientGroupChat chat = new ClientGroupChat(chatData);
+                chat.merge(ChatHistorySerialisation.readChat(manager.name, chat.getUniqueId()));
+                ChatHistorySerialisation.saveChat(manager.name, chat);
 
                 StartClient.manager.addGroup(chat);
             }

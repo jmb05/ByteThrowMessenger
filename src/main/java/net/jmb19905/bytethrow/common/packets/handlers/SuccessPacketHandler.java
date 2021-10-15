@@ -65,7 +65,6 @@ public class SuccessPacketHandler extends PacketHandler {
         ClientManager manager = StartClient.manager;
         if (!packet.confirmIdentity) {
             if (!manager.loggedIn) {
-                StartClient.guiManager.appendLine("Login successful");
                 manager.loggedIn = true;
                 ChatsRequestPacket chatsRequestPacket = new ChatsRequestPacket();
                 NetworkingUtility.sendPacket(chatsRequestPacket, channel, encryption);

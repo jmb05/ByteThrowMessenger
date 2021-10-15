@@ -22,7 +22,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
@@ -60,7 +61,7 @@ public class AddGroupMemberPacketHandler extends PacketHandler {
     public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler handler) throws IllegalSideException {
         AddGroupMemberPacket addGroupMemberPacket = (AddGroupMemberPacket) packet;
         ClientManager manager = StartClient.manager;
-        Chat groupChat = manager.getGroup(addGroupMemberPacket.groupName);
+        ClientGroupChat groupChat = manager.getGroup(addGroupMemberPacket.groupName);
         groupChat.addClient(addGroupMemberPacket.member);
     }
 }

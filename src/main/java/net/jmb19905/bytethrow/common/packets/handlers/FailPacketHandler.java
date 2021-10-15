@@ -21,6 +21,7 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
@@ -61,7 +62,7 @@ public class FailPacketHandler extends PacketHandler {
             case "external_disconnect" -> ShutdownManager.shutdown(0);
             case "connect" -> {
                 String peerName = cause.split(":")[1];
-                PeerChat chat = manager.getChat(peerName);
+                ClientPeerChat chat = manager.getChat(peerName);
                 manager.removeChat(chat);
                 StartClient.guiManager.removePeer(peerName);
             }

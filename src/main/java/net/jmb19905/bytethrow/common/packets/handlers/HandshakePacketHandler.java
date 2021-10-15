@@ -72,7 +72,6 @@ public class HandshakePacketHandler extends PacketHandler {
             return;
         }
         tcpClientHandler.setPublicKey(EncryptionUtility.createPublicKeyFromData(handshakePacket.key));
-        StartClient.guiManager.appendLine("Connection to Server encrypted");
         manager.login(channelHandlerContext.channel(), tcpClientHandler.getEncryption());
     }
 }

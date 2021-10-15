@@ -20,6 +20,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
@@ -71,10 +73,12 @@ public class PeerMessagePacketHandler extends PacketHandler {
         String receiver = message.getReceiver();
         String encryptedMessage = message.getMessage();
         if (receiver.equals(StartClient.manager.name)) {
-            PeerChat chat = StartClient.manager.getChat(sender);
+            ClientPeerChat chat = StartClient.manager.getChat(sender);
             if (chat != null) {
-                String decryptedMessage = chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage;
-                StartClient.guiManager.appendMessage(sender, decryptedMessage);
+                message.setMessage(chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage);
+                StartClient.guiManager.appendMessage(sender, message.getMessage());
+                chat.addMessage(message);
+                ChatHistorySerialisation.saveChat(StartClient.manager.name, chat);
             } else {
                 Logger.warn("Received Packet from unknown user");
             }

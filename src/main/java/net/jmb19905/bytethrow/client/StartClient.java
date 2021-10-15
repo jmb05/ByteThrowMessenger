@@ -74,7 +74,6 @@ public class StartClient {
             manager.start();
         } catch (Exception e) {
             Logger.error(e);
-            guiManager.appendLine("Error: " + e.getMessage());
         }
     }
 

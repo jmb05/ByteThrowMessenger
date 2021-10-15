@@ -20,11 +20,15 @@ package net.jmb19905.bytethrow.common.chat;
 
 public class PeerMessage extends Message {
 
-    private final String sender;
-    private final String receiver;
+    private String sender;
+    private String receiver;
 
-    public PeerMessage(String sender, String receiver, String message) {
-        super(message);
+    private PeerMessage(){
+        super();
+    }
+
+    public PeerMessage(String sender, String receiver, String message, long timestamp) {
+        super(message, timestamp);
         this.sender = sender;
         this.receiver = receiver;
     }
@@ -35,5 +39,23 @@ public class PeerMessage extends Message {
 
     public String getReceiver() {
         return receiver;
+    }
+
+    @Override
+    public String deconstruct() {
+        return "peer|" + sender + "|" + receiver + "|" + getMessage() + "|" + timestamp;
+    }
+
+    public static PeerMessage construct(String s) {
+        String[] data = s.split("\\|");
+        if(!data[0].equals("peer")){
+            throw new IllegalArgumentException("Tried to construct a GroupMessage to a PeerMessage");
+        }
+        PeerMessage peerMessage = new PeerMessage();
+        peerMessage.sender = data[1];
+        peerMessage.receiver = data[2];
+        peerMessage.message = data[3];
+        peerMessage.timestamp = Long.parseLong(data[4]);
+        return peerMessage;
     }
 }

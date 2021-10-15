@@ -23,7 +23,7 @@ import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 import java.security.PublicKey;
 
-public class PeerChat extends Chat {
+public class PeerChat extends AbstractChat {
 
     private Encryption encryption;
     private boolean active = false;
@@ -63,5 +63,15 @@ public class PeerChat extends Chat {
 
     public boolean isActive() {
         return active;
+    }
+
+    @Override
+    public String toString() {
+        return "PeerChat{" +
+                "members=" + members +
+                ", encryption=" + encryption +
+                ", active=" + active +
+                ", uuid=" + getUniqueId() +
+                '}';
     }
 }

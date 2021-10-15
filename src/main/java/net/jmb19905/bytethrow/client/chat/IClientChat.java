@@ -16,36 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.common.chat;
+package net.jmb19905.bytethrow.client.chat;
 
-public abstract class Message implements Comparable<Message>{
+import net.jmb19905.bytethrow.common.chat.IChat;
+import net.jmb19905.bytethrow.common.chat.Message;
 
-    protected String message;
-    protected long timestamp;
+import java.util.List;
 
-    protected Message(){}
-
-    public Message(String message, long timestamp) {
-        this.message = message;
-        this.timestamp = timestamp;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public abstract String deconstruct();
-
-    @Override
-    public int compareTo(Message o) {
-        return Long.compare(timestamp, o.timestamp);
-    }
+public interface IClientChat<M extends Message> extends IChat {
+    List<M> getMessages();
+    void addMessage(M message);
+    void merge(IClientChat<M> other);
 }

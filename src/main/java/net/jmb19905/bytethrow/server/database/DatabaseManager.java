@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.server.database;
 
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.util.Logger;
 
 import java.io.IOException;
@@ -81,19 +81,19 @@ public class DatabaseManager {
     public static record UserData(String username, String password, String salt) {
     }
 
-    public static boolean addChat(Chat chat) {
+    public static boolean addChat(AbstractChat chat) {
         return chatsTableHandler.addChat(chat);
     }
 
-    public static boolean hasChat(Chat chat) {
+    public static boolean hasChat(AbstractChat chat) {
         return chatsTableHandler.hasChat(chat);
     }
 
-    public static Chat getChat(int id) {
+    public static AbstractChat getChat(int id) {
         return chatsTableHandler.getChat(id);
     }
 
-    public static Chat getChat(List<String> names) {
+    public static AbstractChat getChat(List<String> names) {
         return chatsTableHandler.getChat(names);
     }
 }

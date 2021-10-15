@@ -21,6 +21,10 @@ package net.jmb19905.bytethrow.client;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
+import net.jmb19905.bytethrow.client.chat.IClientChat;
 import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
@@ -51,7 +55,7 @@ public class ClientManager {
 
     public String name = "";
 
-    private final List<Chat> chats = new ArrayList<>();
+    private final List<IClientChat<? extends Message>> chats = new ArrayList<>();
 
     public SuccessPacket confirmIdentityPacket = null;
     public boolean securePasswords = true;
@@ -65,7 +69,6 @@ public class ClientManager {
             TcpClientConnection clientConnection = (TcpClientConnection) channelHandler.getConnection();
             SocketChannel channel = clientConnection.getChannel();
 
-            StartClient.guiManager.appendLine("Connected to Server");
             Logger.info("Server address is: " + channel.remoteAddress());
 
             HandshakePacket packet = new HandshakePacket();
@@ -110,48 +113,50 @@ public class ClientManager {
         Logger.trace("Connecting with peer: " + peerName);
     }
 
-    private PeerChat createNewChat(String peerName) {
-        PeerChat chat = new PeerChat(peerName);
+    private ClientPeerChat createNewChat(String peerName) {
+        ClientPeerChat chat = new ClientPeerChat(peerName);
         chat.initClient();
-        chats.add(chat);
-        Logger.debug("Added Peer");
-        StartClient.guiManager.addPeer(peerName);
+        addChat(chat);
         return chat;
     }
 
-    public void addChat(PeerChat chat) {
+    public void addChat(ClientPeerChat chat) {
         chats.add(chat);
+        ChatHistorySerialisation.saveChat(name, chat);
         Logger.debug("Added Peer");
         StartClient.guiManager.addPeer(chat.getOther(name));
     }
 
-    public void removeChat(PeerChat chat) {
+    public void removeChat(ClientPeerChat chat) {
         Logger.debug("Removing Chat: " + chat);
         chats.remove(chat);
+        ChatHistorySerialisation.deleteHistory(name, chat);
         StartClient.guiManager.removePeer(chat.getOther(name));
     }
 
-    public void addGroup(GroupChat chat) {
+    public void addGroup(ClientGroupChat chat) {
         if (chat.getName() == null) {
             Logger.warn("Cannot add Group! Has no name!");
             return;
         }
         Logger.debug("Adding Group: " + chat.getName());
         chats.add(chat);
+        ChatHistorySerialisation.saveChat(name, chat);
         StartClient.guiManager.addGroup(chat.getName());
     }
 
-    public void removeGroup(GroupChat chat) {
+    public void removeGroup(ClientGroupChat chat) {
         Logger.debug("Removing Group: " + chat.getName());
         chats.remove(chat);
+        ChatHistorySerialisation.deleteHistory(name, chat);
         StartClient.guiManager.removeGroup(chat.getName());
     }
 
-    public GroupChat getGroup(String name) {
-        for (Chat chat : chats) {
+    public ClientGroupChat getGroup(String name) {
+        for (IClientChat<? extends Message> chat : chats) {
             Logger.debug(chat.toString());
         }
-        return (GroupChat) chats.stream().filter(chat -> chat instanceof GroupChat).filter(chat -> ((GroupChat) chat).getName().equals(name)).findFirst().orElse(null);
+        return (ClientGroupChat) chats.stream().filter(chat -> chat instanceof ClientGroupChat).filter(chat -> ((GroupChat) chat).getName().equals(name)).findFirst().orElse(null);
     }
 
     public void clearChats() {
@@ -166,13 +171,16 @@ public class ClientManager {
      */
     public boolean sendPeerMessage(String recipient, String message) {
         PeerMessagePacket packet = new PeerMessagePacket();
-        PeerChat chat = getChat(recipient);
+        ClientPeerChat chat = getChat(recipient);
         Logger.debug("Trying to send to Chat: " + chat + " from: " + recipient);
         if (chat != null) {
             String encryptedMessage = EncryptionUtility.encryptString(chat.getEncryption(), message);
-            packet.message = new PeerMessage(name, recipient, encryptedMessage);
+            packet.message = new PeerMessage(name, recipient, encryptedMessage, System.currentTimeMillis());
             NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
             Logger.trace("Sent Message: " + message);
+            packet.message.setMessage(message);
+            chat.addMessage(packet.message);
+            ChatHistorySerialisation.saveChat(name, chat);
             return true;
         }
         return false;
@@ -185,19 +193,21 @@ public class ClientManager {
      */
     public boolean sendGroupMessage(String groupName, String message) {
         GroupMessagePacket packet = new GroupMessagePacket();
-        GroupChat chat = getGroup(groupName);
+        ClientGroupChat chat = getGroup(groupName);
         Logger.debug("Group: " + groupName + " = " + chat);
         if (chat != null) {
-            packet.message = new GroupMessage(name, groupName, message);
+            packet.message = new GroupMessage(name, groupName, message, System.currentTimeMillis());
+            chat.addMessage(packet.message);
             NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
             Logger.trace("Sent Message: " + message);
+            ChatHistorySerialisation.saveChat(name, chat);
             return true;
         }
         return false;
     }
 
-    public PeerChat getChat(String peerName) {
-        return (PeerChat) chats.stream().filter(chat -> chat instanceof PeerChat).filter(chat -> chat.getMembers().contains(peerName)).findFirst().orElse(null);
+    public ClientPeerChat getChat(String peerName) {
+        return (ClientPeerChat) chats.stream().filter(chat -> chat instanceof ClientPeerChat).filter(chat -> chat.getMembers().contains(peerName)).findFirst().orElse(null);
     }
 
     /**

@@ -20,6 +20,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.bytethrow.common.packets.GroupMessagePacket;
@@ -63,9 +65,11 @@ public class GroupMessagePacketHandler extends PacketHandler {
         GroupMessagePacket messagePacket = (GroupMessagePacket) packet;
         GroupMessage message = messagePacket.message;
         String groupName = message.getGroupName();
-        GroupChat chat = StartClient.manager.getGroup(groupName);
+        ClientGroupChat chat = StartClient.manager.getGroup(groupName);
         if (chat != null) {
             StartClient.guiManager.appendMessage(groupName + " - " + message.getSender(), message.getMessage());
+            chat.addMessage(message);
+            ChatHistorySerialisation.saveChat(StartClient.manager.name, chat);
         } else {
             Logger.warn("Received Message from invalid chat");
         }

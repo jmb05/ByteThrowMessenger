@@ -22,7 +22,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
@@ -49,7 +51,7 @@ public class GroupInvitePacketHandler extends PacketHandler {
 
         String memberName = manager.getClientName(handler);
 
-        Chat chat = manager.getGroup(groupInvitePacket.groupName);
+        AbstractChat chat = manager.getGroup(groupInvitePacket.groupName);
         chat.addClient(memberName);
         ChatSerial.write(chat);
 
@@ -69,7 +71,7 @@ public class GroupInvitePacketHandler extends PacketHandler {
         GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
         ClientManager manager = StartClient.manager;
 
-        GroupChat chat = new GroupChat(groupInvitePacket.groupName);
+        ClientGroupChat chat = new ClientGroupChat(groupInvitePacket.groupName);
         chat.setMembers(new ArrayList<>(Arrays.asList(groupInvitePacket.members)));
 
         manager.addGroup(chat);

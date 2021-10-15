@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.common.serial;
 
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.util.Logger;
@@ -34,8 +34,8 @@ import java.util.UUID;
 
 public class ChatSerial {
 
-    public static List<Chat> readAllChats() {
-        List<Chat> chats = new ArrayList<>();
+    public static List<AbstractChat> readAllChats() {
+        List<AbstractChat> chats = new ArrayList<>();
         try {
             Path chatsDirectory = Paths.get("chats/");
             Files.list(chatsDirectory).forEach(path -> chats.add(read(UUID.fromString(path.getFileName().toString()))));
@@ -46,14 +46,14 @@ public class ChatSerial {
         return chats;
     }
 
-    public static Chat read(UUID uuid) {
+    public static AbstractChat read(UUID uuid) {
         Path chatFilePath = Paths.get("chats/" + uuid.toString());
         if (Files.exists(chatFilePath)) {
             try (BufferedReader reader = new BufferedReader(new FileReader(chatFilePath.toFile()))) {
                 String name = reader.readLine();
                 String[] clients = reader.readLine().split(",");
 
-                Chat chat;
+                AbstractChat chat;
 
                 if (!name.equals("null")) {
                     chat = new GroupChat(name);
@@ -70,7 +70,7 @@ public class ChatSerial {
         return null;
     }
 
-    public static void write(Chat chat) {
+    public static void write(AbstractChat chat) {
         Logger.debug("Wrote Chat: " + chat.getUniqueId());
         Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
         try {
@@ -91,7 +91,7 @@ public class ChatSerial {
         }
     }
 
-    public static void deleteChatFile(Chat chat) {
+    public static void deleteChatFile(AbstractChat chat) {
         Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
         try {
             Files.delete(chatFilePath);
