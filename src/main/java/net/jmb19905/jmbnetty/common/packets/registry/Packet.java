@@ -47,14 +47,15 @@ public abstract class Packet {
         return type.handler();
     }
 
-    public static class NullPacket extends Packet{
+    public static class NullPacket extends Packet {
 
         protected NullPacket(PacketType<? extends Packet> type) {
             super(type);
         }
 
         @Override
-        public void construct(String[] data) {}
+        public void construct(String[] data) {
+        }
 
         @Override
         public byte[] deconstruct() {

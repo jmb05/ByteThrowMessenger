@@ -26,9 +26,9 @@ import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.packets.LoginPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -46,17 +46,17 @@ public class LoginPacketHandler extends PacketHandler {
         String username = loginPacket.username;
         String password = loginPacket.password;
         DatabaseManager.UserData userData = DatabaseManager.getUserDataByName(username);
-        if(userData != null){
-            if(BCrypt.checkpw(password, userData.password())){
-                if(!loginPacket.confirmIdentity) {
+        if (userData != null) {
+            if (BCrypt.checkpw(password, userData.password())) {
+                if (!loginPacket.confirmIdentity) {
                     handleSuccessfulLogin(ctx.channel(), loginPacket, tcpServerHandler);
-                }else {
+                } else {
                     sendLoginSuccess(ctx.channel(), loginPacket, tcpServerHandler);
                 }
-            }else {
+            } else {
                 NetworkingUtility.sendFail(ctx.channel(), "login", "wrong_pw", "", tcpServerHandler);
             }
-        }else {
+        } else {
             NetworkingUtility.sendFail(ctx.channel(), "login", "username_not_found", username, tcpServerHandler);
         }
     }
@@ -64,13 +64,14 @@ public class LoginPacketHandler extends PacketHandler {
     /**
      * Things to do when a client logs in: -> set the client name -> create client file if it doesn't exist yet ->
      * tell the Client that the login succeeded -> tell the client which conversations he has started
+     *
      * @param packet the login packet containing the login packet of the client
      */
     private void handleSuccessfulLogin(Channel channel, LoginPacket packet, TcpServerHandler handler) {
         ServerManager manager = StartServer.manager;
-        if(manager.isClientOnline(packet.username)) {
-            for(TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()){
-                if(manager.getClientName(otherHandler).equals(packet.username)){
+        if (manager.isClientOnline(packet.username)) {
+            for (TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()) {
+                if (manager.getClientName(otherHandler).equals(packet.username)) {
                     SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
                     ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
                     ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
@@ -86,11 +87,12 @@ public class LoginPacketHandler extends PacketHandler {
 
     /**
      * Sends LoginPacket to client to confirm login
+     *
      * @param loginPacket the LoginPacket
      */
     private void sendLoginSuccess(Channel channel, LoginPacket loginPacket, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
-        loginSuccessPacket.type = "login";
+        loginSuccessPacket.type = SuccessPacket.SuccessType.LOGIN;
         loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());

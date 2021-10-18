@@ -20,38 +20,44 @@ package net.jmb19905.bytethrow.common.chat;
 
 import java.util.*;
 
-public abstract class Chat {
+public abstract class AbstractChat implements IChat{
 
-
-    private final UUID uniqueId;
+    protected UUID uniqueId;
 
     /**
      * All the clients that participate in this chat.
      */
     protected List<String> members = new ArrayList<>();
 
-    public Chat(){
+    public AbstractChat() {
         uniqueId = UUID.randomUUID();
     }
 
-    public Chat(UUID uniqueId){
+    public AbstractChat(UUID uniqueId) {
         this.uniqueId = uniqueId;
     }
 
 
-
-    public void addClient(String name){
-        if(!members.contains(name)) members.add(name);
+    public void addClient(String name) {
+        if (!members.contains(name)) members.add(name);
     }
 
-    public void addClients(List<String> names){
+    public boolean removeClient(String name){
+        boolean f = members.contains(name);
+        members.remove(name);
+
+        return f;
+    }
+
+    public void addClients(List<String> names) {
         names.stream().filter(name -> !members.contains(name)).forEach(name -> members.add(name));
     }
 
-    public boolean hasClient(String name){
+    public boolean hasClient(String name) {
         return members.contains(name);
     }
 
+    @Override
     public List<String> getMembers() {
         return members;
     }
@@ -60,15 +66,14 @@ public abstract class Chat {
         this.members = members;
     }
 
+    @Override
     public UUID getUniqueId() {
         return uniqueId;
     }
 
-
-
-    public boolean equivalent(Chat o){
-        if(this == o) return true;
-        if(o == null) return false;
+    public boolean equivalent(AbstractChat o) {
+        if (this == o) return true;
+        if (o == null) return false;
         return listEqualsIgnoreOrder(members, o.members) && Objects.equals(uniqueId, o.uniqueId);
     }
 
@@ -76,7 +81,7 @@ public abstract class Chat {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Chat chat = (Chat) o;
+        AbstractChat chat = (AbstractChat) o;
         return listEqualsIgnoreOrder(members, chat.members) && Objects.equals(uniqueId, chat.uniqueId);
     }
 
@@ -91,13 +96,13 @@ public abstract class Chat {
 
     @Override
     public String toString() {
-        return "Chat{" +
-                ", clients=" + members +
+        return "AbstractChat{" +
+                "clients=" + members +
                 ", uniqueId=" + uniqueId +
                 '}';
     }
 
-    public boolean clientsEquals(Chat chat){
+    public boolean clientsEquals(AbstractChat chat) {
         return chat.getMembers().containsAll(members) && members.containsAll(chat.getMembers());
     }
 }

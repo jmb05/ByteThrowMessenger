@@ -18,8 +18,9 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.IChat;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -27,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class ChatsPacket extends Packet {
 
@@ -54,30 +56,31 @@ public class ChatsPacket extends Packet {
     public byte[] deconstruct() {
         StringBuilder namesBuilder = new StringBuilder();
         for (ChatData chatData : chatData) {
-            if(chatData != null) {
+            if (chatData != null) {
                 namesBuilder.append("|").append(chatData);
             }
         }
         return (ID + "|" + update + namesBuilder).getBytes(StandardCharsets.UTF_8);
     }
 
-    public static record ChatData(String name, List<String> members) {
-        public ChatData(Chat chat) {
-            this(chat instanceof GroupChat ? ((GroupChat) chat).getName() : null, chat.getMembers());
+    public static record ChatData(String name, List<String> members, UUID id) {
+        public ChatData(IChat chat) {
+            this(chat instanceof GroupChat ? ((GroupChat) chat).getName() : null, chat.getMembers(), chat.getUniqueId());
         }
 
-        public static ChatData fromString(String s){
+        public static ChatData fromString(String s) {
             String[] parts = s.split(",");
             String name = parts[0];
             String[] members = parts[1].replace("(", "").replace(")", "").split("\\\\");
-            return new ChatData(name, new ArrayList<>(List.of(members)));
+            UUID id = UUID.fromString(parts[2]);
+            return new ChatData(name, new ArrayList<>(List.of(members)), id);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             members.forEach(s -> builder.append(s).append("\\"));
-            return name + ",(" + builder + ")";
+            return name + ",(" + builder + ")," + id;
         }
     }
 

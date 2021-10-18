@@ -27,43 +27,41 @@ import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.util.Logger;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @SuppressWarnings("UnusedReturnValue")
 public class NetworkUtility {
 
-    public static ChannelFuture sendTcp(Channel channel, Packet packet, Encryption encryption){
+    public static ChannelFuture sendTcp(Channel channel, Packet packet, Encryption encryption) {
         byte[] encrypted = encryptPacket(packet, encryption);
         ByteBuf buf = writeToByteBuf(encrypted, channel.alloc());
         return channel.writeAndFlush(buf);
     }
 
-    public static ChannelFuture sendTcp(ChannelHandlerContext ctx, Packet packet, Encryption encryption){
+    public static ChannelFuture sendTcp(ChannelHandlerContext ctx, Packet packet, Encryption encryption) {
         return ctx.writeAndFlush(writeToByteBuf(encryptPacket(packet, encryption), ctx.alloc()));
     }
 
-    public static ChannelFuture sendUdp(NioDatagramChannel channel, Packet packet, InetSocketAddress receiver, Encryption encryption){
+    public static ChannelFuture sendUdp(NioDatagramChannel channel, Packet packet, InetSocketAddress receiver, Encryption encryption) {
         return channel.writeAndFlush(writeToDatagram(encryptPacket(packet, encryption), channel.alloc(), receiver));
     }
 
-    public static ChannelFuture sendUdp(ChannelHandlerContext ctx, Packet packet, InetSocketAddress receiver, Encryption encryption){
+    public static ChannelFuture sendUdp(ChannelHandlerContext ctx, Packet packet, InetSocketAddress receiver, Encryption encryption) {
         return ctx.writeAndFlush(writeToDatagram(encryptPacket(packet, encryption), ctx.alloc(), receiver));
     }
 
-    private static byte[] encryptPacket(Packet packet, Encryption encryption){
+    private static byte[] encryptPacket(Packet packet, Encryption encryption) {
         byte[] deconstructedPacket = packet.deconstruct();
         byte[] encryptedPacket = deconstructedPacket;
-        if(encryption != null && encryption.isUsable()){
+        if (encryption != null && encryption.isUsable()) {
             encryptedPacket = encryption.encrypt(deconstructedPacket);
         }
         return encryptedPacket;
     }
 
-    private static ByteBuf writeToByteBuf(byte[] rawData, ByteBufAllocator alloc){
+    private static ByteBuf writeToByteBuf(byte[] rawData, ByteBufAllocator alloc) {
         byte[] data = Arrays.copyOf(rawData, rawData.length + 1);
         data[data.length - 1] = '%';
         ByteBuf byteBuf = alloc.buffer(data.length);
@@ -71,7 +69,7 @@ public class NetworkUtility {
         return byteBuf;
     }
 
-    private static DatagramPacket writeToDatagram(byte[] data, ByteBufAllocator alloc, InetSocketAddress address){
+    private static DatagramPacket writeToDatagram(byte[] data, ByteBufAllocator alloc, InetSocketAddress address) {
         return new DatagramPacket(writeToByteBuf(data, alloc), address);
     }
 

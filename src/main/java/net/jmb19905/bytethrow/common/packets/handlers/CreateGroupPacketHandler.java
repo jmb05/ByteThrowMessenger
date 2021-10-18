@@ -21,11 +21,12 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.CreateGroupPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.ServerManager;
+import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
@@ -49,7 +50,7 @@ public class CreateGroupPacketHandler extends PacketHandler {
     public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler handler) {
         ClientManager manager = StartClient.manager;
 
-        GroupChat chat = new GroupChat(((CreateGroupPacket) packet).groupName);
+        ClientGroupChat chat = new ClientGroupChat(((CreateGroupPacket) packet).groupName);
         chat.addClient(manager.name);
 
         manager.addGroup(chat);

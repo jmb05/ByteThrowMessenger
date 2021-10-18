@@ -34,13 +34,13 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
     private final AbstractConnection connection;
     private final Encryption encryption;
 
-    public AbstractChannelHandler(AbstractConnection connection){
+    public AbstractChannelHandler(AbstractConnection connection) {
         this.connection = connection;
         this.encryption = new Encryption();
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx){
+    public void channelActive(ChannelHandlerContext ctx) {
         connection.performEvent("connected", () -> new ConnectedEvent(this));
     }
 
@@ -68,11 +68,11 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
         return encryption;
     }
 
-    public PublicKey getPublicKey(){
+    public PublicKey getPublicKey() {
         return encryption.getPublicKey();
     }
 
-    public void setPublicKey(PublicKey key){
+    public void setPublicKey(PublicKey key) {
         encryption.setReceiverPublicKey(key);
     }
 }

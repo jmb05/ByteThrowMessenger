@@ -36,7 +36,7 @@ public class TcpServerHandler extends AbstractChannelHandler {
         try {
             Packet packet = (Packet) msg;
             packet.getHandler().handleOnServer(ctx, packet, this);
-        }catch (IllegalSideException e){
+        } catch (IllegalSideException e) {
             Logger.warn(e);
         }
     }

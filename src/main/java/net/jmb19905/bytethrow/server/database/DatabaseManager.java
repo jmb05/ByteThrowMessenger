@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.server.database;
 
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.util.Logger;
 
 import java.io.IOException;
@@ -32,13 +32,13 @@ public class DatabaseManager {
     private static UserTableHandler userTableHandler;
     private static ChatsTableHandler chatsTableHandler;
 
-    public static void open(){
+    public static void open() {
         connection = new DatabaseConnection(DATABASE);
         connection.addTableHandler(userTableHandler = new UserTableHandler(connection));
         connection.addTableHandler(chatsTableHandler = new ChatsTableHandler(connection));
     }
 
-    public static void close(){
+    public static void close() {
         try {
             connection.close();
         } catch (IOException e) {
@@ -46,53 +46,54 @@ public class DatabaseManager {
         }
     }
 
-    public static UserData getUserDataByName(String username){
+    public static UserData getUserDataByName(String username) {
         UserData userData = null;
-        if(hasUser(username)){
+        if (hasUser(username)) {
             userData = userTableHandler.getUserByName(username);
         }
         return userData;
     }
 
-    public static boolean createUser(String username, String password){
+    public static boolean createUser(String username, String password) {
         return userTableHandler.createUser(username, password);
     }
 
-    public static boolean hasUser(String username){
+    public static boolean hasUser(String username) {
         return userTableHandler.hasUser(username);
     }
 
-    public static boolean changeUsername(String oldUsername, String newUsername){
+    public static boolean changeUsername(String oldUsername, String newUsername) {
         boolean success = false;
-        if(!hasUser(newUsername)){
+        if (!hasUser(newUsername)) {
             success = userTableHandler.changeUserName(oldUsername, newUsername);
         }
         return success;
     }
 
-    public static boolean changePassword(String username, String password){
+    public static boolean changePassword(String username, String password) {
         return userTableHandler.changeUserPassword(username, password);
     }
 
-    public static boolean deleteUser(String name){
+    public static boolean deleteUser(String name) {
         return userTableHandler.removeUser(name);
     }
 
-    public static record UserData(String username, String password, String salt) {}
+    public static record UserData(String username, String password, String salt) {
+    }
 
-    public static boolean addChat(Chat chat){
+    public static boolean addChat(AbstractChat chat) {
         return chatsTableHandler.addChat(chat);
     }
 
-    public static boolean hasChat(Chat chat){
+    public static boolean hasChat(AbstractChat chat) {
         return chatsTableHandler.hasChat(chat);
     }
 
-    public static Chat getChat(int id){
+    public static AbstractChat getChat(int id) {
         return chatsTableHandler.getChat(id);
     }
 
-    public static Chat getChat(List<String> names){
+    public static AbstractChat getChat(List<String> names) {
         return chatsTableHandler.getChat(names);
     }
 }

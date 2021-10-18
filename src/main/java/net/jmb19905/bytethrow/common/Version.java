@@ -26,7 +26,7 @@ public class Version {
     private final Type type;
     private final int typeVersion;
 
-    public Version(String version){
+    public Version(String version) {
         String[] parts = version.split("-");
         String[] semanticParts = parts[0].split("\\.");
         this.major = Integer.parseInt(semanticParts[0]);
@@ -47,12 +47,12 @@ public class Version {
                 parts[1] = parts[1].replaceAll("rc", "");
             }
             typeVersion1 = Integer.parseInt(parts[1]);
-        }catch (ArrayIndexOutOfBoundsException e){/*Version is Stable*/}
+        } catch (ArrayIndexOutOfBoundsException e) {/*Version is Stable*/}
         this.type = type1;
         this.typeVersion = typeVersion1;
     }
 
-    public Version(int major, int minor, int patch, Type type, int typeVersion){
+    public Version(int major, int minor, int patch, Type type, int typeVersion) {
         this.major = major;
         this.minor = minor;
         this.patch = patch;
@@ -60,14 +60,17 @@ public class Version {
         this.typeVersion = typeVersion;
     }
 
-    public boolean isInCompatible(Version version){
-        if(this == version){
+    public boolean isInCompatible(Version version) {
+        if (this == version) {
             return false;
-        }if(this.major != version.major){
+        }
+        if (this.major != version.major) {
             return true;
-        }if(this.minor != version.minor){
+        }
+        if (this.minor != version.minor) {
             return true;
-        }if(this.type != version.type){
+        }
+        if (this.type != version.type) {
             return true;
         }
         return type != Type.STABLE && this.typeVersion != version.typeVersion;
@@ -77,12 +80,12 @@ public class Version {
     public String toString() {
         String semanticString = major + "." + minor + "." + patch;
         String typeString = "";
-        if(type != Type.STABLE){
-            if(type == Type.ALPHA){
+        if (type != Type.STABLE) {
+            if (type == Type.ALPHA) {
                 typeString = "alpha";
-            }else if(type == Type.BETA){
+            } else if (type == Type.BETA) {
                 typeString = "beta";
-            }else if(type == Type.RELEASE_CANDIDATE){
+            } else if (type == Type.RELEASE_CANDIDATE) {
                 typeString = "rc";
             }
             typeString = typeString.concat(typeVersion + "");
@@ -90,6 +93,6 @@ public class Version {
         return semanticString + "-" + typeString;
     }
 
-    public enum Type{ALPHA,BETA,RELEASE_CANDIDATE,STABLE}
+    public enum Type {ALPHA, BETA, RELEASE_CANDIDATE, STABLE}
 
 }

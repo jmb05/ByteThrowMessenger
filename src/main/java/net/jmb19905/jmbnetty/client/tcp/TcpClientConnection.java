@@ -23,16 +23,12 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.jmbnetty.client.ClientConnection;
 import net.jmb19905.jmbnetty.common.handler.Decoder;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
-
-import java.net.ConnectException;
 
 public class TcpClientConnection extends ClientConnection {
 
@@ -67,7 +63,7 @@ public class TcpClientConnection extends ClientConnection {
         } catch (InterruptedException e) {
             Logger.fatal(e, "Client closed in non-standard way -> crashing");
             ShutdownManager.shutdown(-1);
-        } catch (Exception e){
+        } catch (Exception e) {
             Logger.error(e);
             StartClient.guiManager.showLocalisedError(Localisation.get("no_internet"));
             ShutdownManager.shutdown(-1);

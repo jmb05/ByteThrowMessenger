@@ -19,11 +19,11 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
-import net.jmb19905.bytethrow.common.chat.Chat;
+import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.ServerManager;
+import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -41,7 +41,7 @@ public class ChatsRequestPacketHandler extends PacketHandler {
         String clientName = manager.getClientName(serverHandler);
         ChatsPacket chatsPacket = new ChatsPacket();
 
-        List<Chat> chats = manager.getChats();
+        List<AbstractChat> chats = manager.getChats();
         chats.stream().filter(chat -> chat.hasClient(clientName)).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
         Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());

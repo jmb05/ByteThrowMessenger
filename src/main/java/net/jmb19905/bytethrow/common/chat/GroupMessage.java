@@ -20,20 +20,46 @@ package net.jmb19905.bytethrow.common.chat;
 
 public class GroupMessage extends Message {
 
-    private final String sender;
-    private final String groupName;
+    private String groupName;
 
-    public GroupMessage(String sender, String groupName, String message) {
-        super(message);
-        this.sender = sender;
-        this.groupName = groupName;
+    private GroupMessage(){
+        super();
     }
 
-    public String getSender() {
-        return sender;
+    public GroupMessage(String sender, String groupName, String message, long timestamp) {
+        super(sender, message, timestamp);
+        this.groupName = groupName;
     }
 
     public String getGroupName() {
         return groupName;
+    }
+
+    @Override
+    public String deconstruct() {
+        return "group|" + getSender() + "|" + groupName + "|" + getMessage() + "|" + timestamp;
+    }
+
+    public static GroupMessage construct(String s) {
+        String[] data = s.split("\\|");
+        if(!data[0].equals("group")){
+            throw new IllegalArgumentException("Tried to construct a PeerMessage to a GroupMessage");
+        }
+        GroupMessage groupMessage = new GroupMessage();
+        groupMessage.sender = data[1];
+        groupMessage.groupName = data[2];
+        groupMessage.message = data[3];
+        groupMessage.timestamp = Long.parseLong(data[4]);
+        return groupMessage;
+    }
+
+    @Override
+    public String getMessageDisplay() {
+        return " \\b<" + getSender() + ">\\b " + message;
+    }
+
+    @Override
+    public String toString() {
+        return deconstruct();
     }
 }

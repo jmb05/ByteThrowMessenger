@@ -18,11 +18,18 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public class GroupChat extends Chat{
+import java.util.UUID;
+
+public class GroupChat extends AbstractChat {
 
     private final String name;
 
-    public GroupChat(String name){
+    public GroupChat(String name) {
+        this.name = name;
+    }
+
+    public GroupChat(String name, UUID uuid){
+        super(uuid);
         this.name = name;
     }
 

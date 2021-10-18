@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public abstract class AbstractConnection implements IConnection, Runnable{
+public abstract class AbstractConnection implements IConnection, Runnable {
 
     protected int port;
     protected Thread thread;
@@ -39,7 +39,7 @@ public abstract class AbstractConnection implements IConnection, Runnable{
 
     protected boolean closed = false;
 
-    public AbstractConnection(){
+    public AbstractConnection() {
         this.thread = new Thread(this);
     }
 
@@ -53,21 +53,21 @@ public abstract class AbstractConnection implements IConnection, Runnable{
         this.thread.interrupt();
     }
 
-    public void addConnectedEventListener(ConnectedEventListener listener){
+    public void addConnectedEventListener(ConnectedEventListener listener) {
         addEventListener(listener);
     }
 
-    public void addErrorEventListener(ErrorEventListener listener){
+    public void addErrorEventListener(ErrorEventListener listener) {
         addEventListener(listener);
     }
 
-    public void addDisconnectedEventListener(DisconnectedEventListener listener){
+    public void addDisconnectedEventListener(DisconnectedEventListener listener) {
         addEventListener(listener);
     }
 
-    public void addEventListener(NetworkEventListener<? extends NetworkEvent> listener){
+    public void addEventListener(NetworkEventListener<? extends NetworkEvent> listener) {
         EventListenerList<? extends NetworkEvent> listenerBatch = eventListeners.get(listener.getId());
-        if(listenerBatch == null){
+        if (listenerBatch == null) {
             listenerBatch = new EventListenerList<>();
         }
         listenerBatch.add(listener);
@@ -75,8 +75,8 @@ public abstract class AbstractConnection implements IConnection, Runnable{
     }
 
     @SuppressWarnings("unchecked")
-    public <E extends NetworkEvent> void performEvent(String id, Supplier<? extends NetworkEvent> evt){
-        if(!closed) {
+    public <E extends NetworkEvent> void performEvent(String id, Supplier<? extends NetworkEvent> evt) {
+        if (!closed) {
             EventListenerList<E> listenerBatch = (EventListenerList<E>) eventListeners.get(id);
             if (listenerBatch != null) {
                 for (NetworkEventListener<E> listener : listenerBatch) {
@@ -91,18 +91,18 @@ public abstract class AbstractConnection implements IConnection, Runnable{
     }
 
     @Override
-    public int getPort(){
+    public int getPort() {
         return port;
     }
 
     @SuppressWarnings("unchecked")
-    private static class EventListenerList<E extends NetworkEvent> extends ArrayList<NetworkEventListener<E>>{
+    private static class EventListenerList<E extends NetworkEvent> extends ArrayList<NetworkEventListener<E>> {
         public void add(NetworkEventListener<? extends NetworkEvent> listener) {
             super.add((NetworkEventListener<E>) listener);
         }
     }
 
-    public void markClosed(){
+    public void markClosed() {
         closed = true;
         Logger.info("Connection marked as closed");
     }

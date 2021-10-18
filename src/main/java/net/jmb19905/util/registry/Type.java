@@ -17,4 +17,6 @@
  */
 
 package net.jmb19905.util.registry;
-public abstract class Type<T> { }
+
+public abstract class Type<T> {
+}

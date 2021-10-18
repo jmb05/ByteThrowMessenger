@@ -34,7 +34,7 @@ public class DatabaseConnection implements Closeable {
     protected Connection connection = null;
     private final List<ITableHandler> tableHandlers = new ArrayList<>();
 
-    protected DatabaseConnection(String filename){
+    protected DatabaseConnection(String filename) {
         try {
             File database = new File(filename);
             if (!database.exists()) {
@@ -48,7 +48,7 @@ public class DatabaseConnection implements Closeable {
         }
     }
 
-    public void addTableHandler(ITableHandler tableHandler){
+    public void addTableHandler(ITableHandler tableHandler) {
         tableHandlers.add(tableHandler);
     }
 
@@ -58,7 +58,7 @@ public class DatabaseConnection implements Closeable {
 
     @Override
     public void close() throws IOException {
-        if(connection != null){
+        if (connection != null) {
             try {
                 connection.close();
                 Logger.trace("Closed database successfully");
@@ -68,5 +68,6 @@ public class DatabaseConnection implements Closeable {
         }
     }
 
-    public interface ITableHandler{ }
+    public interface ITableHandler {
+    }
 }

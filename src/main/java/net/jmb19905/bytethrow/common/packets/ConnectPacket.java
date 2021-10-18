@@ -41,13 +41,13 @@ public class ConnectPacket extends Packet {
         name = parts[1];
         key = SerializationUtility.decodeBinary(parts[2]);
         int typeInt = Integer.parseInt(parts[3]);
-        if(typeInt == 0){
+        if (typeInt == 0) {
             connectType = ConnectType.FIRST_CONNECT;
-        }else if(typeInt == 1){
+        } else if (typeInt == 1) {
             connectType = ConnectType.REPLY_CONNECT;
-        }else if(typeInt == 2){
+        } else if (typeInt == 2) {
             connectType = ConnectType.FIRST_RECONNECT;
-        }else if(typeInt == 3){
+        } else if (typeInt == 3) {
             connectType = ConnectType.REPLY_RECONNECT;
         }
     }
@@ -58,12 +58,12 @@ public class ConnectPacket extends Packet {
         return (ID + "|" + name + "|" + encodedKey + "|" + connectType.typeInt).getBytes(StandardCharsets.UTF_8);
     }
 
-    public enum ConnectType{
+    public enum ConnectType {
         FIRST_CONNECT(0), REPLY_CONNECT(1), FIRST_RECONNECT(2), REPLY_RECONNECT(3);
 
         private final int typeInt;
 
-        ConnectType(int typeInt){
+        ConnectType(int typeInt) {
             this.typeInt = typeInt;
         }
     }

@@ -39,12 +39,12 @@ public class CreateGroupDialog extends JDialog {
     private String groupName = "";
     private String[] members = new String[10];
 
-    public CreateGroupDialog(Window window){
+    public CreateGroupDialog(Window window) {
         super(window);
         initUI();
     }
 
-    private void initUI(){
+    private void initUI() {
         setModal(true);
         setResizable(true);
         setLayout(new GridBagLayout());
@@ -118,7 +118,7 @@ public class CreateGroupDialog extends JDialog {
         groupName = "";
         members = new String[10];
         hideDialog();
-        if(cancelListener != null) {
+        if (cancelListener != null) {
             cancelListener.windowClosing(e);
         }
         clearData();
@@ -128,31 +128,31 @@ public class CreateGroupDialog extends JDialog {
         groupName = groupNameTextField.getText().strip().replaceAll(" ", "_");
         Object[] objArray = memberListModel.toArray();
         String[] membersArray = new String[objArray.length];
-        for(int i=0;i<objArray.length;i++){
+        for (int i = 0; i < objArray.length; i++) {
             membersArray[i] = String.valueOf(objArray[i]);
         }
         members = membersArray;
         hideDialog();
-        if(confirmListener != null) {
+        if (confirmListener != null) {
             confirmListener.actionPerformed(e);
         }
         clearData();
     }
 
-    private void clearData(){
+    private void clearData() {
         groupNameTextField.setText("");
         memberListModel.clear();
     }
 
-    private void addConfirmButtonActionListener(ActionListener listener){
+    private void addConfirmButtonActionListener(ActionListener listener) {
         this.confirmListener = listener;
     }
 
-    public void addCancelListener(WindowAdapter windowAdapter){
+    public void addCancelListener(WindowAdapter windowAdapter) {
         this.cancelListener = windowAdapter;
     }
 
-    public CreateGroupData showDialog(){
+    public CreateGroupData showDialog() {
         AsynchronousInitializer<CreateGroupData> initializer = new AsynchronousInitializer<>();
         Logger.debug("Initialized AsynchronousInitializer");
         SwingUtilities.invokeLater(() -> {
@@ -169,14 +169,15 @@ public class CreateGroupDialog extends JDialog {
         return initializer.get();
     }
 
-    public void hideDialog(){
+    public void hideDialog() {
         setVisible(false);
         groupNameTextField.requestFocus();
     }
 
-    public record CreateGroupData(String groupName, String[] members, boolean cancel){}
+    public record CreateGroupData(String groupName, String[] members, boolean cancel) {
+    }
 
-    private static class MemberListRenderer extends JLabel implements ListCellRenderer<String>{
+    private static class MemberListRenderer extends JLabel implements ListCellRenderer<String> {
         @SuppressWarnings("unchecked")
         @Override
         public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -194,16 +195,16 @@ public class CreateGroupDialog extends JDialog {
             list.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    if(e.isPopupTrigger()){
+                    if (e.isPopupTrigger()) {
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
                 }
             });
 
-            if(isSelected){
+            if (isSelected) {
                 setBackground(Color.WHITE);
                 setForeground(Color.BLACK);
-            }else {
+            } else {
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
             }

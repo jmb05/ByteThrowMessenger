@@ -21,8 +21,6 @@ package net.jmb19905.bytethrow.client;
 import net.jmb19905.bytethrow.client.util.GenClientData;
 import net.jmb19905.util.Logger;
 
-import java.net.ConnectException;
-
 public class ClientMain {
 
     public static void main(String[] args) {
@@ -34,7 +32,7 @@ public class ClientMain {
             } else {
                 StartClient.main(args);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             Logger.error("caughr");
         }
     }

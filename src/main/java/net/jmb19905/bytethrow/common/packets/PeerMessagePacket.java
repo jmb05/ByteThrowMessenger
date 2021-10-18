@@ -39,11 +39,11 @@ public class PeerMessagePacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        message = new PeerMessage(data[1], data[2], data[3]);
+        message = new PeerMessage(data[1], data[2], data[3], Long.parseLong(data[4]));
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + message.getSender() + "|" + message.getReceiver() + "|" + message.getMessage()).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + message.getSender() + "|" + message.getReceiver() + "|" + message.getMessage() + "|" + message.getTimestamp()).getBytes(StandardCharsets.UTF_8);
     }
 }

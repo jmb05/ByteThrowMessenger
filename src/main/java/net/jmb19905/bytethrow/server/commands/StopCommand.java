@@ -32,9 +32,9 @@ public class StopCommand implements ICommand {
     public static class StopCommandHandler extends CommandHandler {
         @Override
         public void handle(ICommand command, String[] args) {
-            if(args.length < 1){
+            if (args.length < 1) {
                 ShutdownManager.shutdown(0);
-            }else {
+            } else {
                 ShutdownManager.shutdown(Integer.parseInt(args[0]));
             }
 

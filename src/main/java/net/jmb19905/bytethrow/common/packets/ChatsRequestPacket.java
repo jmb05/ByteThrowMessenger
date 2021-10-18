@@ -32,7 +32,8 @@ public class ChatsRequestPacket extends Packet {
     }
 
     @Override
-    public void construct(String[] strings) {}
+    public void construct(String[] strings) {
+    }
 
     @Override
     public byte[] deconstruct() {

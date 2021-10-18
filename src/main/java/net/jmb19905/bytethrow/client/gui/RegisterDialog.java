@@ -37,9 +37,12 @@ import java.util.Arrays;
 
 public class RegisterDialog extends JDialog {
 
-    private ActionListener confirmListener = e -> {};
-    private ActionListener loginListener = e -> {};
-    private WindowAdapter cancelListener = new WindowAdapter() {};
+    private ActionListener confirmListener = e -> {
+    };
+    private ActionListener loginListener = e -> {
+    };
+    private WindowAdapter cancelListener = new WindowAdapter() {
+    };
 
     private String username = "";
     private String password = "";
@@ -47,7 +50,7 @@ public class RegisterDialog extends JDialog {
     private JPasswordField passwordInputField1 = null;
     private JPasswordField passwordInputField2 = null;
 
-    public RegisterDialog(boolean useStandardPasswordRules, Window window){
+    public RegisterDialog(boolean useStandardPasswordRules, Window window) {
         super(window);
         setModal(true);
         setResizable(false);
@@ -72,14 +75,14 @@ public class RegisterDialog extends JDialog {
                 username = "";
                 password = "";
                 String newPassword = new String(passwordInputField1.getPassword());
-                if(!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())){
+                if (!Arrays.equals(passwordInputField1.getPassword(), passwordInputField2.getPassword())) {
                     showPasswordsDoNotMatchPane();
-                }else if(!useStandardPasswordRules || Util.checkPasswordRules(newPassword)){
+                } else if (!useStandardPasswordRules || Util.checkPasswordRules(newPassword)) {
                     username = usernameInputField.getText();
                     password = newPassword;
                     dispose();
                     confirmListener.actionPerformed(e);
-                }else{
+                } else {
                     showPasswordCriteriaNotMetPane();
                 }
             }
@@ -97,11 +100,11 @@ public class RegisterDialog extends JDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         usernameInputField.addActionListener(l -> {
-            if(passwordInputField1.getPassword().length == 0){
+            if (passwordInputField1.getPassword().length == 0) {
                 passwordInputField1.requestFocus();
-            }else if(passwordInputField2.getPassword().length == 0){
+            } else if (passwordInputField2.getPassword().length == 0) {
                 passwordInputField2.requestFocus();
-            }else {
+            } else {
                 hideDialog();
                 confirmAction.actionPerformed(l);
             }
@@ -114,9 +117,9 @@ public class RegisterDialog extends JDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         passwordInputField1.addActionListener(l -> {
-            if(passwordInputField2.getPassword().length == 0){
+            if (passwordInputField2.getPassword().length == 0) {
                 passwordInputField2.requestFocus();
-            }else {
+            } else {
                 hideDialog();
                 confirmAction.actionPerformed(l);
             }
@@ -129,7 +132,7 @@ public class RegisterDialog extends JDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         passwordInputField2.addActionListener(l -> {
-            if(StartClient.isDevEnv){
+            if (StartClient.isDevEnv) {
                 Logger.debug(new String(passwordInputField1.getPassword()));
                 Logger.debug(new String(passwordInputField2.getPassword()));
             }
@@ -184,15 +187,15 @@ public class RegisterDialog extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    public void addConfirmButtonActionListener(ActionListener listener){
+    public void addConfirmButtonActionListener(ActionListener listener) {
         this.confirmListener = listener;
     }
 
-    public void addLoginButtonActionListener(ActionListener listener){
+    public void addLoginButtonActionListener(ActionListener listener) {
         this.loginListener = listener;
     }
 
-    public void addCancelListener(WindowAdapter windowAdapter){
+    public void addCancelListener(WindowAdapter windowAdapter) {
         this.cancelListener = windowAdapter;
     }
 
@@ -204,7 +207,7 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public RegisterData showDialog(){
+    public RegisterData showDialog() {
         AsynchronousInitializer<RegisterData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
             addConfirmButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.CONFIRM)));
@@ -220,18 +223,19 @@ public class RegisterDialog extends JDialog {
         return initializer.get();
     }
 
-    public void hideDialog(){
+    public void hideDialog() {
         setVisible(false);
         usernameInputField.requestFocus();
     }
 
-    private void showPasswordsDoNotMatchPane(){
+    private void showPasswordsDoNotMatchPane() {
         JOptionPane.showMessageDialog(this, Localisation.get("pw_no_match"), "", JOptionPane.ERROR_MESSAGE);
     }
 
-    private void showPasswordCriteriaNotMetPane(){
+    private void showPasswordCriteriaNotMetPane() {
         JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static record RegisterData(String username, String password, GUIManager.ResultType resultType){}
+    public static record RegisterData(String username, String password, GUIManager.ResultType resultType) {
+    }
 }

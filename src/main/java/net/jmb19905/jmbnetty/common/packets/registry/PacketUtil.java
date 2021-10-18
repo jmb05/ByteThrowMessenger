@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 
 public class PacketUtil {
 
-    public static Packet construct(byte[] data) throws IllegalStateException{
+    public static Packet construct(byte[] data) throws IllegalStateException {
         String dataAsString = new String(data, StandardCharsets.UTF_8);
         String[] parts = dataAsString.split("\\|");
         PacketType<? extends Packet> packetType = null;
@@ -35,10 +35,10 @@ public class PacketUtil {
                 packet.construct(parts);
             }
             return packet;
-        }catch (NoSuchMethodException e){
+        } catch (NoSuchMethodException e) {
             Logger.error(e);
             return new Packet.NullPacket(packetType);
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Logger.error(e, "Packet has unknown type header: " + parts[0]);
             return new Packet.NullPacket(packetType);
         }

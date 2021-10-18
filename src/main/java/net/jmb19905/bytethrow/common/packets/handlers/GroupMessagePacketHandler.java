@@ -20,6 +20,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.bytethrow.common.packets.GroupMessagePacket;
@@ -40,11 +42,11 @@ public class GroupMessagePacketHandler extends PacketHandler {
         GroupMessage message = messagePacket.message;
         ServerManager manager = StartServer.manager;
         String name = manager.getClientName(handler);
-        if(name.equals(message.getSender())){
-            if(!name.isBlank()) {
+        if (name.equals(message.getSender())) {
+            if (!name.isBlank()) {
                 String groupName = message.getGroupName();
                 GroupChat chat = manager.getGroup(groupName);
-                if(chat != null){
+                if (chat != null) {
                     manager.sendPacketToGroup(groupName, packet, handler);
                     Logger.trace("Sent message to group: " + groupName);
                 } else {
@@ -53,8 +55,8 @@ public class GroupMessagePacketHandler extends PacketHandler {
             } else {
                 Logger.warn("Client is trying to communicate but isn't logged in!");
             }
-        }else {
-            Logger.warn("Received Message with wrong Sender! (" + name + " != " + message.getSender() +")");
+        } else {
+            Logger.warn("Received Message with wrong Sender! (" + name + " != " + message.getSender() + ")");
         }
     }
 
@@ -63,10 +65,12 @@ public class GroupMessagePacketHandler extends PacketHandler {
         GroupMessagePacket messagePacket = (GroupMessagePacket) packet;
         GroupMessage message = messagePacket.message;
         String groupName = message.getGroupName();
-        GroupChat chat = StartClient.manager.getGroup(groupName);
-        if(chat != null){
-            StartClient.guiManager.appendMessage(groupName + " - " + message.getSender(), message.getMessage());
-        }else {
+        ClientGroupChat chat = StartClient.manager.getGroup(groupName);
+        if (chat != null) {
+            StartClient.guiManager.appendMessage(message, chat);
+            chat.addMessage(message);
+            ChatHistorySerialisation.saveChat(StartClient.manager.name, chat);
+        } else {
             Logger.warn("Received Message from invalid chat");
         }
     }

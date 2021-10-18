@@ -25,13 +25,13 @@ public abstract class Registry {
 
     private final Map<String, Type<?>> registries = new ConcurrentHashMap<>();
 
-    public void register(String id, Type<?> type){
+    public void register(String id, Type<?> type) {
         this.registries.put(id, type);
     }
 
-    public Type<?> getRegistry(String id) throws NullPointerException{
+    public Type<?> getRegistry(String id) throws NullPointerException {
         Type<?> type = registries.get(id);
-        if(type == null){
+        if (type == null) {
             throw new NullPointerException();
         }
         return type;

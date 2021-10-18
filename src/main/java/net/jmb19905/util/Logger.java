@@ -19,7 +19,6 @@
 package net.jmb19905.util;
 
 import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,13 +49,13 @@ public class Logger {
 
     private static boolean closed = false;
 
-    public static void initLogFile(boolean server){
-        if(closed){
+    public static void initLogFile(boolean server) {
+        if (closed) {
             return;
         }
         side = server ? "server" : "client";
         File logFile = new File("logs/latest_" + side + ".log");
-        if(logFile.exists()){
+        if (logFile.exists()) {
             logFile.delete();
         }
         try {
@@ -77,8 +76,8 @@ public class Logger {
         return level;
     }
 
-    private static void writeLine(String s){
-        if(writer != null && !closed){
+    private static void writeLine(String s) {
+        if (writer != null && !closed) {
             try {
                 writer.write(replaceANSI(s));
                 writer.newLine();
@@ -89,8 +88,8 @@ public class Logger {
         }
     }
 
-    private static void logRaw(String message){
-        if(closed){
+    private static void logRaw(String message) {
+        if (closed) {
             return;
         }
         if (!isOnNewLine) {
@@ -104,11 +103,12 @@ public class Logger {
 
     /**
      * Logs a message to the console
-     * @param message the message
+     *
+     * @param message      the message
      * @param currentLevel the Level of the message
      */
-    public static void log(String message, Level currentLevel){
-        if(currentLevel.tier >= level.tier) {
+    public static void log(String message, Level currentLevel) {
+        if (currentLevel.tier >= level.tier) {
             String log = "[" + Clock.getCompactDate("dd.MM.yyyy HH:mm:ss") + "] [" + currentLevel + "] " + message;
             logRaw(currentLevel.getColor() + log + ANSIColors.getReset());
         }
@@ -116,106 +116,108 @@ public class Logger {
 
     /**
      * Logs an Exception to the console
+     *
      * @param cause the exception
      * @param level the level of the exception
      */
-    public static void log(Throwable cause, Level level){
+    public static void log(Throwable cause, Level level) {
         log(cause, "", level);
     }
 
     /**
      * Logs an Exception and a Message to the console
-     * @param cause the exception
+     *
+     * @param cause   the exception
      * @param message the message
-     * @param level the level of the exception and message
+     * @param level   the level of the exception and message
      */
-    public static void log(Throwable cause, String message, Level level){
+    public static void log(Throwable cause, String message, Level level) {
         logRaw(level.getColor() + message + (message.strip().equals("") ? "" : "\n") + stacktraceAsString(cause) + ANSIColors.getReset());
     }
 
-    public static void trace(String message){
+    public static void trace(String message) {
         log(message, Level.TRACE);
     }
 
-    public static void trace(Throwable cause){
+    public static void trace(Throwable cause) {
         log(cause, Level.TRACE);
     }
 
-    public static void trace(Throwable cause, String message){
+    public static void trace(Throwable cause, String message) {
         log(cause, message, Level.TRACE);
     }
 
-    public static void debug(String message){
+    public static void debug(String message) {
         log(message, Level.DEBUG);
     }
 
-    public static void debug(Throwable cause){
+    public static void debug(Throwable cause) {
         log(cause, Level.DEBUG);
     }
 
-    public static void debug(Throwable cause, String message){
+    public static void debug(Throwable cause, String message) {
         log(cause, message, Level.DEBUG);
     }
 
-    public static void info(String message){
+    public static void info(String message) {
         log(message, Level.INFO);
     }
 
-    public static void info(Throwable cause){
+    public static void info(Throwable cause) {
         log(cause, Level.INFO);
     }
 
-    public static void info(Throwable cause, String message){
+    public static void info(Throwable cause, String message) {
         log(cause, message, Level.INFO);
     }
 
-    public static void warn(String message){
+    public static void warn(String message) {
         log(message, Level.WARN);
     }
 
-    public static void warn(Throwable cause){
+    public static void warn(Throwable cause) {
         log(cause, Level.WARN);
     }
 
-    public static void warn(Throwable cause, String message){
+    public static void warn(Throwable cause, String message) {
         log(cause, message, Level.WARN);
     }
 
-    public static void error(String message){
+    public static void error(String message) {
         log(message, Level.ERROR);
     }
 
-    public static void error(Throwable cause){
+    public static void error(Throwable cause) {
         log(cause, Level.ERROR);
     }
 
-    public static void error(Throwable cause, String message){
+    public static void error(Throwable cause, String message) {
         log(cause, message, Level.ERROR);
     }
 
-    public static void fatal(String message){
+    public static void fatal(String message) {
         log(message, Level.FATAL);
     }
 
-    public static void fatal(Throwable cause){
+    public static void fatal(Throwable cause) {
         log(cause, Level.FATAL);
     }
 
-    public static void fatal(Throwable cause, String message){
+    public static void fatal(Throwable cause, String message) {
         log(cause, message, Level.FATAL);
     }
 
-    public static void close(){
+    public static void close() {
         closed = true;
-        if(writer != null){
+        if (writer != null) {
             try {
                 writer.close();
                 Path file = Paths.get("logs/latest_" + side + ".log");
                 Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH:mm").replace(" ", "_") + "_" + side + ".log");
-                if(Files.exists(newFile)){
+                if (Files.exists(newFile)) {
                     Files.delete(newFile);
                 }
-                if(Files.exists(file)) {
+                if (Files.exists(file)) {
                     Files.move(file, newFile);
                 }
             } catch (IOException e) {
@@ -226,8 +228,8 @@ public class Logger {
         }
     }
 
-    private static String stacktraceAsString(Throwable cause){
-        if(closed){
+    private static String stacktraceAsString(Throwable cause) {
+        if (closed) {
             return "";
         }
         StringWriter stringWriter = new StringWriter();
@@ -236,7 +238,7 @@ public class Logger {
         return stringWriter.toString();
     }
 
-    private static String replaceANSI(String in){
+    private static String replaceANSI(String in) {
         return in.replaceAll(ANSI_BLACK, "").replaceAll(ANSI_BLUE, "").replaceAll(ANSI_RED, "")
                 .replaceAll(ANSI_RESET, "").replaceAll(ANSI_CYAN, "").replaceAll(ANSI_GREEN, "")
                 .replaceAll(ANSI_PURPLE, "").replaceAll(ANSI_WHITE, "").replaceAll(ANSI_YELLOW, "");
@@ -247,8 +249,8 @@ public class Logger {
      * Tells the user the severity of messages and exceptions.
      * Tells the console the color of the message.
      */
-    public enum Level{
-        TRACE(0, ANSIColors.getBlue()), DEBUG(1,ANSIColors.getGreen()), INFO(2, ANSIColors.getWhite()), WARN(3,ANSIColors.getYellow()), ERROR(4,ANSIColors.getRed()), FATAL(5,ANSIColors.getRed());
+    public enum Level {
+        TRACE(0, ANSIColors.getBlue()), DEBUG(1, ANSIColors.getGreen()), INFO(2, ANSIColors.getWhite()), WARN(3, ANSIColors.getYellow()), ERROR(4, ANSIColors.getRed()), FATAL(5, ANSIColors.getRed());
 
         private final int tier;
         /**
@@ -256,7 +258,7 @@ public class Logger {
          */
         private final String color;
 
-        Level(int tier, String color){
+        Level(int tier, String color) {
             this.tier = tier;
             this.color = color;
         }

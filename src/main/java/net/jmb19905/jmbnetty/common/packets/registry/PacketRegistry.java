@@ -22,21 +22,18 @@ import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.registry.Registry;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class PacketRegistry extends Registry {
 
     private static final PacketRegistry instance = new PacketRegistry();
 
-    public <P extends Packet> void register(String id, Class<P> packetClass, PacketHandler handler){
+    public <P extends Packet> void register(String id, Class<P> packetClass, PacketHandler handler) {
         register(id, new PacketType<>(packetClass, handler));
     }
 
     public PacketType<? extends Packet> getPacketType(String id) {
         try {
             return (PacketType<? extends Packet>) getRegistry(id);
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Logger.error("No such PacketType registered");
             return null;
         }

@@ -24,11 +24,11 @@ public class CommandRegistry extends Registry {
 
     private static final CommandRegistry instance = new CommandRegistry();
 
-    public void register(String id, Class<? extends ICommand> commandClass, CommandHandler handler){
+    public void register(String id, Class<? extends ICommand> commandClass, CommandHandler handler) {
         super.register(id, new CommandType<>(commandClass, handler));
     }
 
-    public CommandType<? extends ICommand> getCommandType(String id){
+    public CommandType<? extends ICommand> getCommandType(String id) {
         return (CommandType<? extends ICommand>) super.getRegistry(id);
     }
 

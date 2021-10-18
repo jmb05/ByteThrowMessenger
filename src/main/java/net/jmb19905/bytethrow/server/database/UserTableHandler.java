@@ -18,8 +18,8 @@
 
 package net.jmb19905.bytethrow.server.database;
 
-import net.jmb19905.util.Logger;
 import net.jmb19905.bytethrow.server.database.DatabaseManager.UserData;
+import net.jmb19905.util.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
@@ -48,6 +48,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
 
     /**
      * Adds a user to the users database
+     *
      * @param user the userdata of the newly registered user
      * @return if the registration succeeded
      */
@@ -60,19 +61,19 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
             statement.setString(3, user.salt());
             statement.execute();
         } catch (SQLException | NullPointerException e) {
-            Logger.error( e, "Error adding user to database");
+            Logger.error(e, "Error adding user to database");
             return false;
         }
         return true;
     }
 
-    public boolean removeUser(String username){
+    public boolean removeUser(String username) {
         try {
             PreparedStatement statement = connection.prepareStatement("DELETE FROM table WHERE username = ?;");
             statement.setString(1, username);
             statement.execute();
-        }catch (SQLException e){
-            Logger.error( e, "Error deleting user from database");
+        } catch (SQLException e) {
+            Logger.error(e, "Error deleting user from database");
             return false;
         }
         return true;
@@ -80,6 +81,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
 
     /**
      * Gets the data of a user by using the username
+     *
      * @param username the username
      * @return the UserSession
      */
@@ -94,7 +96,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
                 return new UserData(username, password, salt);
             }
         } catch (SQLException | NullPointerException e) {
-            Logger.error(e,"Error retrieving user data from database");
+            Logger.error(e, "Error retrieving user data from database");
         }
         Logger.warn("No UserSession for Username: " + username + " found");
         Logger.trace("Closed database successfully");
@@ -103,6 +105,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
 
     /**
      * Creates a new User and saves his data in the user Database
+     *
      * @param username the username of the user
      * @param password the password of the user
      * @return if creating the user succeeded
@@ -115,10 +118,10 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
         return addUser(userData);
     }
 
-    public boolean changeUserName(String oldUsername, String newUsername){
+    public boolean changeUserName(String oldUsername, String newUsername) {
         if (hasUser(oldUsername)) {
             int id = getUserId(oldUsername);
-            if(id >= 0) {
+            if (id >= 0) {
                 try {
                     PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET username = ? WHERE id = ?");
                     passwordStatement.setString(1, newUsername);
@@ -133,8 +136,8 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
         return false;
     }
 
-    public boolean changeUserPassword(String username, String newPassword){
-        if(hasUser(username)) {
+    public boolean changeUserPassword(String username, String newPassword) {
+        if (hasUser(username)) {
             String salt = BCrypt.gensalt();
             try {
                 PreparedStatement passwordStatement = connection.prepareStatement("UPDATE users SET password = ? WHERE username = ?");
@@ -154,7 +157,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
         return false;
     }
 
-    private int getUserId(String username){
+    private int getUserId(String username) {
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT id FROM users WHERE username = ?");
             statement.setString(1, username);
@@ -163,12 +166,12 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
                 return resultSet.getInt("id");
             }
         } catch (SQLException | NullPointerException e) {
-            Logger.error(e,"Error retrieving user data from database");
+            Logger.error(e, "Error retrieving user data from database");
         }
         return -1;
     }
 
-    public boolean hasUser(String username){
+    public boolean hasUser(String username) {
         return getUserByName(username) != null;
     }
 }

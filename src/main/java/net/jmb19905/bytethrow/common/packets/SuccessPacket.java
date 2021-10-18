@@ -30,7 +30,7 @@ public class SuccessPacket extends Packet {
 
     private static final String ID = "success";
 
-    public String type;
+    public SuccessType type;
     public boolean confirmIdentity = false;
 
     public SuccessPacket() {
@@ -39,13 +39,30 @@ public class SuccessPacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        type = data[1];
+        switch (data[1]) {
+            case "login" -> type = SuccessType.LOGIN;
+            case "register" -> type = SuccessType.REGISTER;
+            case "change_pw" -> type = SuccessType.CHANGE_PW;
+            case "change_name" -> type = SuccessType.CHANGE_NAME;
+            case "delete" -> type = SuccessType.DELETE;
+        }
         confirmIdentity = Boolean.parseBoolean(data[2]);
     }
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + type + "|" + confirmIdentity;
+        String dataString = ID + "|" + type.id + "|" + confirmIdentity;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
+
+    public enum SuccessType{
+        LOGIN("login"), REGISTER("register"), CHANGE_PW("change_pw"), CHANGE_NAME("change_name"), DELETE("delete");
+
+        private final String id;
+
+        SuccessType(String id){
+            this.id = id;
+        }
+    }
+
 }

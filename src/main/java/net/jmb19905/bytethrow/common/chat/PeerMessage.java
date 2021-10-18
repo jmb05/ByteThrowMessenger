@@ -18,22 +18,56 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public class PeerMessage extends Message{
+import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 
-    private final String sender;
-    private final String receiver;
+public class PeerMessage extends Message {
 
-    public PeerMessage(String sender, String receiver, String message) {
-        super(message);
-        this.sender = sender;
-        this.receiver = receiver;
+    private String receiver;
+
+    private PeerMessage(){
+        super();
     }
 
-    public String getSender() {
-        return sender;
+    public PeerMessage(String sender, String receiver, String message, long timestamp) {
+        super(sender, message, timestamp);
+        this.receiver = receiver;
     }
 
     public String getReceiver() {
         return receiver;
+    }
+
+    @Override
+    public String deconstruct() {
+        return "peer|" + getSender() + "|" + receiver + "|" + getMessage() + "|" + timestamp;
+    }
+
+    public static PeerMessage construct(String s) {
+        String[] data = s.split("\\|");
+        if(!data[0].equals("peer")){
+            throw new IllegalArgumentException("Tried to construct a GroupMessage to a PeerMessage");
+        }
+        PeerMessage peerMessage = new PeerMessage();
+        peerMessage.sender = data[1];
+        peerMessage.receiver = data[2];
+        peerMessage.message = data[3];
+        peerMessage.timestamp = Long.parseLong(data[4]);
+        return peerMessage;
+    }
+
+    public static PeerMessage encrypt(PeerMessage message, Encryption encryption){
+        message.setMessage(EncryptionUtility.encryptString(encryption, message.getMessage()));
+        return message;
+    }
+
+    @Override
+    public String getMessageDisplay() {
+        return " \\b<" + getSender() + ">\\b " + message;
+    }
+
+    @Override
+    public String toString() {
+        return deconstruct();
     }
 }

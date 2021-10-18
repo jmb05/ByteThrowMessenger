@@ -30,7 +30,7 @@ public class HelpCommand implements ICommand {
     public static class HelpCommandHandler extends CommandHandler {
         @Override
         public void handle(ICommand command, String[] args) {
-            if(args.length < 1){
+            if (args.length < 1) {
                 System.out.println("""
                         Commands:
                             help
@@ -43,7 +43,7 @@ public class HelpCommand implements ICommand {
                                  none   -  exit code 0
                                  <int>  -  exit code <int>
                         """);
-            }else if(args[0].equals("--warranty")){
+            } else if (args[0].equals("--warranty")) {
                 System.out.println("""
                         THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
                         APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
@@ -54,7 +54,7 @@ public class HelpCommand implements ICommand {
                         IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
                         ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
                         """);
-            }else if(args[0].equals("--conditions")){
+            } else if (args[0].equals("--conditions")) {
                 System.out.println("""
                                                TERMS AND CONDITIONS
                                                 

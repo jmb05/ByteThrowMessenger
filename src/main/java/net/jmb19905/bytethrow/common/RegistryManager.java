@@ -24,7 +24,7 @@ import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
 public class RegistryManager {
 
-    public static void registerPackets(){
+    public static void registerPackets() {
         PacketRegistry.getInstance().register("change_user_data", ChangeUserDataPacket.class, new ChangeUserDataPacketHandler());
         PacketRegistry.getInstance().register("chats", ChatsPacket.class, new ChatsPacketHandler());
         PacketRegistry.getInstance().register("chats_request", ChatsRequestPacket.class, new ChatsRequestPacketHandler());
@@ -41,5 +41,7 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("create_group", CreateGroupPacket.class, new CreateGroupPacketHandler());
         PacketRegistry.getInstance().register("group_invite", GroupInvitePacket.class, new GroupInvitePacketHandler());
         PacketRegistry.getInstance().register("add_group_member", AddGroupMemberPacket.class, new AddGroupMemberPacketHandler());
+        PacketRegistry.getInstance().register("leave_group", LeaveGroupPacket.class, new LeaveGroupPacketHandler());
+        PacketRegistry.getInstance().register("disconnect_peer", DisconnectPeerPacket.class, new DisconnectPeerPacketHandler());
     }
 }

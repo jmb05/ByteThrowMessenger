@@ -18,15 +18,42 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
-public abstract class Message {
+public abstract class Message implements Comparable<Message>{
 
-    private final String message;
+    protected String sender;
+    protected String message;
+    protected long timestamp;
 
-    public Message(String message){
+    protected Message(){}
+
+    public Message(String sender, String message, long timestamp) {
+        this.sender = sender;
         this.message = message;
+        this.timestamp = timestamp;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     public String getMessage() {
         return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public abstract String deconstruct();
+
+    public abstract String getMessageDisplay();
+
+    @Override
+    public int compareTo(Message o) {
+        return Long.compare(timestamp, o.timestamp);
     }
 }

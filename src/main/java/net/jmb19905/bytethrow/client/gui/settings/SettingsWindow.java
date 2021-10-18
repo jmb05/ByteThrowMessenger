@@ -133,6 +133,7 @@ public class SettingsWindow extends JDialog {
 
     /**
      * Modifies the LookAndFeel of all Swing Object and repaints all Swing Objects
+     *
      * @param lookAndFeelName the Name of the LookAndFeel
      */
     public static void setLookAndFeel(String lookAndFeelName) {
@@ -147,7 +148,7 @@ public class SettingsWindow extends JDialog {
         ConfigManager.saveClientConfig();
     }
 
-    public void reloadLang(){
+    public void reloadLang() {
         themeLabel.setText(Localisation.get("theme") + ": ");
         autoLoginLabel.setText(Localisation.get("automatic_login") + ": ");
         langLabel.setText(Localisation.get("lang") + ": ");

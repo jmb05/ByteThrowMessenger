@@ -26,11 +26,11 @@ import java.util.Base64;
 
 public class UserDataUtility {
 
-    public static void writeUserFile(String username, String password, File outputFile){
-        if(!outputFile.exists()){
-            if(!outputFile.getParentFile().mkdirs()){
+    public static void writeUserFile(String username, String password, File outputFile) {
+        if (!outputFile.exists()) {
+            if (!outputFile.getParentFile().mkdirs()) {
                 Logger.error("Error creating userdata directory");
-            }else {
+            } else {
                 try {
                     outputFile.createNewFile();
                 } catch (IOException e) {
@@ -46,8 +46,8 @@ public class UserDataUtility {
         }
     }
 
-    public static String[] readUserFile(File inputFile){
-        if(!inputFile.exists()){
+    public static String[] readUserFile(File inputFile) {
+        if (!inputFile.exists()) {
             return new String[0];
         }
         try (InputStream inputStream = new FileInputStream(inputFile)) {

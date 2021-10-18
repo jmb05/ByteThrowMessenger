@@ -25,7 +25,7 @@ public class Clock {
 
     private static long start;
 
-    public static void init(){
+    public static void init() {
         start = System.currentTimeMillis();
     }
 
@@ -33,11 +33,11 @@ public class Clock {
         return start;
     }
 
-    public static int getTime(){
+    public static int getTime() {
         return (int) (System.currentTimeMillis() - start);
     }
 
-    public static String getCompactDate(String pattern){
+    public static String getCompactDate(String pattern) {
         SimpleDateFormat format = new SimpleDateFormat(pattern);
         Date now = new Date();
         return format.format(now);

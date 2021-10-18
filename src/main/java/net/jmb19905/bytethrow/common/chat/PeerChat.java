@@ -22,8 +22,9 @@ import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 import java.security.PublicKey;
+import java.util.UUID;
 
-public class PeerChat extends Chat{
+public class PeerChat extends AbstractChat {
 
     private Encryption encryption;
     private boolean active = false;
@@ -31,25 +32,37 @@ public class PeerChat extends Chat{
     /**
      * Initializes the EncryptedConnection for the client
      */
-    public PeerChat(String peer){
+    public PeerChat(String peer) {
         addClient(StartClient.manager.name);
         addClient(peer);
     }
 
-    public PeerChat(String peer1, String peer2){
+    public PeerChat(String peer1, String peer2) {
         addClient(peer1);
         addClient(peer2);
     }
 
-    public String getOther(String peer){
+    public PeerChat(String peer, UUID uuid){
+        super(uuid);
+        addClient(StartClient.manager.name);
+        addClient(peer);
+    }
+
+    public PeerChat(String peer1, String peer2, UUID uuid){
+        super(uuid);
+        addClient(peer1);
+        addClient(peer2);
+    }
+
+    public String getOther(String peer) {
         return members.stream().filter(s -> !s.equals(peer)).findFirst().orElse(null);
     }
 
-    public void initClient(){
+    public void initClient() {
         encryption = new Encryption();
     }
 
-    public void setReceiverPublicKey(PublicKey key){
+    public void setReceiverPublicKey(PublicKey key) {
         encryption.setReceiverPublicKey(key);
     }
 
@@ -63,5 +76,15 @@ public class PeerChat extends Chat{
 
     public boolean isActive() {
         return active;
+    }
+
+    @Override
+    public String toString() {
+        return "PeerChat{" +
+                "members=" + members +
+                ", encryption=" + encryption +
+                ", active=" + active +
+                ", uuid=" + getUniqueId() +
+                '}';
     }
 }

@@ -36,11 +36,11 @@ public class GroupMessagePacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        message = new GroupMessage(data[1], data[2], data[3]);
+        message = new GroupMessage(data[1], data[2], data[3], Long.parseLong(data[4]));
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + message.getSender() + "|" + message.getGroupName() + "|" + message.getMessage()).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + message.getSender() + "|" + message.getGroupName() + "|" + message.getMessage() + "|" + message.getTimestamp()).getBytes(StandardCharsets.UTF_8);
     }
 }
