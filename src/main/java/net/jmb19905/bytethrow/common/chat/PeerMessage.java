@@ -23,7 +23,6 @@ import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 
 public class PeerMessage extends Message {
 
-    private String sender;
     private String receiver;
 
     private PeerMessage(){
@@ -31,13 +30,8 @@ public class PeerMessage extends Message {
     }
 
     public PeerMessage(String sender, String receiver, String message, long timestamp) {
-        super(message, timestamp);
-        this.sender = sender;
+        super(sender, message, timestamp);
         this.receiver = receiver;
-    }
-
-    public String getSender() {
-        return sender;
     }
 
     public String getReceiver() {
@@ -46,7 +40,7 @@ public class PeerMessage extends Message {
 
     @Override
     public String deconstruct() {
-        return "peer|" + sender + "|" + receiver + "|" + getMessage() + "|" + timestamp;
+        return "peer|" + getSender() + "|" + receiver + "|" + getMessage() + "|" + timestamp;
     }
 
     public static PeerMessage construct(String s) {
@@ -69,7 +63,7 @@ public class PeerMessage extends Message {
 
     @Override
     public String getMessageDisplay() {
-        return " \\b<" + sender + ">\\b " + message;
+        return " \\b<" + getSender() + ">\\b " + message;
     }
 
     @Override

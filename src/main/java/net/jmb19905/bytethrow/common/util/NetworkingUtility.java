@@ -25,10 +25,12 @@ import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.jmbnetty.utility.NetworkUtility;
+import net.jmb19905.util.Logger;
 
 public class NetworkingUtility {
 
     public static ChannelFuture sendPacket(Packet packet, Channel channel, Encryption encryption) {
+        Logger.debug("Sending: " + packet);
         return NetworkUtility.sendTcp(channel, packet, encryption);
     }
 

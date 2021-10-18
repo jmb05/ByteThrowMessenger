@@ -79,8 +79,8 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.addChat(profile));
     }
 
-    public void removeChat(IClientChat<? extends Message> peerChat) {
-        IChatProfile<? extends Message> profile = ProfilesManager.getProfileByID(peerChat.getUniqueId());
+    public void removeChat(IClientChat<? extends Message> chat) {
+        IChatProfile<? extends Message> profile = ProfilesManager.getProfileByID(chat.getUniqueId());
         ProfilesManager.removeProfile(profile);
         SwingUtilities.invokeLater(() -> window.removeChat(profile));
     }

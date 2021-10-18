@@ -248,10 +248,8 @@ public class ClientManager {
         RegisterPacket registerPacket = new RegisterPacket();
         registerPacket.username = name;
         registerPacket.password = password;
-        Logger.trace("Sending RegisterPacket");
 
         ChannelFuture future = NetworkingUtility.sendPacket(registerPacket, channel, encryption);
-        future.addListener(l -> Logger.debug("RegisterPacket sent"));
     }
 
     /**
@@ -290,10 +288,8 @@ public class ClientManager {
         LoginPacket loginPacket = new LoginPacket();
         loginPacket.username = name;
         loginPacket.password = password;
-        Logger.trace("Sending LoginPacket");
 
-        ChannelFuture future = NetworkingUtility.sendPacket(loginPacket, channel, encryption);
-        future.addListener(l -> Logger.debug("LoginPacket sent"));
+        NetworkingUtility.sendPacket(loginPacket, channel, encryption);
     }
 
     public void createGroup() {
@@ -303,18 +299,29 @@ public class ClientManager {
                 CreateGroupPacket createGroupPacket = new CreateGroupPacket();
                 createGroupPacket.groupName = data.groupName();
                 NetworkingUtility.sendPacket(createGroupPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
-                Logger.debug("Sent Packet: " + createGroupPacket);
 
                 Arrays.stream(data.members()).filter(member -> !member.isBlank()).filter(member -> !member.equals(name)).forEach(member -> {
                     AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
                     addGroupMemberPacket.groupName = data.groupName();
                     addGroupMemberPacket.member = member;
                     NetworkingUtility.sendPacket(addGroupMemberPacket, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
-                    Logger.debug("Sent Packet: " + addGroupMemberPacket);
                 });
             }
         });
         thread.start();
+    }
+
+    public void disconnectFromPeer(String peer){
+        DisconnectPeerPacket packet = new DisconnectPeerPacket();
+        packet.peer = peer;
+        NetworkingUtility.sendPacket(packet, getChannel(), getHandler().getEncryption());
+    }
+
+    public void leaveGroup(String groupName){
+        LeaveGroupPacket packet = new LeaveGroupPacket();
+        packet.clientName = name;
+        packet.groupName = groupName;
+        NetworkingUtility.sendPacket(packet, getChannel(), getHandler().getEncryption());
     }
 
     public boolean isIdentityConfirmed() {

@@ -22,9 +22,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
 import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.LeaveGroupPacket;
+import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
@@ -49,22 +51,22 @@ public class LeaveGroupPacketHandler extends PacketHandler {
         String groupName = leaveGroupPacket.groupName;
         GroupChat groupChat = manager.getGroup(groupName);
         if(groupChat.removeClient(clientName)) {
-            notifyPeers(clientName, handler, groupChat, leaveGroupPacket);
+            ChatSerial.write(groupChat);
+            NetworkingUtility.sendPacket(leaveGroupPacket, ctx.channel(), handler.getEncryption());
+            notifyPeers(handler, groupChat, leaveGroupPacket);
         }
     }
 
-    private void notifyPeers(String clientName, TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {
+    private void notifyPeers(TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {
         ServerManager manager = StartServer.manager;
         for (String peerName : chat.getMembers()) {
-            if (!peerName.equals(clientName)) {
-                TcpServerHandler peerHandler = manager.getPeerHandler(peerName, serverHandler);
-                if (peerHandler != null) {
-                    SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
-                    Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
-                    NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
-                } else {
-                    Logger.warn("Peer: " + peerName + " not online");
-                }
+            TcpServerHandler peerHandler = manager.getPeerHandler(peerName, serverHandler);
+            if (peerHandler != null) {
+                SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+                Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
+                NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+            } else {
+                Logger.warn("Peer: " + peerName + " not online");
             }
         }
     }
@@ -76,10 +78,8 @@ public class LeaveGroupPacketHandler extends PacketHandler {
         ClientGroupChat groupChat = manager.getGroup(leaveGroupPacket.groupName);
         if(!manager.name.equals(leaveGroupPacket.clientName)){
             groupChat.removeClient(leaveGroupPacket.clientName);
-            //TODO: update gui
         }else {
             manager.removeGroup(groupChat);
-            //TODO: update gui
         }
     }
 }

@@ -25,7 +25,6 @@ import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPeerPacket;
-import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
@@ -68,7 +67,7 @@ public class DisconnectPeerPacketHandler extends PacketHandler {
 
         ClientPeerChat chat = manager.getChat(peerName);
         manager.removeChat(chat);
-        //TODO: update gui
+        StartClient.guiManager.removeChat(chat);
         Logger.info("Disconnected from: " + peerName);
     }
 }

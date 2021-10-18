@@ -39,7 +39,12 @@ public class ChatSerial {
         try {
             Path chatsDirectory = Paths.get("chats/");
             if(!Files.exists(chatsDirectory)) Files.createDirectories(chatsDirectory);
-            Files.list(chatsDirectory).forEach(path -> chats.add(read(UUID.fromString(path.getFileName().toString()))));
+            Files.list(chatsDirectory).forEach(path -> {
+                AbstractChat chat = read(UUID.fromString(path.getFileName().toString()));
+                if(chat != null) {
+                    chats.add(chat);
+                }
+            });
         } catch (IOException e) {
             Logger.error(e);
         }
@@ -63,10 +68,12 @@ public class ChatSerial {
                     chat = new PeerChat(clients[0], clients[1], uuid);
                 }
 
-
                 return chat;
             } catch (IOException e) {
                 Logger.error(e);
+            } catch (NullPointerException e){
+                Logger.warn("Invalid chat file found -> deleting");
+                deleteChatFile(uuid);
             }
         }
         return null;
@@ -93,12 +100,16 @@ public class ChatSerial {
         }
     }
 
-    public static void deleteChatFile(AbstractChat chat) {
-        Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
+    public static void deleteChatFile(UUID uuid){
+        Path chatFilePath = Paths.get("chats/" + uuid.toString());
         try {
             Files.delete(chatFilePath);
         } catch (IOException e) {
             Logger.error(e);
         }
+    }
+
+    public static void deleteChatFile(AbstractChat chat) {
+        deleteChatFile(chat.getUniqueId());
     }
 }

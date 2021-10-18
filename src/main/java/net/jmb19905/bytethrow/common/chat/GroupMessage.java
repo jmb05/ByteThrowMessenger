@@ -20,7 +20,6 @@ package net.jmb19905.bytethrow.common.chat;
 
 public class GroupMessage extends Message {
 
-    private String sender;
     private String groupName;
 
     private GroupMessage(){
@@ -28,13 +27,8 @@ public class GroupMessage extends Message {
     }
 
     public GroupMessage(String sender, String groupName, String message, long timestamp) {
-        super(message, timestamp);
-        this.sender = sender;
+        super(sender, message, timestamp);
         this.groupName = groupName;
-    }
-
-    public String getSender() {
-        return sender;
     }
 
     public String getGroupName() {
@@ -43,7 +37,7 @@ public class GroupMessage extends Message {
 
     @Override
     public String deconstruct() {
-        return "group|" + sender + "|" + groupName + "|" + getMessage() + "|" + timestamp;
+        return "group|" + getSender() + "|" + groupName + "|" + getMessage() + "|" + timestamp;
     }
 
     public static GroupMessage construct(String s) {
@@ -61,7 +55,7 @@ public class GroupMessage extends Message {
 
     @Override
     public String getMessageDisplay() {
-        return " \\b<" + sender + ">\\b " + message;
+        return " \\b<" + getSender() + ">\\b " + message;
     }
 
     @Override

@@ -20,14 +20,20 @@ package net.jmb19905.bytethrow.common.chat;
 
 public abstract class Message implements Comparable<Message>{
 
+    protected String sender;
     protected String message;
     protected long timestamp;
 
     protected Message(){}
 
-    public Message(String message, long timestamp) {
+    public Message(String sender, String message, long timestamp) {
+        this.sender = sender;
         this.message = message;
         this.timestamp = timestamp;
+    }
+
+    public String getSender() {
+        return sender;
     }
 
     public long getTimestamp() {

@@ -45,6 +45,7 @@ public abstract class AbstractChat implements IChat{
     public boolean removeClient(String name){
         boolean f = members.contains(name);
         members.remove(name);
+
         return f;
     }
 

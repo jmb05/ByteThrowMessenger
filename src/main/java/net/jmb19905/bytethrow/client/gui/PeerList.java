@@ -18,16 +18,19 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.GroupChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.IChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.PeerChatProfile;
 import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
-import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class PeerList extends JList<IChatProfile<? extends Message>> {
 
@@ -36,11 +39,49 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
     public PeerList() {
         super(new DefaultListModel<>());
         listModel = (DefaultListModel<IChatProfile<? extends Message>>) getModel();
-        setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        setSelectionModel(new PeerList.PeerListSelectionModel(this));
         setBorder(BorderFactory.createEmptyBorder());
         setUI(new PeerList.PeerListUI());
         setCellRenderer(new PeerList.PeerListRenderer());
+
+        JPopupMenu menu = new JPopupMenu();
+        JMenu membersMenu = new JMenu("Members");
+        JMenuItem item = new JMenuItem("Leave");
+        item.setForeground(Color.RED);
+        item.addActionListener(l -> {
+            IChatProfile<? extends Message> value = getSelectedValue();
+            if(value instanceof PeerChatProfile){
+                StartClient.manager.disconnectFromPeer(value.getDisplayName());
+            }else {
+                StartClient.manager.leaveGroup(value.getDisplayName());
+            }
+        });
+        menu.add(item);
+
+        JList<IChatProfile<? extends Message>> instance = this;
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int index = locationToIndex(e.getX(), e.getY());
+                if(index != -1){
+                    setSelectedIndex(index);
+                    if(e.getButton() == 3) {
+                        if(getSelectedValue() instanceof PeerChatProfile){
+                            item.setText("Disconnect");
+                        }
+                        menu.show(instance, e.getX(), e.getY());
+                        membersMenu.removeAll();
+                    }
+                } else clearSelection();
+            }
+        });
+    }
+
+    public int locationToIndex(int x, int y) {
+        for(int i=0;i<listModel.getSize();i++){
+            Rectangle rectangle = getCellBounds(i, i);
+            if(rectangle.contains(x, y)) return i;
+        }
+        return -1;
     }
 
     /**
@@ -83,7 +124,7 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         listModel.addElement(profile);
     }
 
-    private static class PeerListRenderer extends JLabel implements ListCellRenderer<IChatProfile<? extends Message>> {
+    private static class PeerListRenderer implements ListCellRenderer<IChatProfile<? extends Message>> {
 
         private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
         private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
@@ -91,30 +132,30 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
 
         @Override
         public Component getListCellRendererComponent(JList<? extends IChatProfile<? extends Message>> list, IChatProfile<? extends Message> value, int index, boolean isSelected, boolean cellHasFocus) {
-            setText(" " + value.getDisplayName());
-            setHorizontalTextPosition(JLabel.LEFT);
+            JLabel label = new JLabel(" " + value.getDisplayName());
+            label.setHorizontalTextPosition(JLabel.LEFT);
 
             if(value instanceof GroupChatProfile){
-                setIcon(warningIcon);
-                setToolTipText("Groups are not yet encrypted!");
+                label.setIcon(warningIcon);
+                label.setToolTipText("Groups are not yet encrypted!");
             }else if(value instanceof PeerChatProfile){
                 if(((PeerChatProfile) value).isConnected()){
-                    setIcon(tickIcon);
+                    label.setIcon(tickIcon);
                 } else {
-                    setIcon(crossIcon);
+                    label.setIcon(crossIcon);
                 }
             }
 
-            setEnabled(list.isEnabled());
-            setOpaque(true);
+            label.setEnabled(list.isEnabled());
+            label.setOpaque(true);
             if (isSelected) {
-                setBackground(Color.WHITE);
-                setForeground(Color.BLACK);
+                label.setBackground(Color.WHITE);
+                label.setForeground(Color.BLACK);
             } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
+                label.setBackground(list.getBackground());
+                label.setForeground(list.getForeground());
             }
-            return this;
+            return label;
         }
     }
 
@@ -136,26 +177,4 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
             rendererPane.paintComponent(g, rendererComponent, list, cx, cy, cw, ch, true);
         }
     }
-
-    private static class PeerListSelectionModel extends DefaultListSelectionModel {
-
-        private final JList<IChatProfile<? extends Message>> list;
-
-        public PeerListSelectionModel(JList<IChatProfile<? extends Message>> list) {
-            this.list = list;
-        }
-
-        @Override
-        public void setSelectionInterval(int index0, int index1) {
-            if (index0 == index1) {
-                if (isSelectedIndex(index0)) {
-                    removeSelectionInterval(index0, index0);
-                    list.getParent().requestFocus();
-                    return;
-                }
-            }
-            super.setSelectionInterval(index0, index1);
-        }
-    }
-
 }
