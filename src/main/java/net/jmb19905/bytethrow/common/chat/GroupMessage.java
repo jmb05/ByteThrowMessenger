@@ -60,6 +60,11 @@ public class GroupMessage extends Message {
     }
 
     @Override
+    public String getMessageDisplay() {
+        return " \\b<" + sender + ">\\b " + message;
+    }
+
+    @Override
     public String toString() {
         return deconstruct();
     }

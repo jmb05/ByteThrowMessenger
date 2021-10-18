@@ -22,6 +22,7 @@ import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 import java.security.PublicKey;
+import java.util.UUID;
 
 public class PeerChat extends AbstractChat {
 
@@ -37,6 +38,18 @@ public class PeerChat extends AbstractChat {
     }
 
     public PeerChat(String peer1, String peer2) {
+        addClient(peer1);
+        addClient(peer2);
+    }
+
+    public PeerChat(String peer, UUID uuid){
+        super(uuid);
+        addClient(StartClient.manager.name);
+        addClient(peer);
+    }
+
+    public PeerChat(String peer1, String peer2, UUID uuid){
+        super(uuid);
         addClient(peer1);
         addClient(peer2);
     }

@@ -18,6 +18,9 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
+import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
+
 public class PeerMessage extends Message {
 
     private String sender;
@@ -57,5 +60,20 @@ public class PeerMessage extends Message {
         peerMessage.message = data[3];
         peerMessage.timestamp = Long.parseLong(data[4]);
         return peerMessage;
+    }
+
+    public static PeerMessage encrypt(PeerMessage message, Encryption encryption){
+        message.setMessage(EncryptionUtility.encryptString(encryption, message.getMessage()));
+        return message;
+    }
+
+    @Override
+    public String getMessageDisplay() {
+        return " \\b<" + sender + ">\\b " + message;
+    }
+
+    @Override
+    public String toString() {
+        return deconstruct();
     }
 }

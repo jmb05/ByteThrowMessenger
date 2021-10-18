@@ -145,9 +145,9 @@ public class ConnectPacketHandler extends PacketHandler {
     }
 
     private void activateEncryption(String peerName, byte[] encodedPeerKey) {
-        PeerChat chat = StartClient.manager.getChat(peerName);
+        ClientPeerChat chat = StartClient.manager.getChat(peerName);
         chat.setActive(true);
-        StartClient.guiManager.setPeerStatus(peerName, true);
+        StartClient.guiManager.setPeerStatus(chat, true);
 
         chat.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
     }
@@ -159,7 +159,7 @@ public class ConnectPacketHandler extends PacketHandler {
             chat.setActive(true);
             StartClient.manager.addChat(chat);
 
-            StartClient.guiManager.setPeerStatus(peerName, true);
+            StartClient.guiManager.setPeerStatus(chat, true);
 
             chat.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
 
