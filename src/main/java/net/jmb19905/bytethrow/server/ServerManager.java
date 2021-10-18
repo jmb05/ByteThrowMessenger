@@ -202,7 +202,7 @@ public class ServerManager {
             Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
             NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
         } else {
-            Logger.warn("Could not find peer: " + peerName);
+            Logger.warn("Peer: " + peerName + " not online");
         }
     }
 

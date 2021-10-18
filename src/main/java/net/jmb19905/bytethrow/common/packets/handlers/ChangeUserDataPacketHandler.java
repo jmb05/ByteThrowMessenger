@@ -103,21 +103,21 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
 
     private ChannelFuture sendUsernameSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
-        successPacket.type = "change_username";
+        successPacket.type = SuccessPacket.SuccessType.CHANGE_NAME;
 
         return NetworkingUtility.sendPacket(successPacket, channel, encryption);
     }
 
     private void sendPasswordSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
-        successPacket.type = "change_password";
+        successPacket.type = SuccessPacket.SuccessType.CHANGE_PW;
 
         NetworkingUtility.sendPacket(successPacket, channel, encryption);
     }
 
     private void sendDeleteSuccessPacket(Channel channel, Encryption encryption) {
         SuccessPacket successPacket = new SuccessPacket();
-        successPacket.type = "delete";
+        successPacket.type = SuccessPacket.SuccessType.DELETE;
 
         NetworkingUtility.sendPacket(successPacket, channel, encryption);
     }

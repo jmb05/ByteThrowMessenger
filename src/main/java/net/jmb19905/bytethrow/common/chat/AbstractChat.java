@@ -42,6 +42,12 @@ public abstract class AbstractChat implements IChat{
         if (!members.contains(name)) members.add(name);
     }
 
+    public boolean removeClient(String name){
+        boolean f = members.contains(name);
+        members.remove(name);
+        return f;
+    }
+
     public void addClients(List<String> names) {
         names.stream().filter(name -> !members.contains(name)).forEach(name -> members.add(name));
     }

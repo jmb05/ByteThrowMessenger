@@ -48,13 +48,13 @@ public class SuccessPacketHandler extends PacketHandler {
         SuccessPacket successPacket = (SuccessPacket) packet;
         Encryption encryption = tcpClientHandler.getEncryption();
         switch (successPacket.type) {
-            case "login", "register" -> {
+            case LOGIN, REGISTER -> {
                 doOnLoginSuccess(successPacket, encryption, ctx.channel());
                 StartClient.guiManager.showLoading(false);
             }
-            case "change_username" -> JOptionPane.showMessageDialog(null, "Username changed successfully");
-            case "change_password" -> JOptionPane.showMessageDialog(null, "Password changed successfully");
-            case "delete" -> {
+            case CHANGE_NAME -> JOptionPane.showMessageDialog(null, "Username changed successfully");
+            case CHANGE_PW -> JOptionPane.showMessageDialog(null, "Password changed successfully");
+            case DELETE -> {
                 JOptionPane.showMessageDialog(null, "Deleted Account successfully");
                 ShutdownManager.shutdown(0);
             }

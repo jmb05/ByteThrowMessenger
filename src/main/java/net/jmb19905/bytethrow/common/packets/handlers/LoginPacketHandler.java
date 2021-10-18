@@ -92,7 +92,7 @@ public class LoginPacketHandler extends PacketHandler {
      */
     private void sendLoginSuccess(Channel channel, LoginPacket loginPacket, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
-        loginSuccessPacket.type = "login";
+        loginSuccessPacket.type = SuccessPacket.SuccessType.LOGIN;
         loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());

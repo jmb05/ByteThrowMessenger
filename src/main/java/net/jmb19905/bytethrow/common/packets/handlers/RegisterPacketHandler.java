@@ -76,7 +76,7 @@ public class RegisterPacketHandler extends PacketHandler {
      */
     private void sendRegisterSuccess(Channel channel, TcpServerHandler handler) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
-        loginSuccessPacket.type = "register";
+        loginSuccessPacket.type = SuccessPacket.SuccessType.REGISTER;
 
         Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
         NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
