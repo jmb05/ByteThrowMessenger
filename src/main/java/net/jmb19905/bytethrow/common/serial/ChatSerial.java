@@ -38,6 +38,7 @@ public class ChatSerial {
         List<AbstractChat> chats = new ArrayList<>();
         try {
             Path chatsDirectory = Paths.get("chats/");
+            if(!Files.exists(chatsDirectory)) Files.createDirectories(chatsDirectory);
             Files.list(chatsDirectory).forEach(path -> chats.add(read(UUID.fromString(path.getFileName().toString()))));
         } catch (IOException e) {
             Logger.error(e);
@@ -56,11 +57,12 @@ public class ChatSerial {
                 AbstractChat chat;
 
                 if (!name.equals("null")) {
-                    chat = new GroupChat(name);
+                    chat = new GroupChat(name, uuid);
                     chat.setMembers(new ArrayList<>(Arrays.asList(clients)));
                 } else {
-                    chat = new PeerChat(clients[0], clients[1]);
+                    chat = new PeerChat(clients[0], clients[1], uuid);
                 }
+
 
                 return chat;
             } catch (IOException e) {

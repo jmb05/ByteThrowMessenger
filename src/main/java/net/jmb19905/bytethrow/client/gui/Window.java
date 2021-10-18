@@ -19,21 +19,25 @@
 package net.jmb19905.bytethrow.client.gui;
 
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.*;
 import net.jmb19905.bytethrow.client.gui.components.PicturePanel;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.client.util.ThemeManager;
+import net.jmb19905.bytethrow.common.chat.GroupMessage;
+import net.jmb19905.bytethrow.common.chat.Message;
+import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.Logger;
 
 import javax.swing.*;
-import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * The Window the Client sees
@@ -42,38 +46,21 @@ public class Window extends JFrame {
 
     private final PeerList list;
 
-    private final JTextPane area;
-    private final StyledDocument document;
+    private final MessagesPane area;
     private final JTextField field;
     private final PicturePanel loadingPanel;
     private final JToolBar toolbar;
     private final JPanel peerPanel;
     private final JButton addPeer;
 
-    private static final SimpleAttributeSet bold;
-    private static final SimpleAttributeSet italic;
-    private static final SimpleAttributeSet underline;
-
     private final SettingsWindow settingsWindow;
     private final AccountSettings accountSettings;
-
-    static {
-        bold = new SimpleAttributeSet();
-        bold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
-
-        italic = new SimpleAttributeSet();
-        italic.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.TRUE);
-
-        underline = new SimpleAttributeSet();
-        underline.addAttribute(StyleConstants.CharacterConstants.Underline, Boolean.TRUE);
-    }
 
     /**
      * Initializes the components
      */
     public Window() {
-        this.area = new JTextPane();
-        this.document = area.getStyledDocument();
+        this.area = new MessagesPane();
         this.field = new JTextField();
         this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("icons/spinner.gif")));
         setGlassPane(loadingPanel);
@@ -88,6 +75,7 @@ public class Window extends JFrame {
         GridBagConstraints peerPanelConstraints = new GridBagConstraints();
 
         list = new PeerList();
+        list.addListSelectionListener(l -> updateAreaContent(getSelected()));
         peerPanelConstraints.fill = GridBagConstraints.BOTH;
         peerPanelConstraints.weightx = 1;
         peerPanelConstraints.weighty = 1;
@@ -124,8 +112,6 @@ public class Window extends JFrame {
         constraints.weighty = 1;
         constraints.fill = GridBagConstraints.BOTH;
         messagingPanel.add(area, constraints);
-
-        area.setEditable(false);
 
         constraints.gridy = 1;
         constraints.weighty = 0;
@@ -179,137 +165,23 @@ public class Window extends JFrame {
         settingsWindow.reloadLang();
     }
 
-    public void appendMessage(String name, String messageText) {
-        append("<" + name + "> ", bold);
-        append(messageText, null);
-        newLine();
-    }
-
-    public void appendImage(BufferedImage image) {
-        JLabel imageLabel = new JLabel(new ImageIcon(image));
-        imageLabel.setOpaque(false);
-        imageLabel.setBackground(Color.CYAN);
-        area.setSelectionStart(area.getText().length());
-        area.setSelectionEnd(area.getText().length());
-        area.insertComponent(imageLabel);
-    }
-
-    public void appendCustomStyledText(String text) {
-        String[] parts = (" " + text + " ").split("__");
-        for (int i = 0; i < parts.length; i++) {
-            String textPart = parts[i];
-            if (i == 0) {
-                textPart = textPart.substring(1);
-            }
-            if (i == parts.length - 1) {
-                if (textPart.equals(" ")) {
-                    parts[i] = "";
-                } else {
-                    textPart.substring(0, textPart.length() - 2);
-                }
-            }
-            if (i % 2 == 0) {
-                append(textPart, null);
-            } else {
-                append(textPart, underline);
-            }
-        }
-    }
-
-    public void append(String text, AttributeSet attributeSet) {
-        try {
-            document.insertString(document.getLength(), text, attributeSet);
-        } catch (BadLocationException e) {
-            Logger.error(e);
-        }
-        //Logger.logPart(text, Logger.Level.INFO);
-    }
-
-    public void newLine() {
-        try {
-            document.insertString(document.getLength(), "\n", null);
-        } catch (BadLocationException e) {
-            Logger.error(e);
-        }
-        //Logger.finishLine();
-    }
-
-    /**
-     * Appends a String to the Window's TextArea and logs it
-     *
-     * @param line the String that is appended
-     */
-    public void appendLine(String line) {
-        try {
-            document.insertString(document.getLength(), line + "\n", null);
-        } catch (BadLocationException e) {
-            Logger.error(e);
-        }
-        Logger.info(line);
-    }
-
-    /**
-     * Appends a String to the Window's TextArea and logs it with a specific Level
-     *
-     * @param line  the String that is appended
-     * @param level the Level (Severity) of the log message
-     */
-    public void log(String line, Logger.Level level) {
-        try {
-            document.insertString(document.getLength(), line + "\n", null);
-        } catch (BadLocationException e) {
-            Logger.error(e);
-        }
-        Logger.log(line, level);
-    }
-
-    /**
-     * empties the Peer list and add new names
-     *
-     * @param names the names to be put into the list
-     */
-    public void setPeers(String[] names) {
-        list.setPeers(names);
-    }
-
-    public void addPeer(String peerName) {
-        list.addPeer(peerName);
-    }
-
-    public void removePeer(String peerName) {
-        list.removePeer(peerName);
-    }
-
-    public void setPeerStatus(String name, boolean status) {
-        list.setPeerStatus(name, status);
-    }
-
-    public void addGroup(String name) {
-        list.addGroup(name);
-    }
-
-    public void removeGroup(String name) {
-        list.removeGroup(name);
-    }
-
-    public static SimpleAttributeSet getBold() {
-        return bold;
-    }
-
     public void showLoading(boolean loading) {
         loadingPanel.setVisible(loading);
+    }
+
+    public void setPeerStatus(PeerChatProfile profile, boolean status){
+        list.setPeerStatus(profile, status);
     }
 
     /**
      * @return the current selected peer name
      */
-    public String getSelected() {
-        String selected = list.getSelectedValue();
-        return selected.replace("Peer: ", "").replace("Group: ", "");
+    public IChatProfile<? extends Message> getSelected() {
+        return list.getSelectedValue();
     }
 
     public boolean isSelectedGroup() {
-        return list.getSelectedValue().startsWith("Group: ");
+        return list.getSelectedValue() instanceof GroupChatProfile;
     }
 
     public SettingsWindow getSettingsWindow() {
@@ -363,16 +235,20 @@ public class Window extends JFrame {
         };
     }
 
+    public void addChat(IChatProfile<? extends Message> profile){
+        list.addChat(profile);
+    }
+
+    public void removeChat(IChatProfile<? extends Message> profile){
+        list.removeChat(profile);
+    }
+
     private void send() {
-        if (StartClient.manager == null) {
-            appendMessage(Localisation.get("you") + " " + Localisation.get("to") + " GUITest", field.getText());
-            return;
-        }
-        if (list.getSelectedValue() == null) {
-            appendLine(Localisation.get("select_peer"));
-            return;
-        }
         String text = field.getText();
+        if (list.getSelectedValue() == null) {
+            JOptionPane.showMessageDialog(this, Localisation.get("select_peer"));
+            return;
+        }
         if (isSelectedGroup()) {
             sendToGroup(text);
         } else {
@@ -381,20 +257,42 @@ public class Window extends JFrame {
     }
 
     private void sendToGroup(String text) {
-        if (StartClient.manager.sendGroupMessage(getSelected(), text)) {
-            appendMessage((getSelected() + " - ") + "You", text);
+        GroupChatProfile chatProfile = (GroupChatProfile) getSelected();
+        GroupMessage groupMessage = new GroupMessage(StartClient.manager.name, chatProfile.getDisplayName(), text, System.currentTimeMillis());
+        if (StartClient.manager.sendGroupMessage(groupMessage)) {
+            appendMessage(groupMessage, chatProfile);
             field.setText("");
         } else {
-            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist"));
         }
     }
 
     private void sendToPeer(String text) {
-        if (StartClient.manager.sendPeerMessage(getSelected(), text)) {
-            appendMessage("You " + Localisation.get("to") + " " + getSelected(), text);
+        PeerChatProfile chatProfile = (PeerChatProfile) getSelected();
+        PeerMessage peerMessage = new PeerMessage(StartClient.manager.name, chatProfile.getDisplayName(), text, System.currentTimeMillis());
+        if (StartClient.manager.sendPeerMessage(peerMessage)) {
+            appendMessage(peerMessage, chatProfile);
             field.setText("");
         } else {
-            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist", getSelected()));
+            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist"));
+        }
+    }
+
+    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile){
+        Logger.debug("Trying to send Message (Window::appendMessage): " + getSelected());
+        profile.addMessage(message);
+        updateAreaContent(profile);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <M extends Message> void updateAreaContent(IChatProfile<M> profile){
+        if(getSelected() == null) {
+            area.clear();
+            return;
+        }
+        if(getSelected().equals(profile)) {
+            List<Message> messages = (List<Message>) profile.getMessages();
+            area.setContent(messages);
         }
     }
 }

@@ -57,14 +57,14 @@ public class ServerManager {
             TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
             SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
             Logger.info("Client: \"" + channel.remoteAddress() + "\" is now disconnected");
-            server.getConnection().getClientConnections().remove(serverHandler);
             if (!channelHandler.isClosed()) {
                 Optional<String> clientName = onlineClients.keySet()
                         .stream()
                         .filter(name -> onlineClients.get(name).equals(serverHandler))
                         .findFirst();
-                clientName.ifPresent(s -> notifyPeersOfDisconnect(s, serverHandler));
+                clientName.ifPresentOrElse(s -> notifyPeersOfDisconnect(s, serverHandler), () -> Logger.warn("No such client: " + clientName));
             }
+            server.getConnection().getClientConnections().remove(serverHandler);
         });
         connection.addErrorEventListener(evt -> {
             TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
@@ -177,12 +177,14 @@ public class ServerManager {
      */
     private void notifyPeersOfDisconnect(String disconnectedClientName, TcpServerHandler serverHandler) {
         for (AbstractChat chat : getChats(disconnectedClientName)) {
-            List<String> clients = chat.getMembers();
-            for (String clientName : clients) {
-                if (!clientName.equals(disconnectedClientName)) {
+            List<String> notifiedClients = new ArrayList<>();
+            notifiedClients.add(disconnectedClientName);
+            for (String clientName : chat.getMembers()) {
+                if (!notifiedClients.contains(clientName)) {
                     DisconnectPacket disconnectPacket = new DisconnectPacket();
                     disconnectPacket.name = disconnectedClientName;
                     sendPacketToPeer(clientName, disconnectPacket, serverHandler);
+                    notifiedClients.add(clientName);
                 }
             }
         }

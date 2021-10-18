@@ -37,7 +37,6 @@ import net.jmb19905.jmbnetty.client.Client;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientConnection;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
-import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
@@ -124,14 +123,14 @@ public class ClientManager {
         chats.add(chat);
         ChatHistorySerialisation.saveChat(name, chat);
         Logger.debug("Added Peer");
-        StartClient.guiManager.addPeer(chat.getOther(name));
+        StartClient.guiManager.addPeer(chat);
     }
 
     public void removeChat(ClientPeerChat chat) {
         Logger.debug("Removing Chat: " + chat);
         chats.remove(chat);
         ChatHistorySerialisation.deleteHistory(name, chat);
-        StartClient.guiManager.removePeer(chat.getOther(name));
+        StartClient.guiManager.removeChat(chat);
     }
 
     public void addGroup(ClientGroupChat chat) {
@@ -142,14 +141,14 @@ public class ClientManager {
         Logger.debug("Adding Group: " + chat.getName());
         chats.add(chat);
         ChatHistorySerialisation.saveChat(name, chat);
-        StartClient.guiManager.addGroup(chat.getName());
+        StartClient.guiManager.addGroup(chat);
     }
 
     public void removeGroup(ClientGroupChat chat) {
         Logger.debug("Removing Group: " + chat.getName());
         chats.remove(chat);
         ChatHistorySerialisation.deleteHistory(name, chat);
-        StartClient.guiManager.removeGroup(chat.getName());
+        StartClient.guiManager.removeChat(chat);
     }
 
     public ClientGroupChat getGroup(String name) {
@@ -169,17 +168,18 @@ public class ClientManager {
      *
      * @param message the message as String
      */
-    public boolean sendPeerMessage(String recipient, String message) {
+    public boolean sendPeerMessage(PeerMessage message) {
+        String plainMessage = message.getMessage();
         PeerMessagePacket packet = new PeerMessagePacket();
-        ClientPeerChat chat = getChat(recipient);
-        Logger.debug("Trying to send to Chat: " + chat + " from: " + recipient);
+        ClientPeerChat chat = getChat(message.getReceiver());
         if (chat != null) {
-            String encryptedMessage = EncryptionUtility.encryptString(chat.getEncryption(), message);
-            packet.message = new PeerMessage(name, recipient, encryptedMessage, System.currentTimeMillis());
+            packet.message = PeerMessage.encrypt(message, chat.getEncryption());
             NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
-            Logger.trace("Sent Message: " + message);
-            packet.message.setMessage(message);
-            chat.addMessage(packet.message);
+            Logger.trace("Sent Message: " + plainMessage);
+
+            //Save the Packet to History as plain text
+            message.setMessage(plainMessage);
+            chat.addMessage(message);
             ChatHistorySerialisation.saveChat(name, chat);
             return true;
         }
@@ -191,15 +191,16 @@ public class ClientManager {
      *
      * @param message the message as String
      */
-    public boolean sendGroupMessage(String groupName, String message) {
+    public boolean sendGroupMessage(GroupMessage message) {
         GroupMessagePacket packet = new GroupMessagePacket();
+        String groupName = message.getGroupName();
         ClientGroupChat chat = getGroup(groupName);
         Logger.debug("Group: " + groupName + " = " + chat);
         if (chat != null) {
-            packet.message = new GroupMessage(name, groupName, message, System.currentTimeMillis());
+            packet.message = message;
             chat.addMessage(packet.message);
             NetworkingUtility.sendPacket(packet, client.getConnection().getChannel(), client.getConnection().getClientHandler().getEncryption());
-            Logger.trace("Sent Message: " + message);
+            Logger.trace("Sent Message: " + message.getMessage());
             ChatHistorySerialisation.saveChat(name, chat);
             return true;
         }

@@ -64,7 +64,7 @@ public class FailPacketHandler extends PacketHandler {
                 String peerName = cause.split(":")[1];
                 ClientPeerChat chat = manager.getChat(peerName);
                 manager.removeChat(chat);
-                StartClient.guiManager.removePeer(peerName);
+                StartClient.guiManager.removeChat(chat);
             }
         }
     }

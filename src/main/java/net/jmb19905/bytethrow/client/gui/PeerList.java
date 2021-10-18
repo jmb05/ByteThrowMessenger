@@ -18,19 +18,24 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.client.gui.chatprofiles.GroupChatProfile;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.IChatProfile;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.PeerChatProfile;
+import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
+import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;
 
-public class PeerList extends JList<String> {
+public class PeerList extends JList<IChatProfile<? extends Message>> {
 
-    private final DefaultListModel<String> listModel;
+    private final DefaultListModel<IChatProfile<? extends Message>> listModel;
 
     public PeerList() {
         super(new DefaultListModel<>());
-        listModel = (DefaultListModel<String>) getModel();
+        listModel = (DefaultListModel<IChatProfile<? extends Message>>) getModel();
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setSelectionModel(new PeerList.PeerListSelectionModel(this));
         setBorder(BorderFactory.createEmptyBorder());
@@ -41,94 +46,62 @@ public class PeerList extends JList<String> {
     /**
      * empties the Peer list and add new names
      *
-     * @param names the names to be put into the list
+     * @param profiles the Profiles to be put into the list
      */
-    public void setPeers(String[] names) {
-        listModel.elements().asIterator().forEachRemaining(s -> {
-            if (s.startsWith("Peer: ")) {
-                listModel.removeElement(s);
+    public void setPeers(PeerChatProfile[] profiles) {
+        listModel.elements().asIterator().forEachRemaining(p -> {
+            if (p instanceof PeerChatProfile) {
+                removeChat(p);
             }
         });
-        for (String name : names) {
-            listModel.addElement("Peer: " + name + " x");
+        for (PeerChatProfile profile : profiles) {
+            addChat(profile);
         }
     }
 
-    public void addPeer(String peerName) {
-        listModel.addElement("Peer: " + peerName + " x");
+    public void removeChat(IChatProfile<? extends Message> profile) {
+        listModel.removeElement(profile);
     }
 
-    public void removePeer(String peerName) {
-        listModel.removeElement("Peer: " + peerName + " x");
-        listModel.removeElement("Peer: " + peerName + " v");
+    public void setPeerStatus(PeerChatProfile profile, boolean status) {
+        profile.setConnected(status);
+        repaint();
     }
 
-    public void setPeerStatus(String name, boolean status) {
-        try {
-            int index;
-            String modifiedName;
-            if (status) {
-                modifiedName = name + " v";
-                index = listModel.indexOf("Peer: " + name + " x");
-            } else {
-                modifiedName = name + " x";
-                index = listModel.indexOf("Peer: " + name + " v");
-            }
-            listModel.set(index, "Peer: " + modifiedName);
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-    }
-
-    public void setGroups(String[] names) {
-        listModel.elements().asIterator().forEachRemaining(s -> {
-            if (s.startsWith("Group: ")) {
-                listModel.removeElement(s);
+    public void setGroups(GroupChatProfile[] profiles) {
+        listModel.elements().asIterator().forEachRemaining(p -> {
+            if (p instanceof GroupChatProfile) {
+                removeChat(p);
             }
         });
-        for (String name : names) {
-            listModel.addElement("Group: " + name + " !");
+        for (GroupChatProfile profile : profiles) {
+            addChat(profile);
         }
     }
 
-    public void addGroup(String name) {
-        listModel.addElement("Group: " + name + " !");
+    public void addChat(IChatProfile<? extends Message> profile) {
+        listModel.addElement(profile);
     }
 
-    public void removeGroup(String name) {
-        listModel.removeElement("Group: " + name + " !");
-    }
-
-    @Override
-    public String getSelectedValue() {
-        String selectedValue = super.getSelectedValue();
-        if (selectedValue == null) {
-            return null;
-        }
-        return selectedValue.replace(" v", "").replace(" x", "").replace(" !", "").strip();
-    }
-
-    private static class PeerListRenderer extends JLabel implements ListCellRenderer<String> {
+    private static class PeerListRenderer extends JLabel implements ListCellRenderer<IChatProfile<? extends Message>> {
 
         private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
         private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
         private static final ImageIcon warningIcon = new ImageIcon(ResourceUtility.getImageResource("icons/warning.png"));
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-            String[] parts = value.split(" ");
-            boolean group = parts[0].equals("Group:");
-
-            setText(" " + (group ? parts[1].replaceAll("_", " ") : parts[1]));
-
-
+        public Component getListCellRendererComponent(JList<? extends IChatProfile<? extends Message>> list, IChatProfile<? extends Message> value, int index, boolean isSelected, boolean cellHasFocus) {
+            setText(" " + value.getDisplayName());
             setHorizontalTextPosition(JLabel.LEFT);
 
-            switch (parts[2]) {
-                case "v" -> setIcon(tickIcon);
-                case "x" -> setIcon(crossIcon);
-                case "!" -> {
-                    setIcon(warningIcon);
-                    setToolTipText("Groups are not yet encrypted!");
+            if(value instanceof GroupChatProfile){
+                setIcon(warningIcon);
+                setToolTipText("Groups are not yet encrypted!");
+            }else if(value instanceof PeerChatProfile){
+                if(((PeerChatProfile) value).isConnected()){
+                    setIcon(tickIcon);
+                } else {
+                    setIcon(crossIcon);
                 }
             }
 
@@ -166,9 +139,9 @@ public class PeerList extends JList<String> {
 
     private static class PeerListSelectionModel extends DefaultListSelectionModel {
 
-        private final JList<String> list;
+        private final JList<IChatProfile<? extends Message>> list;
 
-        public PeerListSelectionModel(JList<String> list) {
+        public PeerListSelectionModel(JList<IChatProfile<? extends Message>> list) {
             this.list = list;
         }
 

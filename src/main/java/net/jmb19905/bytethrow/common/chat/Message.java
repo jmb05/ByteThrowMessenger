@@ -44,6 +44,8 @@ public abstract class Message implements Comparable<Message>{
 
     public abstract String deconstruct();
 
+    public abstract String getMessageDisplay();
+
     @Override
     public int compareTo(Message o) {
         return Long.compare(timestamp, o.timestamp);
