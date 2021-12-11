@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+    id("de.jjohannes.extra-java-module-info") version "0.6"
+}
+
+group 'net.jmb19905'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":utilities")
+    implementation project(":jmbnetty")
+    implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'io.netty:netty-transport:4.1.71.Final'
+    implementation 'com.formdev:flatlaf:1.6.5'
+    implementation 'org.mindrot:jbcrypt:0.4'
+    implementation 'com.google.guava:guava:31.0.1-jre'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+extraJavaModuleInfo {
+    module("flatlaf-1.6.5.jar", "com.formdev.flatlaf", "1.6.5") {
+        exports("com.formdev.flatlaf")
+    }
+    module("jbcrypt-0.4.jar", "org.mindrot", "0.4") {
+        exports("org.mindrot.jbcrypt")
+    }
+    module("failureaccess-1.0.1.jar", "com.google.guava", "1.0.1")
+    module("listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar", "com.google.guava", "")
+    module("jsr305-3.0.2.jar", "com.google.code.findbugs", "")
+    module("j2objc-annotations-1.3.jar", "com.google.j2objc", "1.3")
+}
+
+application {
+    mainModule = 'net.jmb19905.demo'
+    mainClass = 'net.jmb19905.demo.Demo'
+}
+
+test {
+    useJUnitPlatform()
+}

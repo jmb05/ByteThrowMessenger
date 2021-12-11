@@ -13,6 +13,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/bytethrow" />
+            <option value="$PROJECT_DIR$/demo" />
             <option value="$PROJECT_DIR$/jmbnetty" />
             <option value="$PROJECT_DIR$/utilities" />
           </set>
