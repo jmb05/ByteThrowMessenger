@@ -23,8 +23,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.jmbnetty.client.ClientConnection;
 import net.jmb19905.jmbnetty.common.connection.event.ConnectedEvent;
 import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEvent;
@@ -80,7 +78,7 @@ public class TcpClientConnection extends ClientConnection {
             ShutdownManager.shutdown(-1);
         } catch (Exception e) {
             Logger.error(e);
-            StartClient.guiManager.showLocalisedError(Localisation.get("no_internet"));
+            //StartClient.guiManager.showLocalisedError(Localisation.get("no_internet"));
             ShutdownManager.shutdown(-1);
         }
     }

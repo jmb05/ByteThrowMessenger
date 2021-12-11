@@ -21,8 +21,7 @@ package net.jmb19905.jmbnetty.common.connection.event;
 import net.jmb19905.jmbnetty.common.connection.AbstractConnection;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.util.events.EventContext;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class NetworkEventContext extends EventContext {
 

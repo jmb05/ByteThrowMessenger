@@ -1,2 +1,5 @@
 rootProject.name = 'ByteThrow Messenger'
+include 'utilities'
+include 'jmbnetty'
+include 'bytethrow'
 

@@ -1,7 +1,8 @@
 //file:noinspection GroovyAssignabilityCheck
 plugins {
     id 'java'
-    id 'edu.sc.seis.launch4j' version '2.5.0'
+    id 'application'
+    id("de.jjohannes.extra-java-module-info") version "0.6"
 }
 
 group 'net.jmb19905'
@@ -17,18 +18,53 @@ configurations {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:22.0.0'
-    provided 'com.formdev:flatlaf:1.6.4'
-    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
+    provided(project(":utilities"))
+    provided(project(":jmbnetty"))
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided 'com.talanlabs:avatar-generator:1.1.0'
+    provided 'io.netty:netty-transport:4.1.71.Final'
+    provided 'com.formdev:flatlaf:1.6.5'
+    provided 'com.google.guava:guava:31.0.1-jre'
     provided 'org.mindrot:jbcrypt:0.4'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
     provided 'com.fasterxml.jackson.core:jackson-core:2.13.0'
     provided 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
     provided 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
-    provided 'io.netty:netty-all:4.1.70.Final'
-    provided 'com.talanlabs:avatar-generator:1.1.0'
-    provided 'com.google.guava:guava:31.0.1-jre'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+application {
+    mainModule = 'net.jmb19905.bytethrow'
+    mainClass = 'net.jmb19905.bytethrow.client.ClientMain'
+}
+
+extraJavaModuleInfo {
+    module("flatlaf-1.6.5.jar", "com.formdev.flatlaf", "1.6.5") {
+        exports("com.formdev.flatlaf")
+    }
+    module("failureaccess-1.0.1.jar", "com.google.guava", "1.0.1")
+    module("listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar", "com.google.guava", "")
+    module("jsr305-3.0.2.jar", "com.google.code.findbugs", "")
+    module("j2objc-annotations-1.3.jar", "com.google.j2objc", "1.3")
+    module("filters-2.0.235-1.jar", "com.jhlabs", "2.0.235-1")
+    module("avatar-generator-1.1.0.jar", "com.talanlabs", "1.1.0") {
+        exports("com.talanlabs.avatargenerator")
+        requires("java.desktop")
+    }
+    module("jbcrypt-0.4.jar", "org.mindrot", "0.4") {
+        exports("org.mindrot.jbcrypt")
+    }
+}
+
+task createVersionFile(dependsOn: processResources) {
+    doLast {
+        new File("$buildDir/resources/main/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
 }
 
 task clientJar(type: Jar) {
@@ -65,20 +101,9 @@ task serverJar(type: Jar) {
     with jar
 }
 
-launch4j {
-    outfile = "ByteThrowMessenger-${project.version}-Client.exe"
-    mainClassName = 'net.jmb19905.networking.client.ClientMain'
-    icon = "${projectDir}/build/libs/btm.ico"
-    copyright = 'Copyright © Jared Bennett, 2021'
-    fileDescription = 'A Simple Messenger'
-    textVersion = project.version
-    internalName = 'ByteThrowMessenger'
-    productName = "ByteThrowMessenger-${project.version}"
-    jarTask = clientJar
-}
-
 //Don't create the default jar
 jar.onlyIf { false }
+
 
 task createExecutableFiles {
     dependsOn clientJar
@@ -87,16 +112,6 @@ task createExecutableFiles {
 }
 
 build.finalizedBy(createExecutableFiles)
-
-task createVersionFile(dependsOn: processResources) {
-    doLast {
-        new File("$buildDir/resources/main/version.properties").withWriter { w ->
-            Properties p = new Properties()
-            p['version'] = project.version.toString()
-            p.store w, null
-        }
-    }
-}
 
 classes {
     dependsOn createVersionFile
