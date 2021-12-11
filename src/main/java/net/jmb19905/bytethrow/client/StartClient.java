@@ -70,6 +70,7 @@ public class StartClient {
         try {
             manager = new ClientManager(config.server, config.port);
             guiManager = new GUIManager();
+            manager.initGuiListeners();
             guiManager.showLoading(true);
             manager.start();
         } catch (Exception e) {

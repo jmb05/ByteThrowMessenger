@@ -36,6 +36,7 @@ import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.jmbnetty.client.Client;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientConnection;
+import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.util.Logger;
@@ -84,6 +85,56 @@ public class ClientManager {
 
             Logger.error(evt.getCause());
             channel.close();
+        });
+
+    }
+
+    public void initGuiListeners() {
+        StartClient.guiManager.addLoginEventListener(evt -> {
+            ChannelHandlerContext ctx = evt.getChannelCtx();
+            LoginDialog.LoginData data = evt.getData();
+            if(data.resultType() == GUIManager.ResultType.CONFIRM) {
+                if (data != null) {
+                    Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
+                    UserDataUtility.writeUserFile(data.username(), data.password(), new File("userdata/user.dat"));
+                    sendLoginPacket(ctx.channel(), encryption, data.username(), data.password());
+                }
+                ConfigManager.saveClientConfig();
+            }else if(data.resultType() == GUIManager.ResultType.CANCEL) {
+                ShutdownManager.shutdown(0);
+            }else {
+                register(ctx);
+            }
+        });
+        StartClient.guiManager.addRegisterEventListener(evt -> {
+            ChannelHandlerContext ctx = evt.getChannelCtx();
+            RegisterDialog.RegisterData data = evt.getData();
+            if(data.resultType() == GUIManager.ResultType.CONFIRM) {
+                if (data != null) {
+                    Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
+                    UserDataUtility.writeUserFile(data.username(), data.password(), new File("userdata/user.dat"));
+                    sendRegisterData(ctx.channel(), encryption, data.username(), data.password());
+                }
+                ConfigManager.saveClientConfig();
+            }else if(data.resultType() == GUIManager.ResultType.CANCEL) {
+                ShutdownManager.shutdown(0);
+            }else {
+                login(ctx);
+            }
+        });
+        StartClient.guiManager.addSendPeerMessageEventListener(evt -> {
+            if (sendPeerMessage(evt.getPeerMessage())) {
+                StartClient.guiManager.appendMessage(evt.getPeerMessage(), evt.getChatProfile());
+            } else {
+                StartClient.guiManager.showLocalisedError("chat_doesnt_exist");
+            }
+        });
+        StartClient.guiManager.addSendGroupMessageEventListener(evt -> {
+            if(sendGroupMessage(evt.getGroupMessage())) {
+                StartClient.guiManager.appendMessage(evt.getGroupMessage(), evt.getChatProfile());
+            } else {
+                StartClient.guiManager.showLocalisedError("chat_doesnt_exist");
+            }
         });
     }
 
@@ -232,13 +283,7 @@ public class ClientManager {
      * Sends a LoginPacket tagged as register with the client's name to the server
      */
     public void register(ChannelHandlerContext ctx) {
-        Encryption encryption = ((AbstractChannelHandler) ctx.handler()).getEncryption();
-        RegisterDialog.RegisterData registerData = StartClient.guiManager.showRegisterDialog(() -> login(ctx));
-        if (registerData != null) {
-            UserDataUtility.writeUserFile(registerData.username(), registerData.password(), new File("userdata/user.dat"));
-            sendRegisterData(ctx.channel(), encryption, registerData.username(), registerData.password());
-        }
-        ConfigManager.saveClientConfig();
+        StartClient.guiManager.showRegisterDialog(ctx);
     }
 
     private void sendRegisterData(Channel channel, Encryption encryption, String username, String password) {
@@ -265,21 +310,11 @@ public class ClientManager {
             }
         }
 
-        LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(ctx));
-        if (loginData != null) {
-            UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
-            sendLoginPacket(ctx.channel(), encryption, loginData.username(), loginData.password());
-        }
-        ConfigManager.saveClientConfig();
+        relogin(ctx);
     }
 
     public void relogin(ChannelHandlerContext ctx) {
-        LoginDialog.LoginData loginData = StartClient.guiManager.showLoginDialog(() -> register(ctx));
-        if (loginData != null) {
-            UserDataUtility.writeUserFile(loginData.username(), loginData.password(), new File("userdata/user.dat"));
-            sendLoginPacket(ctx.channel(), ((AbstractChannelHandler) ctx.handler()).getEncryption(), loginData.username(), loginData.password());
-        }
-        ConfigManager.saveClientConfig();
+        StartClient.guiManager.showLoginDialog(ctx);
     }
 
     private void sendLoginPacket(Channel channel, Encryption encryption, String username, String password) {

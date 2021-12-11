@@ -28,7 +28,6 @@ public class User implements Cloneable{
 
     public User(String username) {
         this.username = username;
-        System.out.println(username);
     }
 
     public User(String username, String password) {

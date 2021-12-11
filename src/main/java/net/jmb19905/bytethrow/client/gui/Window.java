@@ -19,8 +19,14 @@
 package net.jmb19905.bytethrow.client.gui;
 
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.gui.chatprofiles.*;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.AbstractChatProfile;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.GroupChatProfile;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.IChatProfile;
+import net.jmb19905.bytethrow.client.gui.chatprofiles.PeerChatProfile;
 import net.jmb19905.bytethrow.client.gui.components.PicturePanel;
+import net.jmb19905.bytethrow.client.gui.event.GuiEventContext;
+import net.jmb19905.bytethrow.client.gui.event.SendGroupMessageEvent;
+import net.jmb19905.bytethrow.client.gui.event.SendPeerMessageEvent;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
@@ -32,7 +38,7 @@ import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.util.ConfigManager;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
 import net.jmb19905.bytethrow.common.util.Util;
-import net.jmb19905.util.Logger;
+import net.jmb19905.util.events.EventHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,11 +62,13 @@ public class Window extends JFrame {
 
     private final SettingsWindow settingsWindow;
     private final AccountSettings accountSettings;
+    private final EventHandler<GuiEventContext> eventHandler;
 
     /**
      * Initializes the components
      */
-    public Window() {
+    public Window(EventHandler<GuiEventContext> eventHandler) {
+        this.eventHandler = eventHandler;
         this.area = new MessagesPane();
         this.field = new JTextField();
         this.loadingPanel = new PicturePanel(new ImageIcon(ResourceUtility.getResourceAsURL("icons/spinner.gif")));
@@ -161,6 +169,7 @@ public class Window extends JFrame {
         BufferedImage bufferedImage = ResourceUtility.getImageResource("icons/placeholder.png");
         ImageIcon icon = new ImageIcon(Util.cropImageToCircle(Util.toBufferedImage(bufferedImage.getScaledInstance(128, 128, 0))));
         this.accountSettings = new AccountSettings(icon, this);
+
         repaint();
     }
 
@@ -263,30 +272,19 @@ public class Window extends JFrame {
     private void sendToGroup(String text) {
         GroupChatProfile chatProfile = (GroupChatProfile) getSelected();
         GroupMessage groupMessage = new GroupMessage(StartClient.manager.user, chatProfile.getDisplayName(), text, System.currentTimeMillis());
-        if (StartClient.manager.sendGroupMessage(groupMessage)) {
-            appendMessage(groupMessage, chatProfile);
-            field.setText("");
-        } else {
-            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist"));
-        }
+        eventHandler.performEvent(new SendGroupMessageEvent(GuiEventContext.create(this), groupMessage, chatProfile));
     }
 
     private void sendToPeer(String text) {
         PeerChatProfile chatProfile = (PeerChatProfile) getSelected();
-        System.out.println("User: " + StartClient.manager.user);
         PeerMessage peerMessage = new PeerMessage(StartClient.manager.user, chatProfile.getPeer(), text, System.currentTimeMillis());
-        if (StartClient.manager.sendPeerMessage(peerMessage)) {
-            appendMessage(peerMessage, chatProfile);
-            field.setText("");
-        } else {
-            JOptionPane.showMessageDialog(null, Localisation.get("chat_doesnt_exist"));
-        }
+        eventHandler.performEvent(new SendPeerMessageEvent(GuiEventContext.create(this), peerMessage, chatProfile));
     }
 
     public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile){
-        Logger.debug("Trying to send Message (Window::appendMessage): " + getSelected());
         profile.addMessage(message);
         updateAreaContent(profile);
+        field.setText("");
     }
 
     @SuppressWarnings("unchecked")

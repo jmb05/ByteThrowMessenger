@@ -18,14 +18,18 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.GUIManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
+import net.jmb19905.bytethrow.client.gui.event.GuiEventContext;
+import net.jmb19905.bytethrow.client.gui.event.RegisterEvent;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.AsynchronousInitializer;
 import net.jmb19905.util.Logger;
+import net.jmb19905.util.events.EventHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -207,7 +211,12 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public RegisterData showDialog() {
+    public void showDialog(EventHandler<GuiEventContext> eventHandler, ChannelHandlerContext ctx) {
+        RegisterData data = showDialog();
+        eventHandler.performEvent(new RegisterEvent(GuiEventContext.create(this), data, ctx));
+    }
+
+    private RegisterData showDialog() {
         AsynchronousInitializer<RegisterData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
             addConfirmButtonActionListener(evt -> initializer.init(new RegisterData(username, password, GUIManager.ResultType.CONFIRM)));
@@ -236,6 +245,5 @@ public class RegisterDialog extends JDialog {
         JOptionPane.showMessageDialog(this, Localisation.get("pw_not_secure"), "", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static record RegisterData(String username, String password, GUIManager.ResultType resultType) {
-    }
+    public static record RegisterData(String username, String password, GUIManager.ResultType resultType) { }
 }

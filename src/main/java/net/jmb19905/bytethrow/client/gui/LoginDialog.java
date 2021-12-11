@@ -18,12 +18,16 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.GUIManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
+import net.jmb19905.bytethrow.client.gui.event.GuiEventContext;
+import net.jmb19905.bytethrow.client.gui.event.LoginEvent;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.util.AsynchronousInitializer;
+import net.jmb19905.util.events.EventHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -219,7 +223,12 @@ public class LoginDialog extends JDialog {
         return password;
     }
 
-    public LoginData showDialog() {
+    public void showDialog(EventHandler<GuiEventContext> eventHandler, ChannelHandlerContext ctx) {
+        LoginData data = showDialog();
+        eventHandler.performEvent(new LoginEvent(GuiEventContext.create(this), data, ctx));
+    }
+
+    private LoginData showDialog() {
         AsynchronousInitializer<LoginData> initializer = new AsynchronousInitializer<>();
         SwingUtilities.invokeLater(() -> {
             addConfirmButtonActionListener(evt -> initializer.init(new LoginData(username, password, GUIManager.ResultType.CONFIRM)));
@@ -240,7 +249,5 @@ public class LoginDialog extends JDialog {
         usernameInputField.requestFocus();
     }
 
-    public static record LoginData(String username, String password, GUIManager.ResultType resultType) {
-    }
-
+    public static record LoginData(String username, String password, GUIManager.ResultType resultType) { }
 }

@@ -18,19 +18,22 @@
 
 package net.jmb19905.bytethrow.client;
 
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
-import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
-import net.jmb19905.bytethrow.common.chat.client.IClientChat;
+import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.*;
+import net.jmb19905.bytethrow.client.gui.event.*;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.chat.Message;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
+import net.jmb19905.bytethrow.common.chat.client.IClientChat;
 import net.jmb19905.util.ShutdownManager;
+import net.jmb19905.util.events.EventHandler;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -45,7 +48,10 @@ public class GUIManager {
     private final RegisterDialog registerDialog;
     private final CreateGroupDialog createGroupDialog;
 
+    private final EventHandler<GuiEventContext> handler;
+
     public GUIManager() {
+        this.handler = new EventHandler<>("gui");
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
@@ -55,18 +61,36 @@ public class GUIManager {
             }
         }
 
-        this.window = new Window();
+        this.window = new Window(handler);
         loginDialog = new LoginDialog(true, window);
         registerDialog = new RegisterDialog(true, window);
         createGroupDialog = new CreateGroupDialog(window);
 
         ShutdownManager.addCleanUp(() -> SwingUtilities.invokeLater(() -> {
-            window.setEnabled(false);
-            window.dispose();
+            handler.setValid(false);
             loginDialog.dispose();
             registerDialog.dispose();
             createGroupDialog.dispose();
+            window.setEnabled(false);
+            window.dispose();
         }));
+        handler.setValid(true);
+    }
+
+    public void addLoginEventListener(LoginEventListener listener) {
+        handler.addEventListener(listener);
+    }
+
+    public void addRegisterEventListener(RegisterEventListener listener) {
+        handler.addEventListener(listener);
+    }
+
+    public void addSendPeerMessageEventListener(SendPeerMessageEventListener listener) {
+        handler.addEventListener(listener);
+    }
+
+    public void addSendGroupMessageEventListener(SendGroupMessageEventListener listener) {
+        handler.addEventListener(listener);
     }
 
     public void setUsername(String username) {
@@ -85,9 +109,9 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.removeChat(profile));
     }
 
-    public void setPeers(ClientPeerChat[] names) {
+    public void setPeers(ClientPeerChat[] peers) {
         ProfilesManager.clear();
-        Arrays.stream(names).forEach(p -> ProfilesManager.addProfile(new PeerChatProfile(p)));
+        Arrays.stream(peers).forEach(p -> ProfilesManager.addProfile(new PeerChatProfile(p)));
     }
 
     public void setPeerStatus(ClientPeerChat peerChat, boolean status) {
@@ -102,7 +126,11 @@ public class GUIManager {
 
     @SuppressWarnings("unchecked")
     public <M extends Message> void appendMessage(M message, IClientChat<M> clientChat){
-        SwingUtilities.invokeLater(() -> window.appendMessage(message, ((AbstractChatProfile<M>) ProfilesManager.getProfileByID(clientChat.getUniqueId()))));
+        appendMessage(message, ((AbstractChatProfile<M>) ProfilesManager.getProfileByID(clientChat.getUniqueId())));
+    }
+
+    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile){
+        SwingUtilities.invokeLater(() -> window.appendMessage(message, profile));
     }
 
     public void showLocalisedError(String id) {
@@ -163,28 +191,12 @@ public class GUIManager {
         });
     }
 
-    public LoginDialog.LoginData showLoginDialog(Runnable register) {
-        LoginDialog.LoginData result = loginDialog.showDialog();
-        if (result.resultType() == ResultType.CONFIRM) {
-            return result;
-        } else if (result.resultType() == ResultType.CANCEL) {
-            ShutdownManager.shutdown(0);
-        } else {
-            register.run();
-        }
-        return null;
+    public void showLoginDialog(ChannelHandlerContext ctx) {
+        loginDialog.showDialog(handler, ctx);
     }
 
-    public RegisterDialog.RegisterData showRegisterDialog(Runnable login) {
-        RegisterDialog.RegisterData result = registerDialog.showDialog();
-        if (result.resultType() == ResultType.CONFIRM) {
-            return result;
-        } else if (result.resultType() == ResultType.CANCEL) {
-            ShutdownManager.shutdown(0);
-        } else {
-            login.run();
-        }
-        return null;
+    public void showRegisterDialog(ChannelHandlerContext ctx) {
+        registerDialog.showDialog(handler, ctx);
     }
 
     public CreateGroupDialog.CreateGroupData showCreateGroup() {

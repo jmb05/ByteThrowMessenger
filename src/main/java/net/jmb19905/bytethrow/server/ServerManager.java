@@ -202,7 +202,6 @@ public class ServerManager {
      */
     public void sendPacketToPeer(User peer, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
         TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
-        System.out.println(peerHandler);
         if (peerHandler != null) {
             SocketChannel channel = connection.getClientConnections().get(peerHandler);
             Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
@@ -228,12 +227,9 @@ public class ServerManager {
      * @return the ServerHandler of the current peer
      */
     public TcpServerHandler getPeerHandler(User peer, TcpServerHandler ownHandler) {
-        System.out.println("Searching for Peer Handler...");
         for (TcpServerHandler peerHandler : getConnection().getClientConnections().keySet()) {
             if (peerHandler != ownHandler) {
-                System.out.println("Found equal Handler");
                 User currentPeer = getClient(peerHandler);
-                System.out.println(currentPeer + " " + peer);
                 if (peer.equals(currentPeer) && peer != null) {
                     return peerHandler;
                 }

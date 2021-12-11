@@ -36,7 +36,6 @@ public class PeerChatProfile extends AbstractChatProfile<PeerMessage> {
 
     public PeerChatProfile(ClientPeerChat chat) {
         super(chat.getOther(StartClient.manager.user).getUsername(), chat.getUniqueId());
-        System.out.println(chat.getOther(StartClient.manager.user).getUsername());
         peer = chat.getOther(StartClient.manager.user);
         setMessages(chat.getMessages());
     }
