@@ -29,7 +29,6 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
@@ -38,12 +37,12 @@ import java.security.PublicKey;
 public class HandshakePacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler tcpServerHandler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         HandshakePacket handshakePacket = (HandshakePacket) packet;
         Version packetVersion = new Version(handshakePacket.version);
-        TcpServerConnection serverConnection = (TcpServerConnection) tcpServerHandler.getConnection();
+        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
         if (packetVersion.isInCompatible(StartServer.version)) {
-            NetworkingUtility.sendFail(channelHandlerContext.channel(), "version", "client_outdated", "", tcpServerHandler);
+            NetworkingUtility.sendFail(ctx, "version", "client_outdated", "");
             Logger.warn("Client tried to connect with outdated version: " + handshakePacket.version + " current version: " + StartServer.version);
             return;
         }
@@ -51,19 +50,19 @@ public class HandshakePacketHandler extends PacketHandler {
         byte[] clientEncodedPublicKey = handshakePacket.key;
 
         PublicKey clientPublicKey = EncryptionUtility.createPublicKeyFromData(clientEncodedPublicKey);
-        tcpServerHandler.setPublicKey(clientPublicKey);
+        handler.setPublicKey(clientPublicKey);
 
-        Logger.info("Connection to Client: " + channelHandlerContext.channel().remoteAddress() + " is encrypted");
+        Logger.info("Connection to Client: " + ctx.channel().remoteAddress() + " is encrypted");
 
         //change the key transferred in the packet to the server's PublicKey so the packet can be reused
-        handshakePacket.key = tcpServerHandler.getEncryption().getPublicKey().getEncoded();
+        handshakePacket.key = handler.getEncryption().getPublicKey().getEncoded();
 
-        Logger.trace("Sending packet " + handshakePacket + " to " + channelHandlerContext.channel().remoteAddress());
-        NetworkingUtility.sendPacket(handshakePacket, channelHandlerContext.channel(), null);
+        Logger.trace("Sending packet " + handshakePacket + " to " + ctx.channel().remoteAddress());
+        NetworkingUtility.sendPacket(handshakePacket, ctx.channel(), null);
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
         ClientManager manager = StartClient.manager;
         HandshakePacket handshakePacket = (HandshakePacket) packet;
         Version packetVersion = new Version(handshakePacket.version);
@@ -71,7 +70,7 @@ public class HandshakePacketHandler extends PacketHandler {
             StartClient.guiManager.showError("Client is outdated!");
             return;
         }
-        tcpClientHandler.setPublicKey(EncryptionUtility.createPublicKeyFromData(handshakePacket.key));
-        manager.login(channelHandlerContext.channel(), tcpClientHandler.getEncryption());
+        ((TcpClientHandler) ctx.handler()).setPublicKey(EncryptionUtility.createPublicKeyFromData(handshakePacket.key));
+        manager.login(ctx);
     }
 }

@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.chat;
+package net.jmb19905.bytethrow.common.chat.client;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.bytethrow.common.chat.Message;
@@ -29,14 +30,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 public class ChatHistorySerialisation {
 
-    public static void saveChats(String username, List<IClientChat<? extends Message>> chats){
-        chats.forEach(chat -> saveChat(username, chat));
+    public static void saveChats(User user, List<IClientChat<? extends Message>> chats){
+        chats.forEach(chat -> saveChat(user, chat));
     }
 
     public static List<IClientChat<? extends Message>> readAllChats(String username){
@@ -52,9 +54,9 @@ public class ChatHistorySerialisation {
         return chats;
     }
 
-    public static void saveChat(String username, IClientChat<? extends Message> chat) {
+    public static void saveChat(User user, IClientChat<? extends Message> chat) {
         try {
-            Path path = Paths.get("chatHistories/" + username + "/" + chat.getUniqueId());
+            Path path = Paths.get("chatHistories/" + user.getUsername() + "/" + chat.getUniqueId());
             if(!Files.exists(path)) {
                 Files.createDirectories(path.getParent());
                 Files.createFile(path);
@@ -90,16 +92,19 @@ public class ChatHistorySerialisation {
                 String name = reader.readLine();
                 String members = reader.readLine();
                 String[] membersPart = members.split(",");
+                List<User> users = new ArrayList<>();
+                Arrays.stream(membersPart).forEach(un -> users.add(new User(un)));
+
                 Stream<String> messages = reader.lines();
                 if(name.equals("null")){
-                    chat = (IClientChat<M>) new ClientPeerChat(membersPart[0], membersPart[1]);
+                    chat = (IClientChat<M>) new ClientPeerChat(users.get(0), users.get(1));
                     messages.forEach(message -> {
                         M peerMessage = (M) PeerMessage.construct(message);
                         chat.addMessage(peerMessage);
                     });
                 }else {
                     chat = (IClientChat<M>) new ClientGroupChat(name);
-                    ((GroupChat) chat).addClients(new ArrayList<>(List.of(membersPart)));
+                    ((GroupChat) chat).addClients(users);
                     messages.forEach(message -> {
                         M peerMessage = (M) GroupMessage.construct(message);
                         chat.addMessage(peerMessage);

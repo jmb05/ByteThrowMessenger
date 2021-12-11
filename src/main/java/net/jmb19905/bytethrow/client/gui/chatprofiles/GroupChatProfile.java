@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.client.gui.chatprofiles;
 
-import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 
 public class GroupChatProfile extends AbstractChatProfile<GroupMessage>{

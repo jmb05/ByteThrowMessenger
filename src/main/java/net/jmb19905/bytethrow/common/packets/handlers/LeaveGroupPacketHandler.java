@@ -22,62 +22,60 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
-import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.LeaveGroupPacket;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 public class LeaveGroupPacketHandler extends PacketHandler {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler handler) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
         LeaveGroupPacket leaveGroupPacket = (LeaveGroupPacket) packet;
         ServerManager manager = StartServer.manager;
-        String clientName = manager.getClientName(handler);
-        if(!clientName.equals(leaveGroupPacket.clientName)) {
+        User client = manager.getClient((TcpServerHandler) ctx.handler());
+        if(!client.equals(leaveGroupPacket.client)) {
             Logger.warn("Invalid LeaveGroupPacket");
             return;
         }
         String groupName = leaveGroupPacket.groupName;
         GroupChat groupChat = manager.getGroup(groupName);
-        if(groupChat.removeClient(clientName)) {
+        if(groupChat.removeClient(client)) {
             ChatSerial.write(groupChat);
-            NetworkingUtility.sendPacket(leaveGroupPacket, ctx.channel(), handler.getEncryption());
-            notifyPeers(handler, groupChat, leaveGroupPacket);
+            NetworkingUtility.sendPacket(leaveGroupPacket, ctx);
+            notifyPeers((TcpServerHandler) ctx.handler(), groupChat, leaveGroupPacket);
         }
     }
 
     private void notifyPeers(TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {
         ServerManager manager = StartServer.manager;
-        for (String peerName : chat.getMembers()) {
-            TcpServerHandler peerHandler = manager.getPeerHandler(peerName, serverHandler);
+        for (User peer : chat.getMembers()) {
+            TcpServerHandler peerHandler = manager.getPeerHandler(peer, serverHandler);
             if (peerHandler != null) {
-                SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+                SocketChannel channel = manager.getConnection().getClientConnections().get(peerHandler);
                 Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
                 NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
             } else {
-                Logger.warn("Peer: " + peerName + " not online");
+                Logger.warn("Peer: " + peer.getUsername() + " not online");
             }
         }
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler handler) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
         LeaveGroupPacket leaveGroupPacket = (LeaveGroupPacket) packet;
         ClientManager manager = StartClient.manager;
         ClientGroupChat groupChat = manager.getGroup(leaveGroupPacket.groupName);
-        if(!manager.name.equals(leaveGroupPacket.clientName)){
-            groupChat.removeClient(leaveGroupPacket.clientName);
+        if(!manager.user.equals(leaveGroupPacket.client)){
+            groupChat.removeClient(leaveGroupPacket.client);
         }else {
             manager.removeGroup(groupChat);
         }

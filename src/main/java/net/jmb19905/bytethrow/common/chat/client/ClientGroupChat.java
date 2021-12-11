@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.chat;
+package net.jmb19905.bytethrow.common.chat.client;
 
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;

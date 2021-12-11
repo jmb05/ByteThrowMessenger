@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -27,7 +28,7 @@ public class DisconnectPeerPacket extends Packet {
 
     private static final String ID = "disconnect_peer";
 
-    public String peer;
+    public User peer;
 
     public DisconnectPeerPacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
@@ -35,11 +36,11 @@ public class DisconnectPeerPacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        this.peer = data[1];
+        this.peer = User.constructUser(data[1]);
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + peer).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + peer.deconstruct()).getBytes(StandardCharsets.UTF_8);
     }
 }

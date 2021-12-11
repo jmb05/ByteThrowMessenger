@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.util.SerializationUtility;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
@@ -28,7 +29,7 @@ public class ConnectPacket extends Packet {
 
     private static final String ID = "connect";
 
-    public String name;
+    public User user;
     public byte[] key;
     public ConnectType connectType;
 
@@ -38,7 +39,7 @@ public class ConnectPacket extends Packet {
 
     @Override
     public void construct(String[] parts) {
-        name = parts[1];
+        user = User.constructUser(parts[1]);
         key = SerializationUtility.decodeBinary(parts[2]);
         int typeInt = Integer.parseInt(parts[3]);
         if (typeInt == 0) {
@@ -55,7 +56,7 @@ public class ConnectPacket extends Packet {
     @Override
     public byte[] deconstruct() {
         String encodedKey = SerializationUtility.encodeBinary(key);
-        return (ID + "|" + name + "|" + encodedKey + "|" + connectType.typeInt).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + user.deconstruct() + "|" + encodedKey + "|" + connectType.typeInt).getBytes(StandardCharsets.UTF_8);
     }
 
     public enum ConnectType {

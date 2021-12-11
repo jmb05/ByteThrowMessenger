@@ -19,12 +19,12 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
@@ -36,20 +36,22 @@ import java.util.List;
 public class ChatsRequestPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         ServerManager manager = StartServer.manager;
-        String clientName = manager.getClientName(serverHandler);
+        User client = manager.getClient((TcpServerHandler) ctx.handler());
         ChatsPacket chatsPacket = new ChatsPacket();
 
         List<AbstractChat> chats = manager.getChats();
-        chats.stream().filter(chat -> chat.hasClient(clientName)).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
+        chats.stream()
+                .filter(chat -> chat.hasClient(client))
+                .forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
         Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());
-        NetworkingUtility.sendPacket(chatsPacket, ctx.channel(), serverHandler.getEncryption());
+        NetworkingUtility.sendPacket(chatsPacket, ctx.channel(), ((TcpServerHandler) ctx.handler()).getEncryption());
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
         throw new IllegalSideException("ChatsRequestPacket received on Client");
     }
 }

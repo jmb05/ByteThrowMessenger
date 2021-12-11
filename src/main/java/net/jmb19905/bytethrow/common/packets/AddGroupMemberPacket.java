@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -28,7 +29,7 @@ public class AddGroupMemberPacket extends Packet {
     private final static String ID = "add_group_member";
 
     public String groupName = "";
-    public String member = "";
+    public User member = null;
 
     public AddGroupMemberPacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
@@ -37,11 +38,11 @@ public class AddGroupMemberPacket extends Packet {
     @Override
     public void construct(String[] data) {
         groupName = data[1];
-        member = data[2];
+        member = User.constructUser(data[2]);
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + groupName + "|" + member).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + groupName + "|" + member.deconstruct()).getBytes(StandardCharsets.UTF_8);
     }
 }

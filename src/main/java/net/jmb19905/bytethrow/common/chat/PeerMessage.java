@@ -18,29 +18,30 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 
 public class PeerMessage extends Message {
 
-    private String receiver;
+    private User receiver;
 
     private PeerMessage(){
         super();
     }
 
-    public PeerMessage(String sender, String receiver, String message, long timestamp) {
+    public PeerMessage(User sender, User receiver, String message, long timestamp) {
         super(sender, message, timestamp);
         this.receiver = receiver;
     }
 
-    public String getReceiver() {
+    public User getReceiver() {
         return receiver;
     }
 
     @Override
     public String deconstruct() {
-        return "peer|" + getSender() + "|" + receiver + "|" + getMessage() + "|" + timestamp;
+        return "peer|" + getSender() + "|" + receiver.deconstruct() + "|" + getMessage() + "|" + timestamp;
     }
 
     public static PeerMessage construct(String s) {
@@ -49,8 +50,8 @@ public class PeerMessage extends Message {
             throw new IllegalArgumentException("Tried to construct a GroupMessage to a PeerMessage");
         }
         PeerMessage peerMessage = new PeerMessage();
-        peerMessage.sender = data[1];
-        peerMessage.receiver = data[2];
+        peerMessage.sender = User.constructUser(data[1]);
+        peerMessage.receiver = User.constructUser(data[2]);
         peerMessage.message = data[3];
         peerMessage.timestamp = Long.parseLong(data[4]);
         return peerMessage;
@@ -63,7 +64,7 @@ public class PeerMessage extends Message {
 
     @Override
     public String getMessageDisplay() {
-        return " \\b<" + getSender() + ">\\b " + message;
+        return " \\b" + getSender() + "\\b \n " + message;
     }
 
     @Override

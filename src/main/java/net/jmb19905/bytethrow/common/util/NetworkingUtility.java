@@ -20,14 +20,20 @@ package net.jmb19905.bytethrow.common.util;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.jmbnetty.utility.NetworkUtility;
 import net.jmb19905.util.Logger;
 
 public class NetworkingUtility {
+
+    public static ChannelFuture sendPacket(Packet packet, ChannelHandlerContext ctx) {
+        Logger.debug("Sending: " + packet);
+        return NetworkUtility.sendTcp(ctx.channel(), packet, ((AbstractChannelHandler) ctx.handler()).getEncryption());
+    }
 
     public static ChannelFuture sendPacket(Packet packet, Channel channel, Encryption encryption) {
         Logger.debug("Sending: " + packet);
@@ -40,12 +46,20 @@ public class NetworkingUtility {
      * @param cause   the cause of the fail e.g. login or register
      * @param message the message displayed to the client
      */
-    public static ChannelFuture sendFail(Channel channel, String cause, String message, String extra, TcpServerHandler handler) {
+    public static ChannelFuture sendFail(ChannelHandlerContext ctx, String cause, String message, String extra) {
         FailPacket failPacket = new FailPacket();
         failPacket.cause = cause;
         failPacket.message = message;
         failPacket.extra = extra;
-        return NetworkingUtility.sendPacket(failPacket, channel, handler.getEncryption());
+        return NetworkingUtility.sendPacket(failPacket, ctx.channel(), ((AbstractChannelHandler) ctx.handler()).getEncryption());
+    }
+
+    public static ChannelFuture sendFail(Channel channel, String cause, String message, String extra, Encryption encryption) {
+        FailPacket failPacket = new FailPacket();
+        failPacket.cause = cause;
+        failPacket.message = message;
+        failPacket.extra = extra;
+        return NetworkingUtility.sendPacket(failPacket, channel, encryption);
     }
 
 }

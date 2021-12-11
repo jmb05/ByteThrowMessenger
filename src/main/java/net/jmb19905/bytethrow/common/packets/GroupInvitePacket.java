@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -29,7 +30,7 @@ public class GroupInvitePacket extends Packet {
     private static final String ID = "group_invite";
 
     public String groupName;
-    public String[] members;
+    public User[] members;
 
     public GroupInvitePacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
@@ -38,13 +39,16 @@ public class GroupInvitePacket extends Packet {
     @Override
     public void construct(String[] data) {
         groupName = data[1];
-        members = Arrays.copyOfRange(data, 2, data.length);
+        members = new User[data.length - 2];
+        for(int i=2;i<data.length;i++) {
+            members[i - 2] = new User(data[i]);
+        }
     }
 
     @Override
     public byte[] deconstruct() {
         StringBuilder membersString = new StringBuilder();
-        Arrays.stream(members).forEach(membersString::append);
+        Arrays.stream(members).forEach(s -> membersString.append(s.deconstruct()));
         return (ID + "|" + groupName + "|" + membersString).getBytes(StandardCharsets.UTF_8);
     }
 }

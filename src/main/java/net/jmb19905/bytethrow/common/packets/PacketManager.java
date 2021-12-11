@@ -19,32 +19,33 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import io.netty.channel.Channel;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
+import net.jmb19905.jmbnetty.client.Client;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 public class PacketManager {
 
-    public static void sendChangeUsername(String name, Channel channel, Encryption encryption) {
+    public static void sendChangeUsername(String name, Client client) {
         ChangeUserDataPacket packet = new ChangeUserDataPacket();
         packet.type = "username";
         packet.value = name;
-        NetworkingUtility.sendPacket(packet, channel, encryption);
+        client.send(packet);
     }
 
-    public static void sendChangePassword(String password, Channel channel, Encryption encryption) {
+    public static void sendChangePassword(String password, Client client) {
         ChangeUserDataPacket packet = new ChangeUserDataPacket();
         packet.type = "password";
         packet.value = password;
-        NetworkingUtility.sendPacket(packet, channel, encryption);
+        client.send(packet);
     }
 
-    public static void confirmIdentity(String username, String password, Channel channel, Encryption encryption) {
+    public static void confirmIdentity(User user, Client client) {
         LoginPacket loginPacket = new LoginPacket();
-        loginPacket.username = username;
-        loginPacket.password = password;
+        loginPacket.user = user;
         loginPacket.confirmIdentity = true;
 
-        NetworkingUtility.sendPacket(loginPacket, channel, encryption);
+        client.send(loginPacket);
     }
 
 }

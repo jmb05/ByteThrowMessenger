@@ -18,9 +18,9 @@
 
 package net.jmb19905.bytethrow.client;
 
-import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
-import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
-import net.jmb19905.bytethrow.client.chat.IClientChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
+import net.jmb19905.bytethrow.common.chat.client.IClientChat;
 import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;

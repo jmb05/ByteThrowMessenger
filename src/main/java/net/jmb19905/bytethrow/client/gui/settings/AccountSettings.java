@@ -22,6 +22,7 @@ import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.ConfirmIdentityDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.packets.PacketManager;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
 import net.jmb19905.util.Logger;
@@ -70,7 +71,7 @@ public class AccountSettings extends JDialog {
 
         String name = "";
         try {
-            name = manager.name;
+            name = manager.user.getUsername();
         } catch (NullPointerException ignored) {
         }
         nameLabel = new JLabel(name);
@@ -92,7 +93,7 @@ public class AccountSettings extends JDialog {
                         JOptionPane.showMessageDialog(null, "Nothing changed");
                     }
                 } else {
-                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
+                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
                     confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog("New Username: ")));
                     confirmIdentityDialog.setVisible(true);
                     changeUsernameButton.getAction().actionPerformed(actionEvent);
@@ -118,7 +119,7 @@ public class AccountSettings extends JDialog {
                         JOptionPane.showMessageDialog(null, "Nothing changed");
                     }
                 } else {
-                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword()));
+                    confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
                     confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
                     confirmIdentityDialog.setVisible(true);
                     changePasswordButton.getAction().actionPerformed(actionEvent);
@@ -165,23 +166,23 @@ public class AccountSettings extends JDialog {
         this.nameLabel.setText(username);
     }
 
-    private void sendConfirmIdentityPacket(String username, String password) {
+    private void sendConfirmIdentityPacket(User user) {
         try {
-            manager.name = username;
-            setUsername(username);
+            manager.user.setUsername(user.getUsername());
+            setUsername(user.getUsername());
 
-            PacketManager.confirmIdentity(username, password, manager.getChannel(), manager.getHandler().getEncryption());
+            PacketManager.confirmIdentity(user, manager.getClient());
         } catch (NullPointerException ignored) {
         }
     }
 
     private void changeUsername(String username) {
-        PacketManager.sendChangeUsername(username, manager.getChannel(), manager.getHandler().getEncryption());
+        PacketManager.sendChangeUsername(username, manager.getClient());
     }
 
     private void changePassword(String password) {
         try {
-            PacketManager.sendChangePassword(password, manager.getChannel(), manager.getHandler().getEncryption());
+            PacketManager.sendChangePassword(password, manager.getClient());
         } catch (NullPointerException ignored) {
         }
     }

@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.server.database;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.server.database.DatabaseManager.UserData;
 import net.jmb19905.util.Logger;
 import org.mindrot.jbcrypt.BCrypt;
@@ -106,16 +107,11 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
     /**
      * Creates a new User and saves his data in the user Database
      *
-     * @param username the username of the user
-     * @param password the password of the user
+     * @param user the user
      * @return if creating the user succeeded
      */
-    public boolean createUser(String username, String password) {
-        String salt = BCrypt.gensalt();
-
-        UserData userData = new UserData(username, BCrypt.hashpw(password, salt), salt);
-
-        return addUser(userData);
+    public boolean createUser(User user) {
+        return addUser(UserData.createFrom(user));
     }
 
     public boolean changeUserName(String oldUsername, String newUsername) {
@@ -171,7 +167,7 @@ class UserTableHandler implements DatabaseConnection.ITableHandler {
         return -1;
     }
 
-    public boolean hasUser(String username) {
-        return getUserByName(username) != null;
+    public boolean hasUser(String user) {
+        return getUserByName(user) != null;
     }
 }

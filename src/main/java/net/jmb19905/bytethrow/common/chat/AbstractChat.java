@@ -18,6 +18,8 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
+import net.jmb19905.bytethrow.common.User;
+
 import java.util.*;
 
 public abstract class AbstractChat implements IChat{
@@ -27,7 +29,7 @@ public abstract class AbstractChat implements IChat{
     /**
      * All the clients that participate in this chat.
      */
-    protected List<String> members = new ArrayList<>();
+    protected List<User> members = new ArrayList<>();
 
     public AbstractChat() {
         uniqueId = UUID.randomUUID();
@@ -38,31 +40,31 @@ public abstract class AbstractChat implements IChat{
     }
 
 
-    public void addClient(String name) {
+    public void addClient(User name) {
         if (!members.contains(name)) members.add(name);
     }
 
-    public boolean removeClient(String name){
+    public boolean removeClient(User name){
         boolean f = members.contains(name);
         members.remove(name);
 
         return f;
     }
 
-    public void addClients(List<String> names) {
-        names.stream().filter(name -> !members.contains(name)).forEach(name -> members.add(name));
+    public void addClients(List<User> users) {
+        users.stream().filter(user -> !members.contains(user)).forEach(user -> members.add(user));
     }
 
-    public boolean hasClient(String name) {
-        return members.contains(name);
+    public boolean hasClient(User user) {
+        return members.contains(user);
     }
 
     @Override
-    public List<String> getMembers() {
+    public List<User> getMembers() {
         return members;
     }
 
-    public void setMembers(List<String> members) {
+    public void setMembers(List<User> members) {
         this.members = members;
     }
 

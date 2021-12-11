@@ -21,7 +21,8 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
+import net.jmb19905.bytethrow.common.User;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -42,119 +43,122 @@ import java.security.spec.InvalidKeySpecException;
 public class ConnectPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler handler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         ConnectPacket connectPacket = (ConnectPacket) packet;
         ServerManager manager = StartServer.manager;
-        String clientName = manager.getClientName(handler);
-        if (!clientName.isBlank()) {
-            String peerName = connectPacket.name;
-            if (DatabaseManager.hasUser(peerName)) {
-                if (manager.isClientOnline(peerName)) {
-                    if (manager.getChat(peerName, clientName) == null) {
-                        handleNewChatRequestServer(connectPacket, manager, handler, clientName, peerName);
-                    } else if (manager.getChat(peerName, clientName) != null) {
-                        handleConnectToExistingChatRequestServer(connectPacket, manager, handler, channelHandlerContext.channel(), clientName, peerName);
+        TcpServerHandler handler = ((TcpServerHandler) ctx.handler());
+        User client = manager.getClient(handler);
+        if (client != null) {
+            User peer = connectPacket.user;
+            if (DatabaseManager.hasUser(peer.getUsername())) {
+                if (manager.isClientOnline(peer)) {
+                    if (manager.getChat(peer, client) == null) {
+                        handleNewChatRequestServer(connectPacket, manager, handler, client, peer);
+                    } else if (manager.getChat(peer, client) != null) {
+                        handleConnectToExistingChatRequestServer(connectPacket, ctx, client, peer);
                     }
                 } else if (connectPacket.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
-                    NetworkingUtility.sendFail(channelHandlerContext.channel(), "connect:" + peerName, "not_online", peerName, handler);
+                    NetworkingUtility.sendFail(ctx, "connect:" + peer.getUsername(), "not_online", peer.getUsername());
                 }
             } else {
-                NetworkingUtility.sendFail(channelHandlerContext.channel(), "connect:" + peerName, "no_such_user", peerName, handler);
+                NetworkingUtility.sendFail(ctx, "connect:" + peer.getUsername(), "no_such_user", peer.getUsername());
             }
         } else {
             Logger.warn("Client is trying to communicate but isn't logged in!");
         }
     }
 
-    private void handleNewChatRequestServer(ConnectPacket packet, ServerManager manager, TcpServerHandler handler, String clientName, String peerName) {
+    private void handleNewChatRequestServer(ConnectPacket packet, ServerManager manager, TcpServerHandler handler, User client, User peer) {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
-            PeerChat chat = new PeerChat(clientName, peerName);
+            PeerChat chat = new PeerChat(client, peer);
             chat.setActive(true);
             manager.addChat(chat);
 
-            ClientDataFilesManager.writeChats(clientName);
-            ClientDataFilesManager.writeChats(peerName);
+            ClientDataFilesManager.writeChats(client);
+            ClientDataFilesManager.writeChats(peer);
 
-            packet.name = clientName;
-            manager.sendPacketToPeer(peerName, packet, handler);
+            packet.user = client;
+            manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
         } else {
             Logger.warn("What is this Client even doing with his life?");
         }
     }
 
-    private void handleConnectToExistingChatRequestServer(ConnectPacket packet, ServerManager manager, TcpServerHandler handler, Channel channel, String clientName, String peerName) {
+    private void handleConnectToExistingChatRequestServer(ConnectPacket packet, ChannelHandlerContext ctx, User client, User peer) {
+        ServerManager manager = StartServer.manager;
+        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
-            NetworkingUtility.sendFail(channel, "connect:" + peerName, "chat_exists", peerName, handler);
+            NetworkingUtility.sendFail(ctx, "connect:" + peer.getUsername(), "chat_exists", peer.getUsername());
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_CONNECT) {
-            PeerChat chat = manager.getChat(peerName, clientName);
+            PeerChat chat = manager.getChat(peer, client);
             chat.setActive(true);
 
-            packet.name = clientName;
-            manager.sendPacketToPeer(peerName, packet, handler);
+            packet.user = client;
+            manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
         } else if (packet.connectType == ConnectPacket.ConnectType.FIRST_RECONNECT) {
-            if (manager.isClientOnline(peerName)) {
-                packet.name = clientName;
-                manager.sendPacketToPeer(peerName, packet, handler);
+            if (manager.isClientOnline(peer)) {
+                packet.user = client;
+                manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
             }
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_RECONNECT) {
-            if (manager.isClientOnline(peerName)) {
-                PeerChat chat = manager.getChat(peerName, clientName);
+            if (manager.isClientOnline(peer)) {
+                PeerChat chat = manager.getChat(peer, client);
                 chat.setActive(true);
 
-                packet.name = clientName;
-                manager.sendPacketToPeer(peerName, packet, handler);
+                packet.user = client;
+                manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
             }
         }
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler handler) {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
         ConnectPacket connectPacket = (ConnectPacket) packet;
-        String peerName = connectPacket.name;
+        User peer = connectPacket.user;
         byte[] encodedPeerKey = connectPacket.key;
 
         try {
-            if (StartClient.manager.getChat(peerName) == null) {
-                handleNewChatRequestClient(connectPacket, channelHandlerContext.channel(), handler.getEncryption(), peerName, encodedPeerKey);
-            } else if (StartClient.manager.getChat(peerName) != null) {
-                handleConnectToExistingChatRequestClient(connectPacket, channelHandlerContext.channel(), handler.getEncryption(), peerName, encodedPeerKey);
+            if (StartClient.manager.getChat(peer) == null) {
+                handleNewChatRequestClient(connectPacket, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
+            } else if (StartClient.manager.getChat(peer) != null) {
+                handleConnectToExistingChatRequestClient(connectPacket, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
             }
         } catch (InvalidKeySpecException e) {
             Logger.error(e);
         }
     }
 
-    private void handleConnectToExistingChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, String peerName, byte[] encodedPeerKey) throws InvalidKeySpecException {
+    private void handleConnectToExistingChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             Logger.warn("Peer tried create a Chat that already exists");
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_CONNECT) {
-            activateEncryption(peerName, encodedPeerKey);
+            activateEncryption(peer, encodedPeerKey);
         } else if (packet.connectType == ConnectPacket.ConnectType.FIRST_RECONNECT) {
-            activateEncryption(peerName, encodedPeerKey);
+            activateEncryption(peer, encodedPeerKey);
 
-            Encryption chatEncryption = StartClient.manager.getChat(peerName).getEncryption();
+            Encryption chatEncryption = StartClient.manager.getChat(peer).getEncryption();
 
-            packet.name = peerName;
+            packet.user = peer;
             packet.key = chatEncryption.getPublicKey().getEncoded();
             packet.connectType = ConnectPacket.ConnectType.REPLY_RECONNECT;
 
             NetworkingUtility.sendPacket(packet, channel, encryption);
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_RECONNECT) {
-            activateEncryption(peerName, encodedPeerKey);
+            activateEncryption(peer, encodedPeerKey);
         }
     }
 
-    private void activateEncryption(String peerName, byte[] encodedPeerKey) {
-        ClientPeerChat chat = StartClient.manager.getChat(peerName);
+    private void activateEncryption(User peer, byte[] encodedPeerKey) {
+        ClientPeerChat chat = StartClient.manager.getChat(peer);
         chat.setActive(true);
         StartClient.guiManager.setPeerStatus(chat, true);
 
         chat.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
     }
 
-    private void handleNewChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, String peerName, byte[] encodedPeerKey) throws InvalidKeySpecException {
+    private void handleNewChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
-            ClientPeerChat chat = new ClientPeerChat(peerName);
+            ClientPeerChat chat = new ClientPeerChat(peer);
             chat.initClient();
             chat.setActive(true);
             StartClient.manager.addChat(chat);
@@ -164,12 +168,12 @@ public class ConnectPacketHandler extends PacketHandler {
             chat.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
 
 
-            Logger.info("Starting E2E Encryption to: " + peerName);
+            Logger.info("Starting E2E Encryption to: " + peer.getUsername());
             ConnectPacket replyPacket = new ConnectPacket();
-            replyPacket.name = peerName;
+            replyPacket.user = peer;
             replyPacket.key = chat.getEncryption().getPublicKey().getEncoded();
             replyPacket.connectType = ConnectPacket.ConnectType.REPLY_CONNECT;
-            Logger.trace("Sending packet ConnectPacket to " + peerName);
+            Logger.trace("Sending packet ConnectPacket to " + peer);
 
             NetworkingUtility.sendPacket(replyPacket, channel, encryption);
         } else {

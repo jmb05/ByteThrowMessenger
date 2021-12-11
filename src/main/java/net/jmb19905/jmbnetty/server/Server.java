@@ -19,7 +19,11 @@
 package net.jmb19905.jmbnetty.server;
 
 import net.jmb19905.jmbnetty.common.connection.Endpoint;
+import net.jmb19905.jmbnetty.common.connection.event.ConnectedEventListener;
+import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEventListener;
+import net.jmb19905.jmbnetty.common.connection.event.ErrorEventListener;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
+import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 
 public class Server extends Endpoint {
 
@@ -43,4 +47,21 @@ public class Server extends Endpoint {
     public void stop() {
         this.connection.stop();
     }
+
+    public void addConnectedEventListener(ConnectedEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void addDisconnectedEventListener(DisconnectedEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void addErrorEventListener(ErrorEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void removeServerHandler(TcpServerHandler serverHandler) {
+        connection.getClientConnections().remove(serverHandler);
+    }
+
 }

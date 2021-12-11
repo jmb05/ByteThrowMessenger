@@ -18,12 +18,13 @@
 
 package net.jmb19905.bytethrow.client.gui;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.util.Logger;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class MessagesPane extends JTextPane {
 
     private static final SimpleAttributeSet bold;
     private static final SimpleAttributeSet italic;
-    private static final SimpleAttributeSet underline;
+    private static final SimpleAttributeSet underlineBold;
 
     static {
         bold = new SimpleAttributeSet();
@@ -42,8 +43,9 @@ public class MessagesPane extends JTextPane {
         italic = new SimpleAttributeSet();
         italic.addAttribute(StyleConstants.CharacterConstants.Italic, Boolean.TRUE);
 
-        underline = new SimpleAttributeSet();
-        underline.addAttribute(StyleConstants.CharacterConstants.Underline, Boolean.TRUE);
+        underlineBold = new SimpleAttributeSet();
+        underlineBold.addAttribute(StyleConstants.CharacterConstants.Underline, Boolean.TRUE);
+        underlineBold.addAttribute(StyleConstants.CharacterConstants.Bold, Boolean.TRUE);
     }
 
     public MessagesPane(){
@@ -112,10 +114,11 @@ public class MessagesPane extends JTextPane {
         for(Message message : messages){
             String[] displayMessageParts = message.getMessageDisplay().split("\\\\b");
             for(int i=0;i<displayMessageParts.length;i++){
-                if(i % 2 == 1){
+                if(i % 2 == 0){
                     append(displayMessageParts[i], null);
                 }else {
-                    append(displayMessageParts[i], bold);
+                    String sender = User.constructUser(displayMessageParts[i]).getUsername();
+                    append(sender, underlineBold);
                 }
             }
             newLine();
@@ -134,7 +137,7 @@ public class MessagesPane extends JTextPane {
         return italic;
     }
 
-    public static SimpleAttributeSet getUnderline() {
-        return underline;
+    public static SimpleAttributeSet getUnderlineBold() {
+        return underlineBold;
     }
 }

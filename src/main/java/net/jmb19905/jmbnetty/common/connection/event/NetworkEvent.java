@@ -16,15 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.chat;
+package net.jmb19905.jmbnetty.common.connection.event;
 
-import net.jmb19905.bytethrow.common.chat.IChat;
-import net.jmb19905.bytethrow.common.chat.Message;
+import net.jmb19905.util.events.Event;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public abstract class NetworkEvent extends Event<NetworkEventContext> {
 
-public interface IClientChat<M extends Message> extends IChat {
-    List<M> getMessages();
-    void addMessage(M message);
-    void merge(IClientChat<M> other);
+    public NetworkEvent(@NotNull NetworkEventContext ctx, String id) {
+        super(ctx, id);
+    }
+
 }

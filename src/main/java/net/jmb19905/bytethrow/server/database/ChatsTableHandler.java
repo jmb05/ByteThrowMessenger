@@ -18,12 +18,14 @@
 
 package net.jmb19905.bytethrow.server.database;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.Logger;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
@@ -49,7 +51,9 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
     public boolean addChat(AbstractChat chat) {
         try {
             PreparedStatement statement = connection.prepareStatement("INSERT into chats (names) VALUES (?);");
-            List<String> names = Util.sortStringsAlphabetically(chat.getMembers());
+            List<String> unsortedNames = new ArrayList<>();
+            chat.getMembers().forEach(user -> unsortedNames.add(user.getUsername()));
+            List<String> names = Util.sortStringsAlphabetically(unsortedNames);
             StringBuilder builder = new StringBuilder();
             names.forEach(s -> builder.append(s).append(","));
             statement.setString(1, builder.toString());
@@ -74,7 +78,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
 
             String[] names = namesString.split("\\.");
 
-            return new PeerChat(names[0], names[1]);
+            return new PeerChat(new User(names[0]), new User(names[1]));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -92,7 +96,7 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
 
             ResultSet resultSet = statement.getResultSet();
             if (resultSet.next()) {
-                return new PeerChat(names.get(0), names.get(1));
+                return new PeerChat(new User(names.get(0)), new User(names.get(1)));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -101,7 +105,9 @@ public class ChatsTableHandler implements DatabaseConnection.ITableHandler {
     }
 
     public boolean hasChat(AbstractChat chat) {
-        return getChat(chat.getMembers()) != null;
+        List<String> names = new ArrayList<>();
+        chat.getMembers().forEach(user -> names.add(user.getUsername()));
+        return getChat(names) != null;
     }
 
 }

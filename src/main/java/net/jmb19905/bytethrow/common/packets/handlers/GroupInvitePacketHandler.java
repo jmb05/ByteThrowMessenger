@@ -22,10 +22,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
-import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
-import net.jmb19905.bytethrow.common.chat.GroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
@@ -36,7 +35,6 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
@@ -45,29 +43,29 @@ import java.util.Arrays;
 
 public class GroupInvitePacketHandler extends PacketHandler {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler handler) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
         GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
         ServerManager manager = StartServer.manager;
 
-        String memberName = manager.getClientName(handler);
+        User member = manager.getClient((TcpServerHandler) ctx.handler());
 
         AbstractChat chat = manager.getGroup(groupInvitePacket.groupName);
-        chat.addClient(memberName);
+        chat.addClient(member);
         ChatSerial.write(chat);
 
         AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
         addGroupMemberPacket.groupName = groupInvitePacket.groupName;
-        addGroupMemberPacket.member = memberName;
+        addGroupMemberPacket.member = member;
 
-        chat.getMembers().stream().filter(member -> !member.equals(memberName)).forEach(member -> {
-            TcpServerHandler otherHandler = manager.getClientHandler(member);
-            SocketChannel channel = ((TcpServerConnection) otherHandler.getConnection()).getClientConnections().get(otherHandler);
+        chat.getMembers().stream().filter(u -> !u.equals(member)).forEach(u -> {
+            TcpServerHandler otherHandler = manager.getClientHandler(u);
+            SocketChannel channel = manager.getConnection().getClientConnections().get(otherHandler);
             NetworkingUtility.sendPacket(addGroupMemberPacket, channel, otherHandler.getEncryption());
         });
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler handler) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
         GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
         ClientManager manager = StartClient.manager;
 
@@ -77,6 +75,6 @@ public class GroupInvitePacketHandler extends PacketHandler {
         manager.addGroup(chat);
         Logger.debug("Adding Group (GroupInvitePacketHandler): " + chat.getName());
 
-        NetworkingUtility.sendPacket(packet, ctx.channel(), handler.getEncryption());
+        NetworkingUtility.sendPacket(packet, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption());
     }
 }

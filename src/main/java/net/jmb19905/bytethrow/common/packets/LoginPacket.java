@@ -38,12 +38,12 @@ public class LoginPacket extends IdentificationPacket {
     @Override
     public void construct(String[] data) throws ArrayIndexOutOfBoundsException {
         super.construct(data);
-        confirmIdentity = Boolean.parseBoolean(data[3]);
+        confirmIdentity = Boolean.parseBoolean(data[2]);
     }
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + username + "|" + password + "|" + confirmIdentity;
+        String dataString = ID + "|" + user.deconstruct() + "|" + confirmIdentity;
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 

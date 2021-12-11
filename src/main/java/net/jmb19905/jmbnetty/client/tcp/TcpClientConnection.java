@@ -26,9 +26,14 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.jmbnetty.client.ClientConnection;
+import net.jmb19905.jmbnetty.common.connection.event.ConnectedEvent;
+import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEvent;
+import net.jmb19905.jmbnetty.common.connection.event.ErrorEvent;
+import net.jmb19905.jmbnetty.common.connection.event.NetworkEventContext;
 import net.jmb19905.jmbnetty.common.handler.Decoder;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
+import org.jetbrains.annotations.NotNull;
 
 public class TcpClientConnection extends ClientConnection {
 
@@ -43,14 +48,24 @@ public class TcpClientConnection extends ClientConnection {
 
     @Override
     public void run() {
-        clientHandler = new TcpClientHandler(this);
+        clientHandler = new TcpClientHandler();
+        NetworkEventContext ctx = NetworkEventContext.create(this, clientHandler);
+        clientHandler.addActiveEvent(evt -> performEvent(new ConnectedEvent(ctx)));
+        clientHandler.addInactiveEvent(evt -> {
+            performEvent(new DisconnectedEvent(ctx));
+            markClosed();
+        });
+        clientHandler.addExceptionEvent(evt -> {
+            performEvent(new ErrorEvent(ctx, evt.getCause()));
+            Logger.error(evt.getCause());
+        });
         try {
             Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel ch) {
+                        protected void initChannel(@NotNull SocketChannel ch) {
                             ch.pipeline().addLast(new Decoder(clientHandler.getEncryption()), clientHandler);
                             channel = ch;
                         }

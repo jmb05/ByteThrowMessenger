@@ -19,6 +19,7 @@
 package net.jmb19905.bytethrow.server;
 
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
@@ -31,8 +32,10 @@ import net.jmb19905.jmbnetty.server.Server;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The Server
@@ -41,41 +44,40 @@ public class ServerManager {
 
     private final Server server;
     private List<AbstractChat> chats = new ArrayList<>();
-    private final Map<String, TcpServerHandler> onlineClients = new HashMap<>();
+    private final Map<User, TcpServerHandler> onlineClients = new HashMap<>();
 
     public ServerManager(int port) {
         this.server = new Server(port);
-        TcpServerConnection connection = this.server.getConnection();
-        connection.addConnectedEventListener(evt -> {
-            TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
-            TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
-            SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
+        server.addConnectedEventListener(evt -> {
+            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
+            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
+            SocketChannel channel = connection.getClientConnections().get(handler);
             Logger.info("Client: \"" + channel.remoteAddress() + "\" is now connected");
         });
-        connection.addDisconnectedEventListener(evt -> {
-            TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
-            TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
-            SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
+        server.addDisconnectedEventListener(evt -> {
+            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
+            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
+            SocketChannel channel = connection.getClientConnections().get(handler);
             Logger.info("Client: \"" + channel.remoteAddress() + "\" is now disconnected");
-            if (!channelHandler.isClosed()) {
-                Optional<String> clientName = onlineClients.keySet()
+            if (!connection.isClosed()) {
+                Optional<User> user = onlineClients.keySet()
                         .stream()
-                        .filter(name -> onlineClients.get(name).equals(serverHandler))
+                        .filter(u -> onlineClients.get(u).equals(handler))
                         .findFirst();
-                clientName.ifPresentOrElse(s -> notifyPeersOfDisconnect(s, serverHandler), () -> Logger.warn("No such client: " + clientName));
+                user.ifPresent(u -> notifyPeersOfDisconnect(u, connection, handler));
             }
-            server.getConnection().getClientConnections().remove(serverHandler);
+            server.removeServerHandler(handler);
         });
-        connection.addErrorEventListener(evt -> {
-            TcpServerHandler serverHandler = (TcpServerHandler) evt.getSource();
-            TcpServerConnection channelHandler = (TcpServerConnection) serverHandler.getConnection();
-            SocketChannel channel = channelHandler.getClientConnections().get(serverHandler);
+        server.addErrorEventListener(evt -> {
+            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
+            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
+            SocketChannel channel = connection.getClientConnections().get(handler);
 
             FailPacket failPacket = new FailPacket();
             failPacket.cause = "internal";
             failPacket.message = "internal_error";
             failPacket.extra = "";
-            NetworkingUtility.sendPacket(failPacket, channel, serverHandler.getEncryption());
+            NetworkingUtility.sendPacket(failPacket, channel, handler.getEncryption());
         });
     }
 
@@ -83,11 +85,11 @@ public class ServerManager {
         this.server.start();
     }
 
-    public void addOnlineClient(String client, TcpServerHandler handler) {
+    public void addOnlineClient(User client, TcpServerHandler handler) {
         onlineClients.put(client, handler);
     }
 
-    public void removeOnlineClient(String client) {
+    public void removeOnlineClient(User client) {
         onlineClients.remove(client);
     }
 
@@ -109,10 +111,10 @@ public class ServerManager {
         ChatSerial.deleteChatFile(chat);
     }
 
-    public PeerChat getChat(String user1, String user2) {
+    public PeerChat getChat(User user1, User user2) {
         for (AbstractChat chat : chats) {
             if (chat instanceof PeerChat) {
-                List<String> users = chat.getMembers();
+                List<User> users = chat.getMembers();
                 if (users.contains(user1) && users.contains(user2)) {
                     return ((PeerChat) chat);
                 }
@@ -121,10 +123,10 @@ public class ServerManager {
         return null;
     }
 
-    public List<AbstractChat> getChats(String user) {
+    public List<AbstractChat> getChats(User user) {
         List<AbstractChat> chatsContainingUser = new ArrayList<>();
         for (AbstractChat chat : chats) {
-            List<String> users = chat.getMembers();
+            List<User> users = chat.getMembers();
             if (users.contains(user)) {
                 chatsContainingUser.add(chat);
             }
@@ -140,51 +142,54 @@ public class ServerManager {
         return chats;
     }
 
-    public boolean isClientOnline(String name) {
-        return onlineClients.get(name) != null;
+    public boolean isClientOnline(User user) {
+        AtomicBoolean b = new AtomicBoolean(false);
+        onlineClients.keySet().stream().filter(u -> u.getUsername().equals(user.getUsername())).findFirst().ifPresent(u -> b.set(true));
+        return b.get();
     }
 
-    public Map<String, TcpServerHandler> getOnlineClients() {
+    public Map<User, TcpServerHandler> getOnlineClients() {
         return onlineClients;
     }
 
-    public void changeName(String oldName, String newName) {
+    public void changeName(User user, String newName) {
         for (AbstractChat chat : chats) {
-            List<String> chatParticipants = chat.getMembers();
-            chatParticipants.remove(oldName);
-            chatParticipants.add(newName);
+            List<User> chatParticipants = chat.getMembers();
+            int index = chatParticipants.indexOf(user);
+            user.setUsername(newName);
+            chatParticipants.set(index, user);
             chat.setMembers(chatParticipants);
         }
     }
 
-    public String[] getPeerNames(String clientName) {
-        List<String> names = new ArrayList<>();
+    public User[] getPeers(User client) {
+        List<User> users = new ArrayList<>();
         for (AbstractChat chat : chats) {
-            List<String> chatParticipants = chat.getMembers();
-            if (chatParticipants.contains(clientName)) {
-                for (String otherName : chatParticipants) {
-                    if (!otherName.equals(clientName)) {
-                        names.add(otherName);
+            List<User> chatParticipants = chat.getMembers();
+            if (chatParticipants.contains(client)) {
+                for (User other : chatParticipants) {
+                    if (!other.equals(client)) {
+                        users.add(other);
                     }
                 }
             }
         }
-        return names.toArray(new String[0]);
+        return users.toArray(new User[0]);
     }
 
     /**
      * Tell all online peers that the client has now disconnected
      */
-    private void notifyPeersOfDisconnect(String disconnectedClientName, TcpServerHandler serverHandler) {
-        for (AbstractChat chat : getChats(disconnectedClientName)) {
-            List<String> notifiedClients = new ArrayList<>();
-            notifiedClients.add(disconnectedClientName);
-            for (String clientName : chat.getMembers()) {
-                if (!notifiedClients.contains(clientName)) {
+    private void notifyPeersOfDisconnect(User disconnectedClient, TcpServerConnection connection, TcpServerHandler serverHandler) {
+        for (AbstractChat chat : getChats(disconnectedClient)) {
+            List<User> notifiedClients = new ArrayList<>();
+            notifiedClients.add(disconnectedClient);
+            for (User client : chat.getMembers()) {
+                if (!notifiedClients.contains(client)) {
                     DisconnectPacket disconnectPacket = new DisconnectPacket();
-                    disconnectPacket.name = disconnectedClientName;
-                    sendPacketToPeer(clientName, disconnectPacket, serverHandler);
-                    notifiedClients.add(clientName);
+                    disconnectPacket.user = disconnectedClient;
+                    sendPacketToPeer(client, disconnectPacket, connection, serverHandler);
+                    notifiedClients.add(client);
                 }
             }
         }
@@ -195,23 +200,24 @@ public class ServerManager {
      *
      * @param packet the packet to be sent
      */
-    public void sendPacketToPeer(String peerName, Packet packet, TcpServerHandler serverHandler) {
-        TcpServerHandler peerHandler = getPeerHandler(peerName, serverHandler);
+    public void sendPacketToPeer(User peer, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
+        TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
+        System.out.println(peerHandler);
         if (peerHandler != null) {
-            SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+            SocketChannel channel = connection.getClientConnections().get(peerHandler);
             Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
             NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
         } else {
-            Logger.warn("Peer: " + peerName + " not online");
+            Logger.warn("Peer: " + peer.getUsername() + " not online");
         }
     }
 
-    public void sendPacketToGroup(String groupName, Packet packet, TcpServerHandler serverHandler) {
+    public void sendPacketToGroup(String groupName, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
         AbstractChat groupChat = getGroup(groupName);
         groupChat.getMembers().stream().filter(this::isClientOnline).forEach(peer -> {
             TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
             if (peerHandler != null) {
-                SocketChannel channel = ((TcpServerConnection) serverHandler.getConnection()).getClientConnections().get(peerHandler);
+                SocketChannel channel = connection.getClientConnections().get(peerHandler);
                 Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
                 NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
             }
@@ -221,11 +227,14 @@ public class ServerManager {
     /**
      * @return the ServerHandler of the current peer
      */
-    public TcpServerHandler getPeerHandler(String peerName, TcpServerHandler ownHandler) {
-        for (TcpServerHandler peerHandler : ((TcpServerConnection) ownHandler.getConnection()).getClientConnections().keySet()) {
+    public TcpServerHandler getPeerHandler(User peer, TcpServerHandler ownHandler) {
+        System.out.println("Searching for Peer Handler...");
+        for (TcpServerHandler peerHandler : getConnection().getClientConnections().keySet()) {
             if (peerHandler != ownHandler) {
-                String currentPeerName = getClientName(peerHandler);
-                if (peerName.equals(currentPeerName) && !peerName.isBlank()) {
+                System.out.println("Found equal Handler");
+                User currentPeer = getClient(peerHandler);
+                System.out.println(currentPeer + " " + peer);
+                if (peer.equals(currentPeer) && peer != null) {
                     return peerHandler;
                 }
             }
@@ -233,16 +242,21 @@ public class ServerManager {
         return null;
     }
 
-    public String getClientName(TcpServerHandler handler) {
-        Optional<String> clientName = onlineClients.keySet()
+    @Nullable
+    public User getClient(TcpServerHandler handler) {
+        Optional<User> clientName = onlineClients.keySet()
                 .stream()
-                .filter(name -> onlineClients.get(name).equals(handler))
+                .filter(u -> onlineClients.get(u).equals(handler))
                 .findFirst();
-        return clientName.orElse("");
+        return clientName.orElse(null);
     }
 
-    public TcpServerHandler getClientHandler(String name) {
-        return onlineClients.get(name);
+    public TcpServerConnection getConnection() {
+        return server.getConnection();
+    }
+
+    public TcpServerHandler getClientHandler(User user) {
+        return onlineClients.get(user);
     }
 
 }

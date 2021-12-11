@@ -20,6 +20,11 @@ package net.jmb19905.jmbnetty.client;
 
 import net.jmb19905.jmbnetty.client.tcp.TcpClientConnection;
 import net.jmb19905.jmbnetty.common.connection.Endpoint;
+import net.jmb19905.jmbnetty.common.connection.event.ConnectedEventListener;
+import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEventListener;
+import net.jmb19905.jmbnetty.common.connection.event.ErrorEventListener;
+import net.jmb19905.jmbnetty.common.packets.registry.Packet;
+import net.jmb19905.jmbnetty.utility.NetworkUtility;
 
 public class Client extends Endpoint {
 
@@ -28,6 +33,10 @@ public class Client extends Endpoint {
     public Client(int port, String address) {
         super(port);
         this.connection = new TcpClientConnection(port, address);
+    }
+
+    public TcpClientConnection getConnection() {
+        return connection;
     }
 
     @Override
@@ -40,7 +49,19 @@ public class Client extends Endpoint {
         this.connection.stop();
     }
 
-    public TcpClientConnection getConnection() {
-        return connection;
+    public void addConnectedEventListener(ConnectedEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void addDisconnectedEventListener(DisconnectedEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void addErrorEventListener(ErrorEventListener listener) {
+        connection.addEventListener(listener);
+    }
+
+    public void send(Packet packet) {
+        NetworkUtility.sendTcp(connection.getChannel(), packet, connection.getClientHandler().getEncryption());
     }
 }

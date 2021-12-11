@@ -35,7 +35,7 @@ public class RegisterPacket extends IdentificationPacket {
 
     @Override
     public byte[] deconstruct() {
-        String dataString = ID + "|" + username + "|" + password;
+        String dataString = ID + "|" + user.deconstruct();
         return dataString.getBytes(StandardCharsets.UTF_8);
     }
 

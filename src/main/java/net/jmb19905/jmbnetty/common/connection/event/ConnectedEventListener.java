@@ -18,11 +18,11 @@
 
 package net.jmb19905.jmbnetty.common.connection.event;
 
-import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEventListener;
+import net.jmb19905.util.events.EventListener;
 
-public interface ConnectedEventListener extends NetworkEventListener<ConnectedEvent> {
+public interface ConnectedEventListener extends EventListener<ConnectedEvent> {
     @Override
     default String getId() {
-        return "connected";
+        return ConnectedEvent.ID;
     }
 }

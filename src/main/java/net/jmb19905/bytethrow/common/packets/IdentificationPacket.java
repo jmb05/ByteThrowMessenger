@@ -18,13 +18,13 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketType;
 
 public abstract class IdentificationPacket extends Packet {
 
-    public String username;
-    public String password = " ";
+    public User user;
 
     protected IdentificationPacket(PacketType<? extends Packet> type) {
         super(type);
@@ -32,7 +32,6 @@ public abstract class IdentificationPacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        username = data[1];
-        password = data[2];
+        user = User.constructUser(data[1]);
     }
 }

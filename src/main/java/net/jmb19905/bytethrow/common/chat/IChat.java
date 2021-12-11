@@ -18,10 +18,12 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
+import net.jmb19905.bytethrow.common.User;
+
 import java.util.List;
 import java.util.UUID;
 
 public interface IChat {
     UUID getUniqueId();
-    List<String> getMembers();
+    List<User> getMembers();
 }

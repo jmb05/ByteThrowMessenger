@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -28,7 +29,7 @@ public class LeaveGroupPacket extends Packet {
     private static final String ID = "leave_group";
 
     public String groupName;
-    public String clientName;
+    public User client;
 
     public LeaveGroupPacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
@@ -37,11 +38,11 @@ public class LeaveGroupPacket extends Packet {
     @Override
     public void construct(String[] data) {
         this.groupName = data[1];
-        this.clientName = data[2];
+        this.client = User.constructUser(data[2]);
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + groupName + "|" + clientName).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + groupName + "|" + client.deconstruct()).getBytes(StandardCharsets.UTF_8);
     }
 }

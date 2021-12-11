@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.server.util;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.server.StartServer;
@@ -28,8 +29,8 @@ public class ClientDataFilesManager {
         StartServer.manager.setChats(ChatSerial.readAllChats());
     }
 
-    public static void writeChats(String name) {
-        for (AbstractChat chat : StartServer.manager.getChats(name)) {
+    public static void writeChats(User user) {
+        for (AbstractChat chat : StartServer.manager.getChats(user)) {
             ChatSerial.write(chat);
         }
     }

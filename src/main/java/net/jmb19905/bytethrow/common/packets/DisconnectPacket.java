@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -30,7 +31,7 @@ public class DisconnectPacket extends Packet {
 
     private static final String ID = "disconnect";
 
-    public String name;
+    public User user;
 
     public DisconnectPacket() {
         super(PacketRegistry.getInstance().getPacketType(ID));
@@ -38,12 +39,12 @@ public class DisconnectPacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        name = data[1];
+        user = User.constructUser(data[1]);
     }
 
     @Override
     public byte[] deconstruct() {
-        return (ID + "|" + name).getBytes(StandardCharsets.UTF_8);
+        return (ID + "|" + user.deconstruct()).getBytes(StandardCharsets.UTF_8);
     }
 
 }

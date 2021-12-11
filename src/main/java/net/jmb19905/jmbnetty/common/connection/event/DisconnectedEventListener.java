@@ -18,11 +18,11 @@
 
 package net.jmb19905.jmbnetty.common.connection.event;
 
-import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEventListener;
+import net.jmb19905.util.events.EventListener;
 
-public interface DisconnectedEventListener extends NetworkEventListener<DisconnectedEvent> {
+public interface DisconnectedEventListener extends EventListener<DisconnectedEvent> {
     @Override
     default String getId() {
-        return "disconnected";
+        return DisconnectedEvent.ID;
     }
 }

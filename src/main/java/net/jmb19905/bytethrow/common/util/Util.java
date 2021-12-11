@@ -18,6 +18,8 @@
 
 package net.jmb19905.bytethrow.common.util;
 
+import com.talanlabs.avatargenerator.Avatar;
+import com.talanlabs.avatargenerator.TriangleAvatar;
 import net.jmb19905.bytethrow.common.Version;
 import net.jmb19905.util.Logger;
 
@@ -26,7 +28,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -143,31 +144,14 @@ public class Util {
         return output;
     }
 
-    public static BufferedImage createDefaultAvatar(char character, int imageWidth, int imageHeight, Color color) {
-        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+    public static BufferedImage createAvatar() {
+        Random random = new Random();
+        return createAvatar(random.nextLong());
+    }
 
-        Graphics2D graphics2D = image.createGraphics();
-        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        graphics2D.setColor(color);
-        graphics2D.fill(new Rectangle2D.Double(0, 0, imageWidth, imageHeight));
-
-        graphics2D.setColor(getContrastColor(color, 25));
-
-        Font font = new Font(getSystemFont().getName(), Font.BOLD, 52);
-        graphics2D.setFont(font);
-
-        Rectangle2D.Float rectangle2D = (Rectangle2D.Float) graphics2D.getFont().createGlyphVector(graphics2D.getFontRenderContext(), "" + character).getVisualBounds();
-        double charWidth = rectangle2D.getWidth();
-        double charHeight = rectangle2D.getHeight();
-        float x = (float) ((imageWidth - charWidth) / 2);
-        float y = (float) (((imageHeight - charHeight) / 2) + Math.abs(rectangle2D.y));
-
-        graphics2D.drawString(character + "", (float) (x - (rectangle2D.getX() / 2)), y);
-
-        graphics2D.dispose();
-
-        return image;
+    public static BufferedImage createAvatar(long seed) {
+        Avatar avatar = TriangleAvatar.newAvatarBuilder().build();
+        return avatar.create(seed);
     }
 
     public static Font getSystemFont() {

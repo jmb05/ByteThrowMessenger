@@ -18,7 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.bytethrow.common.chat.AbstractChat;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.IChat;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
@@ -47,6 +47,7 @@ public class ChatsPacket extends Packet {
     @Override
     public void construct(String[] data) {
         update = Boolean.parseBoolean(data[1]);
+        chatData.clear();
 
         String[] parts = Arrays.copyOfRange(data, 2, data.length);
         Arrays.stream(parts).forEach(s -> chatData.add(ChatData.fromString(s)));
@@ -63,7 +64,7 @@ public class ChatsPacket extends Packet {
         return (ID + "|" + update + namesBuilder).getBytes(StandardCharsets.UTF_8);
     }
 
-    public static record ChatData(String name, List<String> members, UUID id) {
+    public static record ChatData(String name, List<User> members, UUID id) {
         public ChatData(IChat chat) {
             this(chat instanceof GroupChat ? ((GroupChat) chat).getName() : null, chat.getMembers(), chat.getUniqueId());
         }
@@ -71,9 +72,11 @@ public class ChatsPacket extends Packet {
         public static ChatData fromString(String s) {
             String[] parts = s.split(",");
             String name = parts[0];
-            String[] members = parts[1].replace("(", "").replace(")", "").split("\\\\");
+            String[] memberStrings = parts[1].replace("(", "").replace(")", "").split("\\\\");
+            List<User> users = new ArrayList<>();
+            Arrays.stream(memberStrings).forEach(data -> users.add(User.constructUser(data)));
             UUID id = UUID.fromString(parts[2]);
-            return new ChatData(name, new ArrayList<>(List.of(members)), id);
+            return new ChatData(name, users, id);
         }
 
         @Override

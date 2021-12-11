@@ -18,6 +18,8 @@
 
 package net.jmb19905.bytethrow.common.chat;
 
+import net.jmb19905.bytethrow.common.User;
+
 public class GroupMessage extends Message {
 
     private String groupName;
@@ -26,7 +28,7 @@ public class GroupMessage extends Message {
         super();
     }
 
-    public GroupMessage(String sender, String groupName, String message, long timestamp) {
+    public GroupMessage(User sender, String groupName, String message, long timestamp) {
         super(sender, message, timestamp);
         this.groupName = groupName;
     }
@@ -46,7 +48,7 @@ public class GroupMessage extends Message {
             throw new IllegalArgumentException("Tried to construct a PeerMessage to a GroupMessage");
         }
         GroupMessage groupMessage = new GroupMessage();
-        groupMessage.sender = data[1];
+        groupMessage.sender = User.constructUser(data[1]);
         groupMessage.groupName = data[2];
         groupMessage.message = data[3];
         groupMessage.timestamp = Long.parseLong(data[4]);
@@ -55,7 +57,7 @@ public class GroupMessage extends Message {
 
     @Override
     public String getMessageDisplay() {
-        return " \\b<" + getSender() + ">\\b " + message;
+        return " \\b" + getSender() + "\\b \n " + message;
     }
 
     @Override

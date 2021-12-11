@@ -22,6 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
@@ -29,7 +30,6 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
@@ -43,24 +43,24 @@ import java.util.Optional;
 public class ChangeUserDataPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
         throw new IllegalSideException("ChangeUserDataPacket received on Client");
     }
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         ChangeUserDataPacket changeUserDataPacket = (ChangeUserDataPacket) packet;
-        TcpServerConnection serverConnection = (TcpServerConnection) serverHandler.getConnection();
-        Encryption encryption = serverHandler.getEncryption();
+        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
+        Encryption encryption = handler.getEncryption();
         ServerManager manager = StartServer.manager;
-        String oldName = manager.getClientName(serverHandler);
+        TcpServerConnection connection = manager.getConnection();
+        User user = manager.getClient(handler);
+        String oldName = manager.getClient(handler).getUsername();
         switch (changeUserDataPacket.type) {
             case "username":
                 String newUsername = changeUserDataPacket.value;
                 if (DatabaseManager.changeUsername(oldName, newUsername)) {
-                    manager.removeOnlineClient(oldName);
-                    manager.addOnlineClient(newUsername, serverHandler);
-                    manager.changeName(oldName, newUsername);
+                    manager.changeName(user, newUsername);
                     ChannelFuture channelFuture = sendUsernameSuccessPacket(ctx.channel(), encryption);
                     channelFuture.addListener(l -> {
                         ChatsPacket chatsPacket = new ChatsPacket();
@@ -69,10 +69,10 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                         manager.getOnlineClients().keySet().forEach(client -> {
                             manager.getChats(client).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
-                            Optional<TcpServerHandler> optionalServerHandler = serverConnection.getClientConnections().keySet().stream().filter(handler -> manager.getClientName(handler).equals(client)).findFirst();
+                            Optional<TcpServerHandler> optionalServerHandler = connection.getClientConnections().keySet().stream().filter(serverHandler -> manager.getClient(serverHandler).equals(client)).findFirst();
                             if (optionalServerHandler.isPresent()) {
                                 TcpServerHandler peerHandler = optionalServerHandler.get();
-                                SocketChannel peerChannel = serverConnection.getClientConnections().get(peerHandler);
+                                SocketChannel peerChannel = connection.getClientConnections().get(peerHandler);
 
                                 Logger.trace("Sending packet " + packet + " to " + peerChannel.remoteAddress());
                                 NetworkingUtility.sendPacket(packet, peerChannel, peerHandler.getEncryption());
@@ -80,22 +80,22 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                         });
                     });
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_username", "error_change_username", newUsername, serverHandler);
+                    NetworkingUtility.sendFail(ctx, "change_username", "error_change_username", newUsername);
                 }
                 break;
             case "password":
                 if (DatabaseManager.changePassword(oldName, changeUserDataPacket.value)) {
                     sendPasswordSuccessPacket(ctx.channel(), encryption);
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverHandler);
+                    NetworkingUtility.sendFail(ctx, "change_password", "error_change_pw", "");
                 }
                 break;
             case "delete":
                 if (DatabaseManager.deleteUser(oldName)) {
                     sendDeleteSuccessPacket(ctx.channel(), encryption);
-                    serverConnection.markClosed();
+                    connection.markClosed();
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "change_password", "error_change_pw", "", serverHandler);
+                    NetworkingUtility.sendFail(ctx, "change_password", "error_change_pw", "");
                 }
                 break;
         }

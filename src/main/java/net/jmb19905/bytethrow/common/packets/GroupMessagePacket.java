@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
@@ -36,7 +37,7 @@ public class GroupMessagePacket extends Packet {
 
     @Override
     public void construct(String[] data) {
-        message = new GroupMessage(data[1], data[2], data[3], Long.parseLong(data[4]));
+        message = new GroupMessage(User.constructUser(data[1]), data[2], data[3], Long.parseLong(data[4]));
     }
 
     @Override

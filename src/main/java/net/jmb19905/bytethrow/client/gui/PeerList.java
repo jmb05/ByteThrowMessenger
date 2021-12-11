@@ -19,7 +19,6 @@
 package net.jmb19905.bytethrow.client.gui;
 
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ClientGroupChat;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.GroupChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.IChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.PeerChatProfile;
@@ -50,7 +49,7 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         item.addActionListener(l -> {
             IChatProfile<? extends Message> value = getSelectedValue();
             if(value instanceof PeerChatProfile){
-                StartClient.manager.disconnectFromPeer(value.getDisplayName());
+                StartClient.manager.disconnectFromPeer(((PeerChatProfile) value).getPeer());
             }else {
                 StartClient.manager.leaveGroup(value.getDisplayName());
             }

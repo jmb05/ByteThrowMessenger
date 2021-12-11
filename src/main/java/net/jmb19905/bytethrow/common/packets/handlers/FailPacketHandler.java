@@ -21,40 +21,37 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
 import net.jmb19905.bytethrow.client.util.Localisation;
-import net.jmb19905.bytethrow.common.chat.PeerChat;
+import net.jmb19905.bytethrow.common.User;
+import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 public class FailPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
         throw new IllegalSideException("FailPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler tcpClientHandler) {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
         ClientManager manager = StartClient.manager;
         FailPacket failPacket = (FailPacket) packet;
         String cause = failPacket.cause;
         String message = Localisation.get(failPacket.message);
-        Encryption encryption = tcpClientHandler.getEncryption();
         if (!failPacket.extra.equals(" ")) {
             message = Localisation.get(failPacket.message, failPacket.extra);
         }
         StartClient.guiManager.showError(message);
         switch (cause.split(":")[0]) {
-            case "login" -> manager.relogin(ctx.channel(), encryption);
-            case "register" -> manager.register(ctx.channel(), encryption);
+            case "login" -> manager.relogin(ctx);
+            case "register" -> manager.register(ctx);
             case "version" -> {
                 Logger.fatal("Version mismatch: " + Localisation.get(failPacket.message));
                 ShutdownManager.shutdown(-1);
@@ -62,9 +59,22 @@ public class FailPacketHandler extends PacketHandler {
             case "external_disconnect" -> ShutdownManager.shutdown(0);
             case "connect" -> {
                 String peerName = cause.split(":")[1];
-                ClientPeerChat chat = manager.getChat(peerName);
+                User peer = new User(peerName);
+                ClientPeerChat chat = manager.getChat(peer);
                 manager.removeChat(chat);
-                StartClient.guiManager.removeChat(chat);
+            }
+            case "group_add" -> {
+                String[] parts = cause.split(":");
+                String memberName = parts[1];
+                User member = new User(memberName);
+                String groupName = parts[2];
+                ClientGroupChat chat = manager.getGroup(groupName);
+                if(chat != null) {
+                    chat.removeClient(member);
+                    if (chat.getMembers().size() < 2) {
+                        manager.removeGroup(chat);
+                    }
+                }
             }
         }
     }

@@ -20,15 +20,15 @@ package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ChatHistorySerialisation;
-import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
+import net.jmb19905.bytethrow.common.chat.client.ChatHistorySerialisation;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
@@ -38,24 +38,24 @@ import net.jmb19905.util.Logger;
 public class PeerMessagePacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler serverHandler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
         PeerMessage message = messagePacket.message;
         ServerManager manager = StartServer.manager;
-        String name = manager.getClientName(serverHandler);
-        if (name.equals(message.getSender())) {
-            if (!name.isBlank()) {
-                String peerName = message.getReceiver();
-                PeerChat chat = manager.getChat(name, peerName);
+        User user = manager.getClient((TcpServerHandler) ctx.handler());
+        if (user.equals(message.getSender())) {
+            if (user != null) {
+                User peer = message.getReceiver();
+                PeerChat chat = manager.getChat(user, peer);
                 if (chat != null) {
                     if (chat.isActive()) {
-                        manager.sendPacketToPeer(peerName, messagePacket, serverHandler);
-                        Logger.trace("Sent message to recipient: " + peerName);
+                        manager.sendPacketToPeer(peer, messagePacket, manager.getConnection(), (TcpServerHandler) ctx.handler());
+                        Logger.trace("Sent message to recipient: " + peer.getUsername());
                     } else {
-                        NetworkingUtility.sendFail(ctx.channel(), "message", "peer_offline", peerName, serverHandler);
+                        NetworkingUtility.sendFail(ctx, "message", "peer_offline", peer.getUsername());
                     }
                 } else {
-                    NetworkingUtility.sendFail(ctx.channel(), "message", "no_such_chat", peerName, serverHandler);
+                    NetworkingUtility.sendFail(ctx, "message", "no_such_chat", peer.getUsername());
                 }
             } else {
                 Logger.warn("Client is trying to communicate but isn't logged in!");
@@ -66,19 +66,19 @@ public class PeerMessagePacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) {
         PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
         PeerMessage message = messagePacket.message;
-        String sender = message.getSender();
-        String receiver = message.getReceiver();
+        User sender = message.getSender();
+        User receiver = message.getReceiver();
         String encryptedMessage = message.getMessage();
-        if (receiver.equals(StartClient.manager.name)) {
+        if (receiver.equals(StartClient.manager.user)) {
             ClientPeerChat chat = StartClient.manager.getChat(sender);
             if (chat != null) {
                 message.setMessage(chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage);
                 StartClient.guiManager.appendMessage(message, chat);
                 chat.addMessage(message);
-                ChatHistorySerialisation.saveChat(StartClient.manager.name, chat);
+                ChatHistorySerialisation.saveChat(StartClient.manager.user, chat);
             } else {
                 Logger.warn("Received Packet from unknown user");
             }

@@ -30,7 +30,6 @@ import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
@@ -39,14 +38,14 @@ import javax.swing.*;
 public class SuccessPacketHandler extends PacketHandler {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet, TcpServerHandler tcpServerHandler) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
         throw new IllegalSideException("SuccessPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet, TcpClientHandler tcpClientHandler) {
+    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
         SuccessPacket successPacket = (SuccessPacket) packet;
-        Encryption encryption = tcpClientHandler.getEncryption();
+        Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
         switch (successPacket.type) {
             case LOGIN, REGISTER -> {
                 doOnLoginSuccess(successPacket, encryption, ctx.channel());

@@ -19,21 +19,30 @@
 package net.jmb19905.bytethrow.client.gui.chatprofiles;
 
 import net.jmb19905.bytethrow.client.StartClient;
-import net.jmb19905.bytethrow.client.chat.ClientPeerChat;
+import net.jmb19905.bytethrow.common.User;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
 
 public class PeerChatProfile extends AbstractChatProfile<PeerMessage> {
 
+    private final User peer;
     private boolean connected = false;
 
-    public PeerChatProfile(String other, ClientPeerChat chat){
-        super(other, chat.getUniqueId());
+    public PeerChatProfile(User peer, ClientPeerChat chat){
+        super(peer.getUsername(), chat.getUniqueId());
+        this.peer = peer;
         setMessages(chat.getMessages());
     }
 
     public PeerChatProfile(ClientPeerChat chat) {
-        super(chat.getOther(StartClient.manager.name), chat.getUniqueId());
+        super(chat.getOther(StartClient.manager.user).getUsername(), chat.getUniqueId());
+        System.out.println(chat.getOther(StartClient.manager.user).getUsername());
+        peer = chat.getOther(StartClient.manager.user);
         setMessages(chat.getMessages());
+    }
+
+    public User getPeer() {
+        return peer;
     }
 
     public void setConnected(boolean connected) {

@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.jmb19905'
-version '1.0.0-alpha9'
+version '1.0.0-alpha10'
 
 repositories {
     mavenCentral()
@@ -17,15 +17,18 @@ configurations {
 }
 
 dependencies {
-    provided 'com.formdev:flatlaf:1.6'
+    implementation 'org.jetbrains:annotations:22.0.0'
+    provided 'com.formdev:flatlaf:1.6.4'
     provided 'org.xerial:sqlite-jdbc:3.36.0.2'
     provided 'org.mindrot:jbcrypt:0.4'
     provided 'com.fasterxml.jackson.core:jackson-core:2.13.0'
     provided 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
     provided 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
-    provided 'io.netty:netty-all:4.1.69.Final'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    provided 'io.netty:netty-all:4.1.70.Final'
+    provided 'com.talanlabs:avatar-generator:1.1.0'
+    provided 'com.google.guava:guava:31.0.1-jre'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
 task clientJar(type: Jar) {
@@ -80,7 +83,7 @@ jar.onlyIf { false }
 task createExecutableFiles {
     dependsOn clientJar
     dependsOn serverJar
-    dependsOn createAllExecutables
+    //dependsOn createAllExecutables
 }
 
 build.finalizedBy(createExecutableFiles)

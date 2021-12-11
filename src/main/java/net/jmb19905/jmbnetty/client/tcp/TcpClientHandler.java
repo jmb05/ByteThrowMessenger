@@ -19,25 +19,32 @@
 package net.jmb19905.jmbnetty.client.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
-import net.jmb19905.jmbnetty.client.ClientConnection;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
+import net.jmb19905.jmbnetty.common.handler.TcpFileHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.util.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class TcpClientHandler extends AbstractChannelHandler {
 
-    public TcpClientHandler(ClientConnection connection) {
-        super(connection);
-    }
+    private TcpFileHandler fileHandler = null;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
         try {
             Packet packet = (Packet) msg;
-            packet.getHandler().handleOnClient(ctx, packet, this);
+            packet.getHandler().handleOnClient(ctx, packet);
         } catch (IllegalSideException e) {
             Logger.warn(e);
         }
+    }
+
+    public void setFileHandler(TcpFileHandler fileHandler) {
+        this.fileHandler = fileHandler;
+    }
+
+    public TcpFileHandler getFileHandler() {
+        return fileHandler;
     }
 }

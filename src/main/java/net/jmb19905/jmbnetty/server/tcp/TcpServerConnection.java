@@ -18,6 +18,8 @@
 
 package net.jmb19905.jmbnetty.server.tcp;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -25,20 +27,24 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import net.jmb19905.jmbnetty.common.connection.event.ConnectedEvent;
+import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEvent;
+import net.jmb19905.jmbnetty.common.connection.event.ErrorEvent;
+import net.jmb19905.jmbnetty.common.connection.event.NetworkEventContext;
+import net.jmb19905.jmbnetty.common.handler.ChunkDecoder;
 import net.jmb19905.jmbnetty.common.handler.Decoder;
+import net.jmb19905.jmbnetty.common.handler.TcpFileHandler;
 import net.jmb19905.jmbnetty.server.ServerConnection;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class TcpServerConnection extends ServerConnection {
 
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
 
-    private final Map<TcpServerHandler, SocketChannel> clientConnections = new HashMap<>();
+    private final BiMap<TcpServerHandler, SocketChannel> clientConnections = HashBiMap.create();
 
     public TcpServerConnection(int port) {
         super(port);
@@ -48,16 +54,18 @@ public class TcpServerConnection extends ServerConnection {
 
     @Override
     public void run() {
-        TcpServerConnection instance = this;
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel ch) {
-                            TcpServerHandler serverHandler = new TcpServerHandler(instance);
-                            ch.pipeline().addLast(new Decoder(serverHandler.getEncryption()), serverHandler);
+                        protected void initChannel(@NotNull SocketChannel ch) {
+                            TcpServerHandler serverHandler = createServerHandler();
+                            TcpFileHandler fileHandler = new TcpFileHandler();
+                            serverHandler.setFileHandler(fileHandler);
+                            ch.pipeline().addLast(new Decoder(serverHandler.getEncryption()), serverHandler)
+                                         .addLast(new ChunkDecoder(), fileHandler);
                             clientConnections.put(serverHandler, ch);
                         }
                     })
@@ -77,7 +85,22 @@ public class TcpServerConnection extends ServerConnection {
         super.stop();
     }
 
-    public Map<TcpServerHandler, SocketChannel> getClientConnections() {
+    public BiMap<TcpServerHandler, SocketChannel> getClientConnections() {
         return clientConnections;
+    }
+
+    private TcpServerHandler createServerHandler() {
+        TcpServerHandler serverHandler = new TcpServerHandler();
+        NetworkEventContext ctx = NetworkEventContext.create(this, serverHandler);
+        serverHandler.addActiveEvent(evt -> performEvent(new ConnectedEvent(ctx)));
+        serverHandler.addInactiveEvent(evt -> {
+            performEvent(new DisconnectedEvent(ctx));
+            markClosed();
+        });
+        serverHandler.addExceptionEvent(evt -> {
+            performEvent(new ErrorEvent(ctx, evt.getCause()));
+            Logger.error(evt.getCause());
+        });
+        return serverHandler;
     }
 }

@@ -20,47 +20,43 @@ package net.jmb19905.jmbnetty.common.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.jmb19905.jmbnetty.common.connection.AbstractConnection;
-import net.jmb19905.jmbnetty.common.connection.event.ConnectedEvent;
-import net.jmb19905.jmbnetty.common.connection.event.DisconnectedEvent;
-import net.jmb19905.jmbnetty.common.connection.event.ErrorEvent;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
-import net.jmb19905.util.Logger;
+import net.jmb19905.util.events.Event;
+import net.jmb19905.util.events.EventContext;
+import net.jmb19905.util.events.EventHandler;
+import net.jmb19905.util.events.EventListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.PublicKey;
 
 public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapter implements IEncryptedHandler {
 
-    private final AbstractConnection connection;
     private final Encryption encryption;
 
-    public AbstractChannelHandler(AbstractConnection connection) {
-        this.connection = connection;
+    private final EventHandler<HandlerEventContext> eventHandler;
+
+    public AbstractChannelHandler() {
         this.encryption = new Encryption();
+        this.eventHandler = new EventHandler<>("handler");
+        this.eventHandler.setValid(true);
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        connection.performEvent("connected", () -> new ConnectedEvent(this));
+    public void channelActive(@NotNull ChannelHandlerContext ctx) {
+        eventHandler.performEvent(new ActiveEvent(HandlerEventContext.create(this)));
     }
 
     @Override
-    public abstract void channelRead(ChannelHandlerContext ctx, Object msg);
+    public abstract void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg);
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        connection.performEvent("disconnected", () -> new DisconnectedEvent(this));
-        connection.markClosed();
+    public void channelInactive(@NotNull ChannelHandlerContext ctx) {
+        eventHandler.performEvent(new InactiveEvent(HandlerEventContext.create(this)));
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        connection.performEvent("error", () -> new ErrorEvent(this, cause));
-        Logger.error(cause);
-    }
-
-    public AbstractConnection getConnection() {
-        return connection;
+        eventHandler.performEvent(new ExceptionEvent(HandlerEventContext.create(this), cause));
     }
 
     @Override
@@ -74,5 +70,89 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
 
     public void setPublicKey(PublicKey key) {
         encryption.setReceiverPublicKey(key);
+    }
+
+    public void addActiveEvent(ActiveEventListener listener) {
+        eventHandler.addEventListener(listener);
+    }
+
+    public void addInactiveEvent(InactiveEventListener listener) {
+        eventHandler.addEventListener(listener);
+    }
+
+    public void addExceptionEvent(ExceptionEventListener listener) {
+        eventHandler.addEventListener(listener);
+    }
+
+    private static abstract class HandlerEvent extends Event<HandlerEventContext> {
+        public HandlerEvent(@NotNull HandlerEventContext ctx, String id) {
+            super(ctx, id);
+        }
+    }
+
+    public static class HandlerEventContext extends EventContext {
+        private final AbstractChannelHandler handler;
+
+        private HandlerEventContext(AbstractChannelHandler handler) {
+            super(handler);
+            this.handler = handler;
+        }
+
+        public AbstractChannelHandler getHandler() {
+            return handler;
+        }
+
+        public static HandlerEventContext create(AbstractChannelHandler handler) {
+            return new HandlerEventContext(handler);
+        }
+    }
+
+    public static class ActiveEvent extends HandlerEvent {
+        private static final String ID = "active";
+        public ActiveEvent(HandlerEventContext ctx) {
+            super(ctx, ID);
+        }
+    }
+
+    public interface ActiveEventListener extends EventListener<ActiveEvent> {
+        @Override
+        default String getId() {
+            return ActiveEvent.ID;
+        }
+    }
+
+    public static class InactiveEvent extends HandlerEvent {
+        private static final String ID = "inactive";
+        public InactiveEvent(HandlerEventContext ctx) {
+            super(ctx, ID);
+        }
+    }
+
+    public interface InactiveEventListener extends EventListener<InactiveEvent> {
+        @Override
+        default String getId() {
+            return InactiveEvent.ID;
+        }
+    }
+
+    public static class ExceptionEvent extends HandlerEvent {
+        private static final String ID = "exception";
+        private final Throwable throwable;
+
+        public ExceptionEvent(HandlerEventContext ctx, Throwable throwable) {
+            super(ctx, ID);
+            this.throwable = throwable;
+        }
+
+        public Throwable getCause() {
+            return throwable;
+        }
+    }
+
+    public interface ExceptionEventListener extends EventListener<ExceptionEvent> {
+        @Override
+        default String getId() {
+            return ExceptionEvent.ID;
+        }
     }
 }

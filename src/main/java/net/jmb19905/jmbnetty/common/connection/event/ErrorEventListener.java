@@ -18,11 +18,11 @@
 
 package net.jmb19905.jmbnetty.common.connection.event;
 
-import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEventListener;
+import net.jmb19905.util.events.EventListener;
 
-public interface ErrorEventListener extends NetworkEventListener<ErrorEvent> {
+public interface ErrorEventListener extends EventListener<ErrorEvent> {
     @Override
     default String getId() {
-        return "error";
+        return ErrorEvent.ID;
     }
 }

@@ -32,7 +32,7 @@ public abstract class Registry {
     public Type<?> getRegistry(String id) throws NullPointerException {
         Type<?> type = registries.get(id);
         if (type == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("Could not find Registry Entry: " + id);
         }
         return type;
     }

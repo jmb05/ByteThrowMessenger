@@ -19,6 +19,7 @@
 package net.jmb19905.bytethrow.common.chat;
 
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 
 import java.security.PublicKey;
@@ -32,30 +33,30 @@ public class PeerChat extends AbstractChat {
     /**
      * Initializes the EncryptedConnection for the client
      */
-    public PeerChat(String peer) {
-        addClient(StartClient.manager.name);
+    public PeerChat(User peer) {
+        addClient(StartClient.manager.user);
         addClient(peer);
     }
 
-    public PeerChat(String peer1, String peer2) {
+    public PeerChat(User peer1, User peer2) {
         addClient(peer1);
         addClient(peer2);
     }
 
-    public PeerChat(String peer, UUID uuid){
+    public PeerChat(User peer, UUID uuid){
         super(uuid);
-        addClient(StartClient.manager.name);
+        addClient(StartClient.manager.user);
         addClient(peer);
     }
 
-    public PeerChat(String peer1, String peer2, UUID uuid){
+    public PeerChat(User peer1, User peer2, UUID uuid){
         super(uuid);
         addClient(peer1);
         addClient(peer2);
     }
 
-    public String getOther(String peer) {
-        return members.stream().filter(s -> !s.equals(peer)).findFirst().orElse(null);
+    public User getOther(User peer) {
+        return members.stream().filter(u -> !u.equals(peer)).findFirst().orElse(null);
     }
 
     public void initClient() {

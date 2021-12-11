@@ -18,14 +18,14 @@
 
 package net.jmb19905.jmbnetty.common.connection.event;
 
-import net.jmb19905.jmbnetty.common.connection.event.abstr.NetworkEvent;
-
 public class ErrorEvent extends NetworkEvent {
+
+    public static final String ID = "error";
 
     private final Throwable cause;
 
-    public ErrorEvent(Object source, Throwable cause) {
-        super(source);
+    public ErrorEvent(NetworkEventContext ctx, Throwable cause) {
+        super(ctx, ID);
         this.cause = cause;
     }
 

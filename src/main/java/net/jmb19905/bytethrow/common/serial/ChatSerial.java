@@ -18,6 +18,7 @@
 
 package net.jmb19905.bytethrow.common.serial;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
@@ -28,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,15 +57,18 @@ public class ChatSerial {
         if (Files.exists(chatFilePath)) {
             try (BufferedReader reader = new BufferedReader(new FileReader(chatFilePath.toFile()))) {
                 String name = reader.readLine();
-                String[] clients = reader.readLine().split(",");
+                List<User> users = new ArrayList<>();
+                for(String userData : reader.readLine().split(",")) {
+                    users.add(User.constructUser(userData));
+                }
 
                 AbstractChat chat;
 
                 if (!name.equals("null")) {
                     chat = new GroupChat(name, uuid);
-                    chat.setMembers(new ArrayList<>(Arrays.asList(clients)));
+                    chat.setMembers(users);
                 } else {
-                    chat = new PeerChat(clients[0], clients[1], uuid);
+                    chat = new PeerChat(users.get(0), users.get(1), uuid);
                 }
 
                 return chat;
@@ -80,7 +83,6 @@ public class ChatSerial {
     }
 
     public static void write(AbstractChat chat) {
-        Logger.debug("Wrote Chat: " + chat.getUniqueId());
         Path chatFilePath = Paths.get("chats/" + chat.getUniqueId().toString());
         try {
             if (!Files.exists(chatFilePath)) {
@@ -91,13 +93,14 @@ public class ChatSerial {
                 writer.write(chat instanceof PeerChat ? "null" : ((GroupChat) chat).getName());
                 writer.newLine();
                 StringBuilder members = new StringBuilder();
-                chat.getMembers().forEach(member -> members.append(member).append(","));
+                chat.getMembers().forEach(member -> members.append(member.toSafeString()).append(","));
                 writer.write(members.toString());
                 writer.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Logger.debug("Wrote Chat: " + chat.getUniqueId());
     }
 
     public static void deleteChatFile(UUID uuid){

@@ -25,6 +25,7 @@ import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
 import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.client.util.ThemeManager;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
@@ -83,9 +84,9 @@ public class Window extends JFrame {
 
         addPeer = new JButton(Localisation.get("add_peer"));
         addPeer.addActionListener(l -> {
-            String name = JOptionPane.showInputDialog(Localisation.get("peer_name_input"));
-            if (StartClient.manager != null && name != null && !name.equals("")) {
-                StartClient.manager.connectToPeer(name);
+            User user = new User(JOptionPane.showInputDialog(Localisation.get("peer_name_input")));
+            if (StartClient.manager != null && user != null) {
+                StartClient.manager.connectToPeer(user);
             }
         });
         peerPanelConstraints.gridy = 1;
@@ -107,11 +108,14 @@ public class Window extends JFrame {
         pane.setDividerLocation(this.getPreferredSize().width / 4);
         add(pane);
 
+        JScrollPane scrollPane = new JScrollPane(area, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weightx = 1;
         constraints.weighty = 1;
         constraints.fill = GridBagConstraints.BOTH;
-        messagingPanel.add(area, constraints);
+        messagingPanel.add(scrollPane, constraints);
 
         constraints.gridy = 1;
         constraints.weighty = 0;
@@ -258,7 +262,7 @@ public class Window extends JFrame {
 
     private void sendToGroup(String text) {
         GroupChatProfile chatProfile = (GroupChatProfile) getSelected();
-        GroupMessage groupMessage = new GroupMessage(StartClient.manager.name, chatProfile.getDisplayName(), text, System.currentTimeMillis());
+        GroupMessage groupMessage = new GroupMessage(StartClient.manager.user, chatProfile.getDisplayName(), text, System.currentTimeMillis());
         if (StartClient.manager.sendGroupMessage(groupMessage)) {
             appendMessage(groupMessage, chatProfile);
             field.setText("");
@@ -269,7 +273,8 @@ public class Window extends JFrame {
 
     private void sendToPeer(String text) {
         PeerChatProfile chatProfile = (PeerChatProfile) getSelected();
-        PeerMessage peerMessage = new PeerMessage(StartClient.manager.name, chatProfile.getDisplayName(), text, System.currentTimeMillis());
+        System.out.println("User: " + StartClient.manager.user);
+        PeerMessage peerMessage = new PeerMessage(StartClient.manager.user, chatProfile.getPeer(), text, System.currentTimeMillis());
         if (StartClient.manager.sendPeerMessage(peerMessage)) {
             appendMessage(peerMessage, chatProfile);
             field.setText("");

@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.chat;
+package net.jmb19905.bytethrow.common.chat.client;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
@@ -34,11 +35,11 @@ public class ClientPeerChat extends PeerChat implements IClientChat<PeerMessage>
         this.uniqueId = data.id();
     }
 
-    public ClientPeerChat(String peer) {
+    public ClientPeerChat(User peer) {
         super(peer);
     }
 
-    public ClientPeerChat(String peer1, String peer2) {
+    public ClientPeerChat(User peer1, User peer2) {
         super(peer1, peer2);
     }
 

@@ -19,7 +19,6 @@
 package net.jmb19905.bytethrow.common.packets.handlers;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.packets.RegisterPacket;
@@ -28,7 +27,6 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
@@ -38,13 +36,17 @@ import net.jmb19905.util.Logger;
 
 public class RegisterPacketHandler extends PacketHandler {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet, TcpServerHandler tcpServerHandler) {
+    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
         RegisterPacket registerPacket = (RegisterPacket) packet;
         Logger.trace("Client is trying to registering");
-        if (DatabaseManager.createUser(registerPacket.username, registerPacket.password)) {
-            handleSuccessfulRegister(ctx.channel(), registerPacket, tcpServerHandler);
+
+        ServerManager manager = StartServer.manager;
+
+        if (DatabaseManager.createUser(registerPacket.user)) {
+            registerPacket.user.removePassword();
+            handleSuccessfulRegister(ctx, registerPacket, manager.getConnection());
         } else {
-            NetworkingUtility.sendFail(ctx.channel(), "register", "register_fail", "", tcpServerHandler);
+            NetworkingUtility.sendFail(ctx, "register", "register_fail", "");
         }
     }
 
@@ -54,21 +56,22 @@ public class RegisterPacketHandler extends PacketHandler {
      *
      * @param packet the login packet containing the login packet of the client
      */
-    private void handleSuccessfulRegister(Channel channel, RegisterPacket packet, TcpServerHandler handler) {
+    private void handleSuccessfulRegister(ChannelHandlerContext ctx, RegisterPacket packet, TcpServerConnection connection) {
         ServerManager manager = StartServer.manager;
-        if (manager.isClientOnline(packet.username)) {
-            for (TcpServerHandler otherHandler : ((TcpServerConnection) handler.getConnection()).getClientConnections().keySet()) {
-                if (manager.getClientName(otherHandler).equals(packet.username)) {
-                    SocketChannel otherSocketChannel = ((TcpServerConnection) handler.getConnection()).getClientConnections().get(otherHandler);
-                    ChannelFuture future = NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler);
-                    future.addListener(future1 -> otherHandler.getConnection().markClosed());
+        if (manager.isClientOnline(packet.user)) {
+            for (TcpServerHandler otherHandler : connection.getClientConnections().keySet()) {
+                if (manager.getClient(otherHandler).equals(packet.user)) {
+                    SocketChannel otherSocketChannel = connection.getClientConnections().get(otherHandler);
+                    NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler.getEncryption());
+                    //future.addListener(future1 -> otherHandler.markClosed());
                 }
             }
         }
-        manager.addOnlineClient(packet.username, handler);
-        Logger.info("Client: " + channel.remoteAddress() + " now uses name: " + manager.getClientName(handler));
+        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
+        manager.addOnlineClient(packet.user, handler);
+        Logger.info("Client: " + ctx.channel().remoteAddress() + " now uses name: " + manager.getClient(handler));
 
-        sendRegisterSuccess(channel, handler); // confirms the register to the current client
+        sendRegisterSuccess(ctx.channel(), handler); // confirms the register to the current client
     }
 
     /**
@@ -83,7 +86,7 @@ public class RegisterPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet, TcpClientHandler tcpClientHandler) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
         throw new IllegalSideException("RegisterPacket received on Client");
     }
 }

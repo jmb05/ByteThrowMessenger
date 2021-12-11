@@ -21,6 +21,7 @@ package net.jmb19905.bytethrow.client.gui;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.util.Localisation;
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.util.AsynchronousInitializer;
 import net.jmb19905.util.Logger;
 
@@ -37,7 +38,7 @@ public class CreateGroupDialog extends JDialog {
     private WindowAdapter cancelListener = null;
 
     private String groupName = "";
-    private String[] members = new String[10];
+    private User[] members = new User[10];
 
     public CreateGroupDialog(Window window) {
         super(window);
@@ -87,7 +88,7 @@ public class CreateGroupDialog extends JDialog {
         constraints.anchor = GridBagConstraints.NORTH;
         add(scrollPane, constraints);
 
-        this.memberListModel.addElement(StartClient.manager.name);
+        this.memberListModel.addElement(StartClient.manager.user.getUsername());
 
         JButton addButton = new JButton(Localisation.get("add_member"));
         addButton.addActionListener(l -> {
@@ -116,7 +117,7 @@ public class CreateGroupDialog extends JDialog {
 
     protected void cancelActionPerformed(WindowEvent e) {
         groupName = "";
-        members = new String[10];
+        members = new User[10];
         hideDialog();
         if (cancelListener != null) {
             cancelListener.windowClosing(e);
@@ -127,11 +128,9 @@ public class CreateGroupDialog extends JDialog {
     protected void confirmActionPerformed(ActionEvent e) {
         groupName = groupNameTextField.getText().strip().replaceAll(" ", "_");
         Object[] objArray = memberListModel.toArray();
-        String[] membersArray = new String[objArray.length];
         for (int i = 0; i < objArray.length; i++) {
-            membersArray[i] = String.valueOf(objArray[i]);
+            members[i] = new User(String.valueOf(objArray[i]));
         }
-        members = membersArray;
         hideDialog();
         if (confirmListener != null) {
             confirmListener.actionPerformed(e);
@@ -161,7 +160,7 @@ public class CreateGroupDialog extends JDialog {
             addCancelListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    initializer.init(new CreateGroupData("", new String[0], true));
+                    initializer.init(new CreateGroupData("", new User[0], true));
                 }
             });
             setVisible(true);
@@ -174,7 +173,7 @@ public class CreateGroupDialog extends JDialog {
         groupNameTextField.requestFocus();
     }
 
-    public record CreateGroupData(String groupName, String[] members, boolean cancel) {
+    public record CreateGroupData(String groupName, User[] members, boolean cancel) {
     }
 
     private static class MemberListRenderer extends JLabel implements ListCellRenderer<String> {

@@ -18,8 +18,10 @@
 
 package net.jmb19905.bytethrow.server.database;
 
+import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.util.Logger;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,8 +56,8 @@ public class DatabaseManager {
         return userData;
     }
 
-    public static boolean createUser(String username, String password) {
-        return userTableHandler.createUser(username, password);
+    public static boolean createUser(User user) {
+        return userTableHandler.createUser(user);
     }
 
     public static boolean hasUser(String username) {
@@ -79,6 +81,10 @@ public class DatabaseManager {
     }
 
     public static record UserData(String username, String password, String salt) {
+        public static UserData createFrom(User user) {
+            String salt = BCrypt.gensalt();
+            return new UserData(user.getUsername(), BCrypt.hashpw(user.getPassword(), salt), salt);
+        }
     }
 
     public static boolean addChat(AbstractChat chat) {
