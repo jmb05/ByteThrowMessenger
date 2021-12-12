@@ -46,7 +46,7 @@ public class StartServer {
     public static void main(String[] args) {
         isDevEnv = args.length > 0;
 
-        Logger.initLogFile(true);
+        Logger.initLogFile("server");
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Server - Version: " + version);
         Logger.info("""

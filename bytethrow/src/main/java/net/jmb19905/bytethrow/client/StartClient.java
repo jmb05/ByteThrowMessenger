@@ -48,7 +48,7 @@ public class StartClient {
             isDevEnv = Arrays.asList(args).contains("dev");
         }
 
-        Logger.initLogFile(false);
+        Logger.initLogFile("client");
         version = Util.loadVersion(isDevEnv);
         Logger.info("Starting ByteThrow Messenger Client - Version: " + version);
         if (isDevEnv) {

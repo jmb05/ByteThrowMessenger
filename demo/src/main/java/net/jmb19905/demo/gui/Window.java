@@ -45,6 +45,9 @@ public class Window extends JFrame {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = 0;
         constraints.gridy = 0;
+        constraints.weightx = 1;
+        constraints.weighty = 1;
+        constraints.fill = GridBagConstraints.BOTH;
         constraints.insets = new Insets(5,5,5,5);
 
         JTextPane area = new JTextPane();
@@ -58,6 +61,7 @@ public class Window extends JFrame {
         add(scrollPane, constraints);
 
         constraints.gridy = 1;
+        constraints.weighty = 0;
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
         setFieldEnabled(false);

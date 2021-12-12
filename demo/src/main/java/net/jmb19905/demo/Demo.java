@@ -16,6 +16,7 @@ public class Demo {
 
     public static void main(String[] args) {
         ShutdownManager.addCleanUp(Logger::close);
+        Logger.initLogFile("demo");
 
         RegistryManager.registerPackets();
         Logger.info("Registered Packets");
@@ -26,11 +27,8 @@ public class Demo {
 
         switch (startOption) {
             case SERVER -> manager = new ServerManager();
-            case CLIENT -> manager = new ClientManager();
-            case CANCEL -> {
-                Logger.info("Stopping...");
-                ShutdownManager.shutdown(0);
-            }
+            case CLIENT -> manager = new ClientManager(JOptionPane.showInputDialog("Server address:"));
+            case CANCEL -> ShutdownManager.shutdown(0);
         }
     }
 

@@ -20,8 +20,8 @@ public class ClientManager extends EndpointManager {
     private final Client client;
     private Window window = null;
 
-    public ClientManager() {
-        client = new Client(21212, "localhost");
+    public ClientManager(String serverAddress) {
+        client = new Client(21212, serverAddress);
         client.addConnectedEventListener(evt -> {
             Logger.info("Connected");
             TcpClientConnection clientConnection = (TcpClientConnection) evt.getSource();

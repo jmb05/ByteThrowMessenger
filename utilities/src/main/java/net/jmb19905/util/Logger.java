@@ -45,16 +45,16 @@ public class Logger {
     private static boolean isOnNewLine = true;
 
     private static BufferedWriter writer;
-    private static String side;
+    private static String name;
 
     private static boolean closed = false;
 
-    public static void initLogFile(boolean server) {
+    public static void initLogFile(String name) {
         if (closed) {
             return;
         }
-        side = server ? "server" : "client";
-        File logFile = new File("logs/latest_" + side + ".log");
+        Logger.name = name;
+        File logFile = new File("logs/latest_" + name + ".log");
         if (logFile.exists()) {
             logFile.delete();
         }
@@ -212,15 +212,15 @@ public class Logger {
         if (writer != null) {
             try {
                 writer.close();
-                Path file = Paths.get("logs/latest_" + side + ".log");
-                Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH:mm").replace(" ", "_") + "_" + side + ".log");
+                Path file = Paths.get("logs/latest_" + name + ".log");
+                Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH.mm").replace(" ", "_") + "_" + name + ".log");
                 if (Files.exists(newFile)) {
                     Files.delete(newFile);
                 }
                 if (Files.exists(file)) {
                     Files.move(file, newFile);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.println(ANSIColors.getRed() + "Logger Error:");
                 e.printStackTrace();
                 System.out.print(ANSIColors.getReset());
