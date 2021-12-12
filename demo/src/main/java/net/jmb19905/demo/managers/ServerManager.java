@@ -22,6 +22,7 @@ public class ServerManager extends EndpointManager {
 
     public ServerManager() {
         server = new Server(21212);
+        server.setMaxClients(1);
         server.addConnectedEventListener(evt -> server.getConnection().getClientConnections().keySet().stream().findAny().ifPresent(serverHandler -> {
             Logger.info("Connected");
             SocketChannel channel = ((TcpServerConnection) evt.getSource()).getClientConnections().get(serverHandler);

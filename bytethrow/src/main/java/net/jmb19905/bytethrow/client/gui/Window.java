@@ -228,12 +228,12 @@ public class Window extends JFrame {
         settingsAction = new AbstractAction("", ThemeManager.getIcon("settings_wheel")) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JPopupMenu settingsMenu = new JPopupMenu("Settings");
-                JMenuItem settingsMenuItem = new JMenuItem("General Settings");
+                JPopupMenu settingsMenu = new JPopupMenu(Localisation.get("settings"));
+                JMenuItem settingsMenuItem = new JMenuItem(Localisation.get("general_settings"));
                 settingsMenuItem.addActionListener(l -> settingsWindow.setVisible(true));
                 settingsMenu.add(settingsMenuItem);
 
-                JMenuItem accountSettingsMenuItem = new JMenuItem("Account Settings");
+                JMenuItem accountSettingsMenuItem = new JMenuItem(Localisation.get("account_settings"));
                 accountSettingsMenuItem.addActionListener(l -> accountSettings.setVisible(true));
                 settingsMenu.add(accountSettingsMenuItem);
 

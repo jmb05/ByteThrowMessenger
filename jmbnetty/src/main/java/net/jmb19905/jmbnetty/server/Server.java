@@ -48,6 +48,10 @@ public class Server extends Endpoint {
         this.connection.stop();
     }
 
+    public void setMaxClients(int amount) {
+        connection.setMaxClients(amount);
+    }
+
     public void addConnectedEventListener(ConnectedEventListener listener) {
         connection.addEventListener(listener);
     }

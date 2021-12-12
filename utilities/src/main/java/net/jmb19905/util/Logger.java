@@ -19,6 +19,7 @@
 package net.jmb19905.util;
 
 import java.io.*;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -212,19 +213,29 @@ public class Logger {
         if (writer != null) {
             try {
                 writer.close();
-                Path file = Paths.get("logs/latest_" + name + ".log");
-                Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH.mm").replace(" ", "_") + "_" + name + ".log");
-                if (Files.exists(newFile)) {
-                    Files.delete(newFile);
-                }
-                if (Files.exists(file)) {
-                    Files.move(file, newFile);
-                }
-            } catch (Exception e) {
+                renameLogFile(false);
+            } catch (FileSystemException e) {
+                renameLogFile(true);
+            }catch (Exception e) {
                 System.out.println(ANSIColors.getRed() + "Logger Error:");
                 e.printStackTrace();
                 System.out.print(ANSIColors.getReset());
             }
+        }
+    }
+
+    private static void renameLogFile(boolean secondTry) {
+        try {
+            Path oldFile = Paths.get("logs/latest_" + name + ".log");
+            Path newFile = Paths.get("logs/" + Clock.getCompactDate("dd.MM.yyyy HH.mm").replace(" ", "_") + "_" + name + "-" + (secondTry ? 2 : "") + ".log");
+            if (Files.exists(newFile)) {
+                Files.delete(newFile);
+            }if (Files.exists(oldFile)) {
+                Files.move(oldFile, newFile);
+            }
+        } catch (IOException e) {
+            System.out.println(ANSIColors.getRed() + "Logger Error:");
+            e.printStackTrace();
         }
     }
 

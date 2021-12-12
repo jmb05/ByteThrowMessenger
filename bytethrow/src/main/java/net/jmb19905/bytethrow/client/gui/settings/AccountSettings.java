@@ -22,6 +22,7 @@ import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.ConfirmIdentityDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
+import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.packets.PacketManager;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
@@ -49,7 +50,7 @@ public class AccountSettings extends JDialog {
 
         this.userIcon = userIcon;
         this.confirmIdentityDialog = new ConfirmIdentityDialog(window);
-        setTitle("Account Settings");
+        setTitle(Localisation.get("account_settings"));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         //setPreferredSize(new Dimension(450, 300));
         setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
@@ -82,15 +83,15 @@ public class AccountSettings extends JDialog {
         add(nameLabel, constraints);
 
         JButton changeUsernameButton = new JButton();
-        Action changeUsernameAction = new AbstractAction("Change Username") {
+        Action changeUsernameAction = new AbstractAction(Localisation.get("change_username")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (isIdentityConfirmed()) {
-                    String newUsername = JOptionPane.showInputDialog("New Username: ");
+                    String newUsername = JOptionPane.showInputDialog(Localisation.get("new_username"));
                     if (!newUsername.strip().equals("")) {
                         changeUsername(newUsername);
                     } else {
-                        JOptionPane.showMessageDialog(null, "Nothing changed");
+                        JOptionPane.showMessageDialog(null, Localisation.get("nothing_changed"));
                     }
                 } else {
                     confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
@@ -108,15 +109,15 @@ public class AccountSettings extends JDialog {
         add(changeUsernameButton, constraints);
 
         JButton changePasswordButton = new JButton();
-        Action changePasswordAction = new AbstractAction("Change Password") {
+        Action changePasswordAction = new AbstractAction(Localisation.get("change_password")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (isIdentityConfirmed()) {
-                    String newPassword = JOptionPane.showInputDialog("New Password: ");
+                    String newPassword = JOptionPane.showInputDialog(Localisation.get("new_password"));
                     if (!newPassword.strip().equals("")) {
                         changePassword(newPassword);
                     } else {
-                        JOptionPane.showMessageDialog(null, "Nothing changed");
+                        JOptionPane.showMessageDialog(null, Localisation.get("nothing_changed"));
                     }
                 } else {
                     confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
@@ -133,7 +134,7 @@ public class AccountSettings extends JDialog {
         constraints.gridheight = 1;
         add(changePasswordButton, constraints);
 
-        JButton changeIconButton = new JButton("Change avatar");
+        JButton changeIconButton = new JButton(Localisation.get("change_avatar"));
         changeIconButton.addActionListener(l -> changeAvatar());
         constraints.gridx = 0;
         constraints.gridy = 4;
@@ -188,7 +189,7 @@ public class AccountSettings extends JDialog {
     }
 
     private void changeAvatar() {
-        JOptionPane.showMessageDialog(this, "An avatar is currently not implemented!");
-        Logger.warn("Avatar isn't implemented yet!");//TODO: implement an avatar
+        JOptionPane.showMessageDialog(this, Localisation.get("avatar_unimplemented"));
+        Logger.warn(Localisation.get("avatar_unimplemented"));//TODO: implement an avatar
     }
 }

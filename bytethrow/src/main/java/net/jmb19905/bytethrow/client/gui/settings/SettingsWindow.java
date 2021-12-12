@@ -42,7 +42,7 @@ public class SettingsWindow extends JDialog {
     private final JButton resetSettings;
 
     public SettingsWindow() {
-        setTitle("Settings");
+        setTitle(Localisation.get("general_settings"));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setIconImage(ResourceUtility.getImageResource("icons/icon.png"));
 
@@ -123,6 +123,7 @@ public class SettingsWindow extends JDialog {
             themeCombo.setSelectedItem(StartClient.config.theme);
             setLookAndFeel((String) themeCombo.getSelectedItem());
             autoLoginCheckBox.setSelected(StartClient.config.autoLogin);
+            langCombo.setSelectedItem(StartClient.config.lang);
         });
 
         add(pane);
@@ -153,6 +154,7 @@ public class SettingsWindow extends JDialog {
         autoLoginLabel.setText(Localisation.get("automatic_login") + ": ");
         langLabel.setText(Localisation.get("lang") + ": ");
         resetSettings.setText(Localisation.get("reset_settings"));
+        pack();
     }
 
 }

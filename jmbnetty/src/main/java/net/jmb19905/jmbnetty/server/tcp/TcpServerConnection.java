@@ -46,10 +46,25 @@ public class TcpServerConnection extends ServerConnection {
 
     private final BiMap<TcpServerHandler, SocketChannel> clientConnections = HashBiMap.create();
 
+    private int maxClients = -1;
+    private int clientCount = 0;
+
     public TcpServerConnection(int port) {
         super(port);
         this.bossGroup = new NioEventLoopGroup();
         this.workerGroup = new NioEventLoopGroup();
+    }
+
+    public void setMaxClients(int maxClients) {
+        this.maxClients = maxClients;
+    }
+
+    public int getMaxClients() {
+        return maxClients;
+    }
+
+    public int getClientCount() {
+        return clientCount;
     }
 
     @Override
@@ -61,12 +76,17 @@ public class TcpServerConnection extends ServerConnection {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(@NotNull SocketChannel ch) {
-                            TcpServerHandler serverHandler = createServerHandler();
-                            TcpFileHandler fileHandler = new TcpFileHandler();
-                            serverHandler.setFileHandler(fileHandler);
-                            ch.pipeline().addLast(new Decoder(serverHandler.getEncryption()), serverHandler)
-                                         .addLast(new ChunkDecoder(), fileHandler);
-                            clientConnections.put(serverHandler, ch);
+                            if(maxClients == -1 || clientCount < maxClients) {
+                                TcpServerHandler serverHandler = createServerHandler();
+                                TcpFileHandler fileHandler = new TcpFileHandler();
+                                serverHandler.setFileHandler(fileHandler);
+                                ch.pipeline().addLast(new Decoder(serverHandler.getEncryption()), serverHandler)
+                                        .addLast(new ChunkDecoder(), fileHandler);
+                                clientConnections.put(serverHandler, ch);
+                                clientCount++;
+                            }else {
+
+                            }
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
