@@ -1,8 +1,11 @@
 //file:noinspection GroovyAssignabilityCheck
+import edu.sc.seis.launch4j.tasks.Launch4jLibraryTask
+
 plugins {
     id 'java'
     id 'application'
     id("de.jjohannes.extra-java-module-info") version "0.6"
+    id 'edu.sc.seis.launch4j' version '2.5.1'
 }
 
 group 'net.jmb19905'
@@ -104,11 +107,25 @@ task serverJar(type: Jar) {
 //Don't create the default jar
 jar.onlyIf { false }
 
+launch4j {
+    outfile "ByteThrowMessenger-${project.version}-Client.exe"
+    mainClassName "net.jmb19905.bytethrow.client.ClientMain"
+    //TODO: add icon
+    productName "ByteThrowMessenger"
+    jarTask clientJar
+}
+
+task createJreBundledExe(type: Launch4jLibraryTask) {
+    outfile "ByteThrowMessenger-${project.version}-Client-b.exe"
+    fileDescription "The BytethrowMessenger whith bundled jre"
+    bundledJre64Bit true
+    bundledJrePath 'runtime/java-17-jre/'
+}
 
 task createExecutableFiles {
     dependsOn clientJar
     dependsOn serverJar
-    //dependsOn createAllExecutables
+    dependsOn createAllExecutables
 }
 
 build.finalizedBy(createExecutableFiles)
