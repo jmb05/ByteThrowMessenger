@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The Server
@@ -252,7 +253,10 @@ public class ServerManager {
     }
 
     public TcpServerHandler getClientHandler(User user) {
-        return onlineClients.get(user);
+        AtomicReference<TcpServerHandler> handler = new AtomicReference<>();
+        String username = user.getUsername();
+        onlineClients.keySet().stream().filter(u -> u.getUsername().equals(username)).findFirst().ifPresent(us -> handler.set(onlineClients.get(us)));
+        return handler.get();
     }
 
 }

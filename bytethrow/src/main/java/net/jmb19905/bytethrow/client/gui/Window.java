@@ -44,6 +44,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,10 +60,14 @@ public class Window extends JFrame {
     private final JToolBar toolbar;
     private final JPanel peerPanel;
     private final JButton addPeer;
+    private final JButton createGroup;
 
     private final SettingsWindow settingsWindow;
     private final AccountSettings accountSettings;
     private final EventHandler<GuiEventContext> eventHandler;
+
+    private int recentMessagesPointer = 0;
+    private final List<String> recentMessages = new ArrayList<>();
 
     /**
      * Initializes the components
@@ -103,7 +108,7 @@ public class Window extends JFrame {
         peerPanelConstraints.insets = new Insets(5, 0, 0, 0);
         peerPanel.add(addPeer, peerPanelConstraints);
 
-        JButton createGroup = new JButton(Localisation.get("create_group"));
+        createGroup = new JButton(Localisation.get("create_group"));
         createGroup.addActionListener(l -> StartClient.manager.createGroup());
         peerPanelConstraints.gridy = 2;
         peerPanelConstraints.weightx = 0;
@@ -131,6 +136,24 @@ public class Window extends JFrame {
         messagingPanel.add(field, constraints);
 
         field.addActionListener(l -> send());
+        field.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_UP -> {
+                        if(!recentMessages.isEmpty()) {
+                            if (recentMessagesPointer > 0) recentMessagesPointer--;
+                            field.setText(recentMessages.get(recentMessagesPointer));
+                        }
+                    }case KeyEvent.VK_DOWN -> {
+                        if(!recentMessages.isEmpty()) {
+                            if (recentMessagesPointer < recentMessages.size() - 1) recentMessagesPointer++;
+                            field.setText(recentMessages.get(recentMessagesPointer));
+                        }
+                    }
+                }
+            }
+        });
 
         toolbar = new JToolBar(JToolBar.VERTICAL);
         toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
@@ -175,7 +198,9 @@ public class Window extends JFrame {
 
     private void reloadLang() {
         addPeer.setText(Localisation.get("add_peer"));
+        createGroup.setText(Localisation.get("create_group"));
         settingsWindow.reloadLang();
+        accountSettings.reloadLang();
     }
 
     public void showLoading(boolean loading) {
@@ -258,10 +283,13 @@ public class Window extends JFrame {
 
     private void send() {
         String text = field.getText();
+        if(text.isBlank()) return;
         if (list.getSelectedValue() == null) {
             JOptionPane.showMessageDialog(this, Localisation.get("select_peer"));
             return;
         }
+        recentMessages.add(text);
+        recentMessagesPointer = recentMessages.size();
         if (isSelectedGroup()) {
             sendToGroup(text);
         } else {
@@ -281,10 +309,10 @@ public class Window extends JFrame {
         eventHandler.performEvent(new SendPeerMessageEvent(GuiEventContext.create(this), peerMessage, chatProfile));
     }
 
-    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile){
+    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile, boolean clearField){
         profile.addMessage(message);
         updateAreaContent(profile);
-        field.setText("");
+        if(clearField) field.setText("");
     }
 
     @SuppressWarnings("unchecked")

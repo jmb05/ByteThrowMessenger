@@ -49,10 +49,7 @@ public class TcpClientConnection extends ClientConnection {
         clientHandler = new TcpClientHandler();
         NetworkEventContext ctx = NetworkEventContext.create(this, clientHandler);
         clientHandler.addActiveEvent(evt -> performEvent(new ConnectedEvent(ctx)));
-        clientHandler.addInactiveEvent(evt -> {
-            performEvent(new DisconnectedEvent(ctx));
-            markClosed();
-        });
+        clientHandler.addInactiveEvent(evt -> performEvent(new DisconnectedEvent(ctx)));
         clientHandler.addExceptionEvent(evt -> {
             performEvent(new ErrorEvent(ctx, evt.getCause()));
             Logger.error(evt.getCause());

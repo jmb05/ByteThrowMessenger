@@ -41,12 +41,9 @@ import java.util.Arrays;
 
 public class RegisterDialog extends JDialog {
 
-    private ActionListener confirmListener = e -> {
-    };
-    private ActionListener loginListener = e -> {
-    };
-    private WindowAdapter cancelListener = new WindowAdapter() {
-    };
+    private ActionListener confirmListener = e -> {};
+    private ActionListener loginListener = e -> {};
+    private WindowAdapter cancelListener = new WindowAdapter() {};
 
     private String username = "";
     private String password = "";
@@ -88,6 +85,7 @@ public class RegisterDialog extends JDialog {
                     confirmListener.actionPerformed(e);
                 } else {
                     showPasswordCriteriaNotMetPane();
+                    setVisible(true);
                 }
             }
         };

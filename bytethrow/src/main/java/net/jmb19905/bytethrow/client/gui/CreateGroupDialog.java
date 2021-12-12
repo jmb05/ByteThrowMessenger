@@ -75,12 +75,13 @@ public class CreateGroupDialog extends JDialog {
         add(groupNameTextField, constraints);
 
         JList<String> memberList = new JList<>();
+        memberList.setBorder(BorderFactory.createTitledBorder("Members"));
         this.memberListModel = new DefaultListModel<>();
         memberList.setModel(memberListModel);
         memberList.setCellRenderer(new MemberListRenderer());
 
         JScrollPane scrollPane = new JScrollPane(memberList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension(220, 100));
+        scrollPane.setPreferredSize(new Dimension(250, 180));
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -129,7 +130,8 @@ public class CreateGroupDialog extends JDialog {
         groupName = groupNameTextField.getText().strip().replaceAll(" ", "_");
         Object[] objArray = memberListModel.toArray();
         for (int i = 0; i < objArray.length; i++) {
-            members[i] = new User(String.valueOf(objArray[i]));
+            String userString = String.valueOf(objArray[i]);
+            if(!userString.isBlank()) members[i] = new User(userString);
         }
         hideDialog();
         if (confirmListener != null) {

@@ -22,9 +22,11 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
+import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.chat.client.ChatHistorySerialisation;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
+import net.jmb19905.bytethrow.common.chat.client.IClientChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
@@ -55,7 +57,8 @@ public class ChatsPacketHandler extends PacketHandler {
                         .orElse(null);
 
                 ClientPeerChat chat = new ClientPeerChat(chatData);
-                chat.merge(ChatHistorySerialisation.readChat(manager.user.getUsername(), chat.getUniqueId()));
+                IClientChat<PeerMessage> loadedChat = ChatHistorySerialisation.readChat(manager.user.getUsername(), chat.getUniqueId());
+                chat.merge(loadedChat);
                 ChatHistorySerialisation.saveChat(manager.user, chat);
 
                 manager.addChat(chat);

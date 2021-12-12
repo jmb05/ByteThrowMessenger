@@ -124,14 +124,14 @@ public class ClientManager {
         });
         StartClient.guiManager.addSendPeerMessageEventListener(evt -> {
             if (sendPeerMessage(evt.getPeerMessage())) {
-                StartClient.guiManager.appendMessage(evt.getPeerMessage(), evt.getChatProfile());
+                StartClient.guiManager.appendMessage(evt.getPeerMessage(), evt.getChatProfile(), true);
             } else {
                 StartClient.guiManager.showLocalisedError("chat_doesnt_exist");
             }
         });
         StartClient.guiManager.addSendGroupMessageEventListener(evt -> {
             if(sendGroupMessage(evt.getGroupMessage())) {
-                StartClient.guiManager.appendMessage(evt.getGroupMessage(), evt.getChatProfile());
+                StartClient.guiManager.appendMessage(evt.getGroupMessage(), evt.getChatProfile(), true);
             } else {
                 StartClient.guiManager.showLocalisedError("chat_doesnt_exist");
             }
@@ -202,9 +202,6 @@ public class ClientManager {
     }
 
     public ClientGroupChat getGroup(String name) {
-        for (IClientChat<? extends Message> chat : chats) {
-            Logger.debug(chat.toString());
-        }
         return (ClientGroupChat) chats.stream().filter(chat -> chat instanceof ClientGroupChat).filter(chat -> ((GroupChat) chat).getName().equals(name)).findFirst().orElse(null);
     }
 

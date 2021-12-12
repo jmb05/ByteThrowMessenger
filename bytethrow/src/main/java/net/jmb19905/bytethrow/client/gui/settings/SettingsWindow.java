@@ -154,6 +154,7 @@ public class SettingsWindow extends JDialog {
         autoLoginLabel.setText(Localisation.get("automatic_login") + ": ");
         langLabel.setText(Localisation.get("lang") + ": ");
         resetSettings.setText(Localisation.get("reset_settings"));
+        setTitle(Localisation.get("general_settings"));
         pack();
     }
 

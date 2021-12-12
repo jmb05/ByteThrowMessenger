@@ -76,7 +76,7 @@ public class PeerMessagePacketHandler extends PacketHandler {
             ClientPeerChat chat = StartClient.manager.getChat(sender);
             if (chat != null) {
                 message.setMessage(chat.getEncryption().isUsable() ? EncryptionUtility.decryptString(chat.getEncryption(), encryptedMessage) : encryptedMessage);
-                StartClient.guiManager.appendMessage(message, chat);
+                StartClient.guiManager.appendMessage(message, chat, false);
                 chat.addMessage(message);
                 ChatHistorySerialisation.saveChat(StartClient.manager.user, chat);
             } else {

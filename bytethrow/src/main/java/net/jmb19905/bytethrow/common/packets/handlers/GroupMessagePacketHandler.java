@@ -70,7 +70,7 @@ public class GroupMessagePacketHandler extends PacketHandler {
         String groupName = message.getGroupName();
         ClientGroupChat chat = StartClient.manager.getGroup(groupName);
         if (chat != null) {
-            StartClient.guiManager.appendMessage(message, chat);
+            StartClient.guiManager.appendMessage(message, chat, false);
             chat.addMessage(message);
             ChatHistorySerialisation.saveChat(StartClient.manager.user, chat);
         } else {

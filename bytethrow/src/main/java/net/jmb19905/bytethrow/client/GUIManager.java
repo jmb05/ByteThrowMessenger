@@ -125,12 +125,12 @@ public class GUIManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <M extends Message> void appendMessage(M message, IClientChat<M> clientChat){
-        appendMessage(message, ((AbstractChatProfile<M>) ProfilesManager.getProfileByID(clientChat.getUniqueId())));
+    public <M extends Message> void appendMessage(M message, IClientChat<M> clientChat, boolean clearField){
+        appendMessage(message, ((AbstractChatProfile<M>) ProfilesManager.getProfileByID(clientChat.getUniqueId())), clearField);
     }
 
-    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile){
-        SwingUtilities.invokeLater(() -> window.appendMessage(message, profile));
+    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile, boolean clearField){
+        SwingUtilities.invokeLater(() -> window.appendMessage(message, profile, clearField));
     }
 
     public void showLocalisedError(String id) {

@@ -93,7 +93,7 @@ public class ChatHistorySerialisation {
                 String members = reader.readLine();
                 String[] membersPart = members.split(",");
                 List<User> users = new ArrayList<>();
-                Arrays.stream(membersPart).forEach(un -> users.add(new User(un)));
+                Arrays.stream(membersPart).forEach(un -> users.add(User.constructUser(un)));
 
                 Stream<String> messages = reader.lines();
                 if(name.equals("null")){

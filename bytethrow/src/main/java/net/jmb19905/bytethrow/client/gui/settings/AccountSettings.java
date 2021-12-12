@@ -39,6 +39,9 @@ public class AccountSettings extends JDialog {
 
     private Icon userIcon;
     private final JLabel nameLabel;
+    private final JButton changeUsernameButton;
+    private final JButton changePasswordButton;
+    private final JButton changeIconButton;
 
     private final ConfirmIdentityDialog confirmIdentityDialog;
 
@@ -82,8 +85,8 @@ public class AccountSettings extends JDialog {
         constraints.gridheight = 1;
         add(nameLabel, constraints);
 
-        JButton changeUsernameButton = new JButton();
-        Action changeUsernameAction = new AbstractAction(Localisation.get("change_username")) {
+        changeUsernameButton = new JButton(Localisation.get("change_username"));
+        Action changeUsernameAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (isIdentityConfirmed()) {
@@ -95,7 +98,7 @@ public class AccountSettings extends JDialog {
                     }
                 } else {
                     confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
-                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog("New Username: ")));
+                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changeUsername(JOptionPane.showInputDialog(Localisation.get("new_username"))));
                     confirmIdentityDialog.setVisible(true);
                     changeUsernameButton.getAction().actionPerformed(actionEvent);
                 }
@@ -108,8 +111,8 @@ public class AccountSettings extends JDialog {
         constraints.gridheight = 1;
         add(changeUsernameButton, constraints);
 
-        JButton changePasswordButton = new JButton();
-        Action changePasswordAction = new AbstractAction(Localisation.get("change_password")) {
+        changePasswordButton = new JButton(Localisation.get("change_password"));
+        Action changePasswordAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (isIdentityConfirmed()) {
@@ -121,7 +124,7 @@ public class AccountSettings extends JDialog {
                     }
                 } else {
                     confirmIdentityDialog.addConfirmButtonActionListener(ae -> sendConfirmIdentityPacket(new User(confirmIdentityDialog.getUsername(), confirmIdentityDialog.getPassword())));
-                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog("New Password: ")));
+                    confirmIdentityDialog.addIdentityConfirmedActionListener(ae -> changePassword(JOptionPane.showInputDialog(Localisation.get("new_password"))));
                     confirmIdentityDialog.setVisible(true);
                     changePasswordButton.getAction().actionPerformed(actionEvent);
                 }
@@ -134,7 +137,7 @@ public class AccountSettings extends JDialog {
         constraints.gridheight = 1;
         add(changePasswordButton, constraints);
 
-        JButton changeIconButton = new JButton(Localisation.get("change_avatar"));
+        changeIconButton = new JButton(Localisation.get("change_avatar"));
         changeIconButton.addActionListener(l -> changeAvatar());
         constraints.gridx = 0;
         constraints.gridy = 4;
@@ -191,5 +194,13 @@ public class AccountSettings extends JDialog {
     private void changeAvatar() {
         JOptionPane.showMessageDialog(this, Localisation.get("avatar_unimplemented"));
         Logger.warn(Localisation.get("avatar_unimplemented"));//TODO: implement an avatar
+    }
+
+    public void reloadLang() {
+        changeUsernameButton.setText(Localisation.get("change_username"));
+        changePasswordButton.setText(Localisation.get("change_password"));
+        changeIconButton.setText(Localisation.get("change_avatar"));
+        setTitle(Localisation.get("account_settings"));
+        pack();
     }
 }
