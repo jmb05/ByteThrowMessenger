@@ -110,7 +110,7 @@ jar.onlyIf { false }
 launch4j {
     outfile "ByteThrowMessenger-${project.version}-Client.exe"
     mainClassName "net.jmb19905.bytethrow.client.ClientMain"
-    //TODO: add icon
+    icon "resources/main/icons/btm.ico"
     productName "ByteThrowMessenger"
     jarTask clientJar
 }
