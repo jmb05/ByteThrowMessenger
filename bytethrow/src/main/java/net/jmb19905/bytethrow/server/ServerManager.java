@@ -97,6 +97,7 @@ public class ServerManager {
     public void setChats(List<AbstractChat> chats) {
         this.chats = chats;
         chats.forEach(ChatSerial::write);
+        cleanChats();
     }
 
     public void addChat(AbstractChat chat) {
@@ -105,11 +106,13 @@ public class ServerManager {
             chats.add(chat);
             ChatSerial.write(chat);
         }
+        cleanChats();
     }
 
     public void removeChat(AbstractChat chat) {
         chats.remove(chat);
         ChatSerial.deleteChatFile(chat);
+        cleanChats();
     }
 
     public PeerChat getChat(User user1, User user2) {
@@ -141,6 +144,10 @@ public class ServerManager {
 
     public List<AbstractChat> getChats() {
         return chats;
+    }
+
+    public void cleanChats() {
+        chats.removeIf(chat -> !chat.isValid());
     }
 
     public boolean isClientOnline(User user) {

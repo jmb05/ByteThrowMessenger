@@ -27,4 +27,5 @@ public interface IClientChat<M extends Message> extends IChat {
     List<M> getMessages();
     void addMessage(M message);
     void merge(IClientChat<M> other);
+    boolean isValid();
 }

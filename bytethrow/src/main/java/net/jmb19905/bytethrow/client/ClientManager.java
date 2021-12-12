@@ -166,6 +166,7 @@ public class ClientManager {
         ClientPeerChat chat = new ClientPeerChat(peer);
         chat.initClient();
         addChat(chat);
+        cleanChats();
         return chat;
     }
 
@@ -174,6 +175,7 @@ public class ClientManager {
         ChatHistorySerialisation.saveChat(user, chat);
         Logger.debug("Added Peer: " + chat.getOther(user).getUsername());
         StartClient.guiManager.addPeer(chat);
+        cleanChats();
     }
 
     public void removeChat(ClientPeerChat chat) {
@@ -181,6 +183,7 @@ public class ClientManager {
         chats.remove(chat);
         ChatHistorySerialisation.deleteHistory(user.getUsername(), chat);
         StartClient.guiManager.removeChat(chat);
+        cleanChats();
     }
 
     public void addGroup(ClientGroupChat chat) {
@@ -192,6 +195,7 @@ public class ClientManager {
         chats.add(chat);
         ChatHistorySerialisation.saveChat(user, chat);
         StartClient.guiManager.addGroup(chat);
+        cleanChats();
     }
 
     public void removeGroup(ClientGroupChat chat) {
@@ -199,6 +203,7 @@ public class ClientManager {
         chats.remove(chat);
         ChatHistorySerialisation.deleteHistory(user.getUsername(), chat);
         StartClient.guiManager.removeChat(chat);
+        cleanChats();
     }
 
     public ClientGroupChat getGroup(String name) {
@@ -208,6 +213,10 @@ public class ClientManager {
     public void clearChats() {
         Logger.warn("Clearing Chats");
         chats.clear();
+    }
+
+    public void cleanChats() {
+        chats.removeIf(chat -> !chat.isValid());
     }
 
     /**

@@ -44,11 +44,8 @@ public abstract class AbstractChat implements IChat{
         if (!members.contains(name)) members.add(name);
     }
 
-    public boolean removeClient(User name){
-        boolean f = members.contains(name);
+    public void removeClient(User name){
         members.remove(name);
-
-        return f;
     }
 
     public void addClients(List<User> users) {
@@ -78,6 +75,8 @@ public abstract class AbstractChat implements IChat{
         if (o == null) return false;
         return listEqualsIgnoreOrder(members, o.members) && Objects.equals(uniqueId, o.uniqueId);
     }
+
+    public abstract boolean isValid();
 
     @Override
     public boolean equals(Object o) {

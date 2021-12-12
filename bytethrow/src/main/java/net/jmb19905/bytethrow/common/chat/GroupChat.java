@@ -33,6 +33,11 @@ public class GroupChat extends AbstractChat {
         this.name = name;
     }
 
+    @Override
+    public boolean isValid() {
+        return members.size() > 1 && name != null && uniqueId != null;
+    }
+
     public String getName() {
         return name;
     }

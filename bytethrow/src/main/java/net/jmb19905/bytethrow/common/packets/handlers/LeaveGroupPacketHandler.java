@@ -48,11 +48,10 @@ public class LeaveGroupPacketHandler extends PacketHandler {
         }
         String groupName = leaveGroupPacket.groupName;
         GroupChat groupChat = manager.getGroup(groupName);
-        if(groupChat.removeClient(client)) {
-            ChatSerial.write(groupChat);
-            NetworkingUtility.sendPacket(leaveGroupPacket, ctx);
-            notifyPeers((TcpServerHandler) ctx.handler(), groupChat, leaveGroupPacket);
-        }
+        groupChat.removeClient(client);
+        ChatSerial.write(groupChat);
+        NetworkingUtility.sendPacket(leaveGroupPacket, ctx);
+        notifyPeers((TcpServerHandler) ctx.handler(), groupChat, leaveGroupPacket);
     }
 
     private void notifyPeers(TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {

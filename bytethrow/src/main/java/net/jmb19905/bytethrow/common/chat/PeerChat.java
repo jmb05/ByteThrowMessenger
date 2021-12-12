@@ -80,6 +80,11 @@ public class PeerChat extends AbstractChat {
     }
 
     @Override
+    public boolean isValid() {
+        return members.size() == 2 && uniqueId != null;
+    }
+
+    @Override
     public String toString() {
         return "PeerChat{" +
                 "members=" + members +
