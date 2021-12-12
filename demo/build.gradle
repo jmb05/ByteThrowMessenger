@@ -1,3 +1,4 @@
+//file:noinspection GroovyAssignabilityCheck
 plugins {
     id 'java'
     id 'application'
@@ -11,14 +12,19 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    provided
+    implementation.extendsFrom(provided)
+}
+
 dependencies {
-    implementation project(":utilities")
-    implementation project(":jmbnetty")
-    implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'io.netty:netty-transport:4.1.71.Final'
-    implementation 'com.formdev:flatlaf:1.6.5'
-    implementation 'org.mindrot:jbcrypt:0.4'
-    implementation 'com.google.guava:guava:31.0.1-jre'
+    provided project(":utilities")
+    provided project(":jmbnetty")
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided 'io.netty:netty-transport:4.1.71.Final'
+    provided 'com.formdev:flatlaf:1.6.5'
+    provided 'org.mindrot:jbcrypt:0.4'
+    provided 'com.google.guava:guava:31.0.1-jre'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
@@ -39,6 +45,21 @@ extraJavaModuleInfo {
 application {
     mainModule = 'net.jmb19905.demo'
     mainClass = 'net.jmb19905.demo.Demo'
+}
+
+jar {
+    duplicatesStrategy = 'exclude'
+    archiveName "JMBNetty-Demo-${project.version}.jar"
+    baseName "JMBNetty-Demo-${project.version}"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.demo.Demo'
+        attributes 'Implementation-Version': project.version
+    }
+    from {
+        configurations.provided.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
 }
 
 test {
