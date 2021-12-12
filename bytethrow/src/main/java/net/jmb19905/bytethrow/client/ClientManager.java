@@ -24,6 +24,7 @@ import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
+import net.jmb19905.bytethrow.client.util.Localisation;
 import net.jmb19905.bytethrow.client.util.UserDataUtility;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.*;
@@ -86,7 +87,7 @@ public class ClientManager {
             Logger.error(evt.getCause());
             channel.close();
         });
-
+        this.client.addConnectionRefusedHandler(() -> StartClient.guiManager.showLocalisedError(Localisation.get("no_internet")));
     }
 
     public void initGuiListeners() {

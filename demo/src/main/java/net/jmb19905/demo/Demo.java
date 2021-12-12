@@ -9,26 +9,36 @@ import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
+import java.net.ConnectException;
 
 public class Demo {
 
     public static EndpointManager manager;
 
     public static void main(String[] args) {
-        ShutdownManager.addCleanUp(Logger::close);
-        Logger.initLogFile("demo");
+        try {
+            ShutdownManager.addCleanUp(Logger::close);
+            Logger.initLogFile("demo");
 
-        RegistryManager.registerPackets();
-        Logger.info("Registered Packets");
+            RegistryManager.registerPackets();
+            Logger.info("Registered Packets");
 
-        FlatDarculaLaf.setup(); // Init L&F
+            FlatDarculaLaf.setup(); // Init L&F
 
-        StartOption startOption = getStartOption();
+            StartOption startOption = getStartOption();
 
-        switch (startOption) {
-            case SERVER -> manager = new ServerManager();
-            case CLIENT -> manager = new ClientManager(JOptionPane.showInputDialog("Server address:"));
-            case CANCEL -> ShutdownManager.shutdown(0);
+            switch (startOption) {
+                case SERVER -> manager = new ServerManager();
+                case CLIENT -> {
+                    String serverAddress = JOptionPane.showInputDialog("Server address (default: 'localhost'):");
+                    if (serverAddress.isBlank()) serverAddress = "localhost";
+                    manager = new ClientManager(serverAddress);
+                }
+                case CANCEL -> ShutdownManager.shutdown(0);
+            }
+        }catch (Exception e) {
+            Logger.error(e);
+            if(e instanceof ConnectException) JOptionPane.showMessageDialog(null, "Connection refused", "", JOptionPane.ERROR_MESSAGE);
         }
     }
 

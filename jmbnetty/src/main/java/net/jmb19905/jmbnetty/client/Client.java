@@ -61,6 +61,10 @@ public class Client extends Endpoint {
         connection.addEventListener(listener);
     }
 
+    public void addConnectionRefusedHandler(Runnable runnable) {
+        connection.addConnectionRefusedHandler(runnable);
+    }
+
     public void send(Packet packet) {
         NetworkUtility.sendTcp(connection.getChannel(), packet, connection.getClientHandler().getEncryption());
     }

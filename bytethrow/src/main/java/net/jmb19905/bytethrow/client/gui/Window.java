@@ -170,7 +170,6 @@ public class Window extends JFrame {
 
         setTitle("ByteThrow Messenger - " + StartClient.version);
         pack();
-        setLocationRelativeTo(null);
         setVisible(true);
 
         addWindowListener(new WindowAdapter() {

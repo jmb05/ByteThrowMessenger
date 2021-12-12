@@ -38,6 +38,7 @@ public class TcpClientConnection extends ClientConnection {
     private final EventLoopGroup group;
     private TcpClientHandler clientHandler;
     private SocketChannel channel;
+    private Runnable connectionRefused;
 
     public TcpClientConnection(int port, String remoteAddress) {
         super(port, remoteAddress);
@@ -75,9 +76,13 @@ public class TcpClientConnection extends ClientConnection {
             ShutdownManager.shutdown(-1);
         } catch (Exception e) {
             Logger.error(e);
-            //StartClient.guiManager.showLocalisedError(Localisation.get("no_internet"));
+            connectionRefused.run();
             ShutdownManager.shutdown(-1);
         }
+    }
+
+    public void addConnectionRefusedHandler(Runnable runnable) {
+        this.connectionRefused = runnable;
     }
 
     public TcpClientHandler getClientHandler() {

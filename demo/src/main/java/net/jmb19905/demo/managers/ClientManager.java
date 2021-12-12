@@ -39,6 +39,7 @@ public class ClientManager extends EndpointManager {
             }
         });
         client.addErrorEventListener(evt -> JOptionPane.showMessageDialog(window, evt.getCause(), "Error", JOptionPane.ERROR_MESSAGE));
+        client.addConnectionRefusedHandler(() -> JOptionPane.showMessageDialog(null, "Connection refused", "", JOptionPane.ERROR_MESSAGE));
         start();
     }
 

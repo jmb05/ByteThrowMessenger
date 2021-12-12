@@ -56,11 +56,6 @@ jar {
         attributes 'Main-Class': 'net.jmb19905.demo.Demo'
         attributes 'Implementation-Version': project.version
     }
-    /*from {
-        configurations.provided.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }*/
 }
 
 launch4j {
