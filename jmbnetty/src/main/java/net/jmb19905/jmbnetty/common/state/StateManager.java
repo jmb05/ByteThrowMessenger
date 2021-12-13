@@ -40,6 +40,14 @@ public class StateManager {
         return (S) states.get(id);
     }
 
+    public boolean hasState(String id) {
+        return states.containsKey(id);
+    }
+
+    public void removeState(String id) {
+        states.remove(id);
+    }
+
     public Map<String, State> getStates() {
         return states;
     }

@@ -29,15 +29,19 @@ public class StateUpdateSubscribePacketHandler extends PacketHandler<StateUpdate
     @Override
     public void handleOnServer(ChannelHandlerContext ctx, StateUpdateSubscribePacket packet) throws IllegalSideException {
         TcpServerHandler serverHandler = (TcpServerHandler) ctx.handler();
-        serverHandler.addStateChangeListener(evt -> {
-            String stateName = evt.getStateName();
-            String stateId = evt.getStateTypeId();
-            if(stateName.equals(packet.stateName) && stateId.equals(packet.stateId) && !ctx.isRemoved()) {
-                StateType<? extends State, ? extends StateChangePacket<? extends State>> stateType = StateRegistry.getInstance().getStateType(evt.getStateTypeId());
-                sendStateChangePacket(ctx, stateType, stateName, serverHandler.getEncryption());
-            }
-        });
-        sendStateChangePacket(ctx, StateRegistry.getInstance().getStateType(packet.stateId), packet.stateName, serverHandler.getEncryption());
+        if(packet.register) {
+            serverHandler.addStateChangeListener(evt -> {
+                String stateName = evt.getStateName();
+                String stateId = evt.getStateTypeId();
+                if (stateName.equals(packet.stateName) && stateId.equals(packet.stateId) && !ctx.isRemoved()) {
+                    StateType<? extends State, ? extends StateChangePacket<? extends State>> stateType = StateRegistry.getInstance().getStateType(evt.getStateTypeId());
+                    sendStateChangePacket(ctx, stateType, stateName, serverHandler.getEncryption());
+                }
+            });
+            sendStateChangePacket(ctx, StateRegistry.getInstance().getStateType(packet.stateId), packet.stateName, serverHandler.getEncryption());
+        }else if(serverHandler.getStateManager().hasState(packet.stateName)){
+            serverHandler.getStateManager().removeState(packet.stateName);
+        }
     }
 
     private void sendStateChangePacket(ChannelHandlerContext ctx, StateType<? extends State, ? extends StateChangePacket<? extends State>> stateType, String stateName, Encryption encryption) {

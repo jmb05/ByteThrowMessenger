@@ -310,13 +310,13 @@ public class Window extends JFrame {
         eventHandler.performEvent(new SendPeerMessageEvent(GuiEventContext.create(this), peerMessage, chatProfile));
     }
 
-    public <M extends Message> void appendMessage(Message message, AbstractChatProfile profile, boolean clearField){
+    public void appendMessage(Message message, AbstractChatProfile profile, boolean clearField){
         profile.addMessage(message);
         updateAreaContent(profile);
         if(clearField) field.setText("");
     }
 
-    private <M extends Message> void updateAreaContent(IChatProfile profile){
+    private void updateAreaContent(IChatProfile profile){
         if(getSelected() == null) {
             area.clear();
             return;
