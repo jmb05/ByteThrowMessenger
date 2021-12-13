@@ -1,0 +1,139 @@
+//file:noinspection GroovyAssignabilityCheck
+import edu.sc.seis.launch4j.tasks.Launch4jLibraryTask
+
+plugins {
+    id 'java'
+    id 'application'
+    id("de.jjohannes.extra-java-module-info") version "0.6"
+    id 'edu.sc.seis.launch4j' version '2.5.1'
+}
+
+group 'net.jmb19905'
+version '1.0.0-alpha10'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+    implementation.extendsFrom(provided)
+}
+
+dependencies {
+    provided(project(":utilities"))
+    provided(project(":jmbnetty"))
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided 'com.talanlabs:avatar-generator:1.1.0'
+    provided 'io.netty:netty-transport:4.1.71.Final'
+    provided 'com.formdev:flatlaf:1.6.5'
+    provided 'com.google.guava:guava:31.0.1-jre'
+    provided 'org.mindrot:jbcrypt:0.4'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
+    provided 'com.fasterxml.jackson.core:jackson-core:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
+    provided 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+application {
+    mainModule = 'net.jmb19905.bytethrow'
+    mainClass = 'net.jmb19905.bytethrow.client.ClientMain'
+}
+
+extraJavaModuleInfo {
+    module("flatlaf-1.6.5.jar", "com.formdev.flatlaf", "1.6.5") {
+        exports("com.formdev.flatlaf")
+    }
+    module("failureaccess-1.0.1.jar", "com.google.guava", "1.0.1")
+    module("listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar", "com.google.guava", "")
+    module("jsr305-3.0.2.jar", "com.google.code.findbugs", "")
+    module("j2objc-annotations-1.3.jar", "com.google.j2objc", "1.3")
+    module("filters-2.0.235-1.jar", "com.jhlabs", "2.0.235-1")
+    module("avatar-generator-1.1.0.jar", "com.talanlabs", "1.1.0") {
+        exports("com.talanlabs.avatargenerator")
+        requires("java.desktop")
+    }
+    module("jbcrypt-0.4.jar", "org.mindrot", "0.4") {
+        exports("org.mindrot.jbcrypt")
+    }
+}
+
+task createVersionFile(dependsOn: processResources) {
+    doLast {
+        new File("$buildDir/resources/main/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+task clientJar(type: Jar) {
+    duplicatesStrategy = 'exclude'
+    archiveName "ByteThrowMessenger-${project.version}-Client.jar"
+    baseName "ByteThrowMessenger-${project.version}-Client"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.client.ClientMain'
+        attributes 'Implementation-Version': project.version
+    }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/bytethrow/server**'
+        exclude 'net/jmb19905/jmbnetty/server**'
+        exclude 'version.properties'
+        zipTree(it)
+    }
+    with jar
+}
+
+task serverJar(type: Jar) {
+    duplicatesStrategy = 'exclude'
+    archiveName "ByteThrowMessenger-${project.version}-Server.jar"
+    baseName "ByteThrowMessenger-${project.version}-Server"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.server.StartServer'
+        attributes 'Implementation-Version': project.version
+    }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/bytethrow/client**'
+        exclude 'net/jmb19905/jmbnetty/client**'
+        exclude 'version.properties'
+        zipTree(it)
+    }
+    with jar
+}
+
+//Don't create the default jar
+jar.onlyIf { false }
+
+launch4j {
+    outfile "ByteThrowMessenger-${project.version}-Client.exe"
+    mainClassName "net.jmb19905.bytethrow.client.ClientMain"
+    icon "${buildDir}/resources/main/icons/btm.ico"
+    productName "ByteThrowMessenger"
+    jarTask clientJar
+}
+
+task createJreBundledExe(type: Launch4jLibraryTask) {
+    outfile "ByteThrowMessenger-${project.version}-Client-b.exe"
+    fileDescription "The BytethrowMessenger whith bundled jre"
+    bundledJre64Bit true
+    bundledJrePath 'runtime/java-17-jre/'
+}
+
+task createExecutableFiles {
+    dependsOn clientJar
+    dependsOn serverJar
+    dependsOn createAllExecutables
+}
+
+build.finalizedBy(createExecutableFiles)
+
+classes {
+    dependsOn createVersionFile
+}
+
+test {
+    useJUnitPlatform()
+}

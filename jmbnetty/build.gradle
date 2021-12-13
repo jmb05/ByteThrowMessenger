@@ -1,0 +1,26 @@
+//file:noinspection GroovyAssignabilityCheck
+plugins {
+    id 'java-library'
+}
+
+group 'net.jmb19905'
+version '1.0.0-alpha10'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(":utilities")
+    implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'io.netty:netty-transport:4.1.71.Final'
+    implementation 'io.netty:netty-codec:4.1.71.Final'
+    implementation 'io.netty:netty-handler:4.1.71.Final'
+    implementation 'com.google.guava:guava:31.0.1-jre'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
