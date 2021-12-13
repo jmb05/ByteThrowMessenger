@@ -31,16 +31,14 @@ import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class PeerMessagePacketHandler extends PacketHandler {
+public class PeerMessagePacketHandler extends PacketHandler<PeerMessagePacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
-        PeerMessage message = messagePacket.message;
+    public void handleOnServer(ChannelHandlerContext ctx, PeerMessagePacket packet) {
+        PeerMessage message = packet.message;
         ServerManager manager = StartServer.manager;
         User user = manager.getClient((TcpServerHandler) ctx.handler());
         if (user.equals(message.getSender())) {
@@ -49,7 +47,7 @@ public class PeerMessagePacketHandler extends PacketHandler {
                 PeerChat chat = manager.getChat(user, peer);
                 if (chat != null) {
                     if (chat.isActive()) {
-                        manager.sendPacketToPeer(peer, messagePacket, manager.getConnection(), (TcpServerHandler) ctx.handler());
+                        manager.sendPacketToPeer(peer, packet, manager.getConnection(), (TcpServerHandler) ctx.handler());
                         Logger.trace("Sent message to recipient: " + peer.getUsername());
                     } else {
                         NetworkingUtility.sendFail(ctx, "message", "peer_offline", peer.getUsername());
@@ -66,9 +64,8 @@ public class PeerMessagePacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) {
-        PeerMessagePacket messagePacket = (PeerMessagePacket) packet;
-        PeerMessage message = messagePacket.message;
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, PeerMessagePacket packet) {
+        PeerMessage message = packet.message;
         User sender = message.getSender();
         User receiver = message.getReceiver();
         String encryptedMessage = message.getMessage();

@@ -32,26 +32,26 @@ import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class LeaveGroupPacketHandler extends PacketHandler {
+public class LeaveGroupPacketHandler extends PacketHandler<LeaveGroupPacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        LeaveGroupPacket leaveGroupPacket = (LeaveGroupPacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, LeaveGroupPacket packet) throws IllegalSideException {
         ServerManager manager = StartServer.manager;
         User client = manager.getClient((TcpServerHandler) ctx.handler());
-        if(!client.equals(leaveGroupPacket.client)) {
+        if(!client.equals(packet.client)) {
             Logger.warn("Invalid LeaveGroupPacket");
             return;
         }
-        String groupName = leaveGroupPacket.groupName;
+        String groupName = packet.groupName;
         GroupChat groupChat = manager.getGroup(groupName);
-        groupChat.removeClient(client);
-        ChatSerial.write(groupChat);
-        NetworkingUtility.sendPacket(leaveGroupPacket, ctx);
-        notifyPeers((TcpServerHandler) ctx.handler(), groupChat, leaveGroupPacket);
+        if(groupChat != null) {
+            groupChat.removeClient(client);
+            ChatSerial.write(groupChat);
+            notifyPeers((TcpServerHandler) ctx.handler(), groupChat, packet);
+        }
+        NetworkingUtility.sendPacket(packet, ctx);
     }
 
     private void notifyPeers(TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {
@@ -69,12 +69,11 @@ public class LeaveGroupPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        LeaveGroupPacket leaveGroupPacket = (LeaveGroupPacket) packet;
+    public void handleOnClient(ChannelHandlerContext ctx, LeaveGroupPacket packet) throws IllegalSideException {
         ClientManager manager = StartClient.manager;
-        ClientGroupChat groupChat = manager.getGroup(leaveGroupPacket.groupName);
-        if(!manager.user.equals(leaveGroupPacket.client)){
-            groupChat.removeClient(leaveGroupPacket.client);
+        ClientGroupChat groupChat = manager.getGroup(packet.groupName);
+        if(!manager.user.equals(packet.client)){
+            groupChat.removeClient(packet.client);
         }else {
             manager.removeGroup(groupChat);
         }

@@ -29,22 +29,20 @@ import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class RegisterPacketHandler extends PacketHandler {
+public class RegisterPacketHandler extends PacketHandler<RegisterPacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        RegisterPacket registerPacket = (RegisterPacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, RegisterPacket packet) {
         Logger.trace("Client is trying to registering");
 
         ServerManager manager = StartServer.manager;
 
-        if (DatabaseManager.createUser(registerPacket.user)) {
-            registerPacket.user.removePassword();
-            handleSuccessfulRegister(ctx, registerPacket, manager.getConnection());
+        if (DatabaseManager.createUser(packet.user)) {
+            packet.user.removePassword();
+            handleSuccessfulRegister(ctx, packet, manager.getConnection());
         } else {
             NetworkingUtility.sendFail(ctx, "register", "register_fail", "");
         }
@@ -86,7 +84,7 @@ public class RegisterPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, RegisterPacket packet) throws IllegalSideException {
         throw new IllegalSideException("RegisterPacket received on Client");
     }
 }

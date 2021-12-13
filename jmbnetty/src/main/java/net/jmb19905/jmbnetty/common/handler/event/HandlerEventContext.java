@@ -16,15 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.gui.chatprofiles;
+package net.jmb19905.jmbnetty.common.handler.event;
 
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
+import net.jmb19905.util.events.EventContext;
 
-public class GroupChatProfile extends AbstractChatProfile{
+public class HandlerEventContext extends EventContext {
+    private final AbstractChannelHandler handler;
 
-    public GroupChatProfile(ClientGroupChat chat) {
-        super(chat.getName(), chat.getUniqueId());
-        setMessages(chat.getMessages());
+    private HandlerEventContext(AbstractChannelHandler handler) {
+        super(handler);
+        this.handler = handler;
     }
 
+    public AbstractChannelHandler getHandler() {
+        return handler;
+    }
+
+    public static HandlerEventContext create(AbstractChannelHandler handler) {
+        return new HandlerEventContext(handler);
+    }
 }

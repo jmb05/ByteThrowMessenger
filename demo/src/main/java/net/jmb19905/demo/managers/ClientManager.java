@@ -3,7 +3,6 @@ package net.jmb19905.demo.managers;
 import io.netty.channel.Channel;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.demo.gui.Window;
-import net.jmb19905.demo.gui.events.MessageSendEventListener;
 import net.jmb19905.demo.packet.KeyExchangePacket;
 import net.jmb19905.demo.packet.MessagePacket;
 import net.jmb19905.jmbnetty.client.Client;
@@ -45,7 +44,7 @@ public class ClientManager extends EndpointManager {
 
     protected void start() {
         window = new Window("Client");
-        window.addEventListener((MessageSendEventListener) evt -> {
+        window.addMessageEventListener(evt -> {
             Encryption encryption = client.getConnection().getClientHandler().getEncryption();
             SocketChannel channel = client.getConnection().getChannel();
             sendMessage(evt.getMessage(), channel, encryption);

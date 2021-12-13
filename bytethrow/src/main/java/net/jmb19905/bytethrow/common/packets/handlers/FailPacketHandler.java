@@ -28,32 +28,30 @@ import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
-public class FailPacketHandler extends PacketHandler {
+public class FailPacketHandler extends PacketHandler<FailPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext ctx, FailPacket packet) throws IllegalSideException {
         throw new IllegalSideException("FailPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
+    public void handleOnClient(ChannelHandlerContext ctx, FailPacket packet) {
         ClientManager manager = StartClient.manager;
-        FailPacket failPacket = (FailPacket) packet;
-        String cause = failPacket.cause;
-        String message = Localisation.get(failPacket.message);
-        if (!failPacket.extra.equals(" ")) {
-            message = Localisation.get(failPacket.message, failPacket.extra);
+        String cause = packet.cause;
+        String message = Localisation.get(packet.message);
+        if (!packet.extra.equals(" ")) {
+            message = Localisation.get(packet.message, packet.extra);
         }
         StartClient.guiManager.showError(message);
         switch (cause.split(":")[0]) {
             case "login" -> manager.relogin(ctx);
             case "register" -> manager.register(ctx);
             case "version" -> {
-                Logger.fatal("Version mismatch: " + Localisation.get(failPacket.message));
+                Logger.fatal("Version mismatch: " + Localisation.get(packet.message));
                 ShutdownManager.shutdown(-1);
             }
             case "external_disconnect" -> ShutdownManager.shutdown(0);

@@ -5,10 +5,11 @@ import net.jmb19905.util.Logger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class EventHandler<C extends EventContext> {
 
     private boolean valid = false;
-    protected Map<String, EventListenerList<Event<C>>> eventListeners = new ConcurrentHashMap<>();
+    protected Map<String, EventListenerList<C>> eventListeners = new ConcurrentHashMap<>();
     private final String id;
 
     public EventHandler(String id) {
@@ -23,21 +24,24 @@ public class EventHandler<C extends EventContext> {
         return valid;
     }
 
-    public void addEventListener(EventListener<? extends Event<C>> listener) {
-        EventListenerList<Event<C>> listenerBatch = eventListeners.get(listener.getId());
+    public void addEventListener(EventListener listener) {
+        System.out.println("Registering Listener: " + id + ":" + listener.getId());
+        EventListenerList<C> listenerBatch = eventListeners.get(id + ":" + listener.getId());
         if (listenerBatch == null) {
+            System.out.println("Created new batch " + eventListeners);
             listenerBatch = new EventListenerList<>();
         }
-        listenerBatch.add(listener);
+        listenerBatch.addEvent(listener);
         eventListeners.put(id + ":" + listener.getId(), listenerBatch);
     }
 
-    public void performEvent(Event<C> evt) {
+    public <E extends Event<C>> void performEvent(E evt) {
         if (isValid()) {
             Logger.info("Performing Event: " + id + ":" + evt.getId());
-            EventListenerList<Event<C>> listenerBatch = eventListeners.get(id + ":" + evt.getId());
+            EventListenerList<C> listenerBatch = eventListeners.get(id + ":" + evt.getId());
+            System.out.println("Listeners: " + listenerBatch.size());
             if (listenerBatch != null) {
-                for (EventListener<Event<C>> listener : listenerBatch) {
+                for (EventListener listener : listenerBatch) {
                     listener.perform(evt);
                 }
             }

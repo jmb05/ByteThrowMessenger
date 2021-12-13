@@ -104,7 +104,7 @@ public class GUIManager {
     }
 
     public void removeChat(IClientChat<? extends Message> chat) {
-        IChatProfile<? extends Message> profile = ProfilesManager.getProfileByID(chat.getUniqueId());
+        IChatProfile profile = ProfilesManager.getProfileByID(chat.getUniqueId());
         ProfilesManager.removeProfile(profile);
         SwingUtilities.invokeLater(() -> window.removeChat(profile));
     }
@@ -124,12 +124,11 @@ public class GUIManager {
         SwingUtilities.invokeLater(() -> window.addChat(profile));
     }
 
-    @SuppressWarnings("unchecked")
     public <M extends Message> void appendMessage(M message, IClientChat<M> clientChat, boolean clearField){
-        appendMessage(message, ((AbstractChatProfile<M>) ProfilesManager.getProfileByID(clientChat.getUniqueId())), clearField);
+        appendMessage(message, ((AbstractChatProfile) ProfilesManager.getProfileByID(clientChat.getUniqueId())), clearField);
     }
 
-    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile, boolean clearField){
+    public <M extends Message> void appendMessage(M message, AbstractChatProfile profile, boolean clearField){
         SwingUtilities.invokeLater(() -> window.appendMessage(message, profile, clearField));
     }
 

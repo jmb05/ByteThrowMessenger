@@ -21,9 +21,8 @@ package net.jmb19905.bytethrow.client.gui.chatprofiles;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
-import net.jmb19905.bytethrow.common.chat.PeerMessage;
 
-public class PeerChatProfile extends AbstractChatProfile<PeerMessage> {
+public class PeerChatProfile extends AbstractChatProfile {
 
     private final User peer;
     private boolean connected = false;

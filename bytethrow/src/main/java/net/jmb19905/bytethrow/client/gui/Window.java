@@ -135,6 +135,7 @@ public class Window extends JFrame {
         constraints.insets = new Insets(5, 0, 5, 0);
         messagingPanel.add(field, constraints);
 
+        field.setEditable(false);
         field.addActionListener(l -> send());
         field.addKeyListener(new KeyAdapter() {
             @Override
@@ -208,12 +209,13 @@ public class Window extends JFrame {
 
     public void setPeerStatus(PeerChatProfile profile, boolean status){
         list.setPeerStatus(profile, status);
+        updateAreaContent(getSelected());
     }
 
     /**
      * @return the current selected peer name
      */
-    public IChatProfile<? extends Message> getSelected() {
+    public IChatProfile getSelected() {
         return list.getSelectedValue();
     }
 
@@ -272,11 +274,11 @@ public class Window extends JFrame {
         };
     }
 
-    public void addChat(IChatProfile<? extends Message> profile){
+    public void addChat(IChatProfile profile){
         list.addChat(profile);
     }
 
-    public void removeChat(IChatProfile<? extends Message> profile){
+    public void removeChat(IChatProfile profile){
         list.removeChat(profile);
     }
 
@@ -308,21 +310,27 @@ public class Window extends JFrame {
         eventHandler.performEvent(new SendPeerMessageEvent(GuiEventContext.create(this), peerMessage, chatProfile));
     }
 
-    public <M extends Message> void appendMessage(M message, AbstractChatProfile<M> profile, boolean clearField){
+    public <M extends Message> void appendMessage(Message message, AbstractChatProfile profile, boolean clearField){
         profile.addMessage(message);
         updateAreaContent(profile);
         if(clearField) field.setText("");
     }
 
-    @SuppressWarnings("unchecked")
-    private <M extends Message> void updateAreaContent(IChatProfile<M> profile){
+    private <M extends Message> void updateAreaContent(IChatProfile profile){
         if(getSelected() == null) {
             area.clear();
             return;
         }
         if(getSelected().equals(profile)) {
-            List<Message> messages = (List<Message>) profile.getMessages();
+            List<Message> messages = profile.getMessages();
             area.setContent(messages);
+            if(profile instanceof PeerChatProfile peerChatProfile) {
+                field.setEditable(peerChatProfile.isConnected());
+            }else {
+                field.setEditable(true);
+            }
+        }else {
+            field.setEditable(false);
         }
     }
 }

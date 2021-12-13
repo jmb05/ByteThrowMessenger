@@ -31,40 +31,37 @@ import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class DisconnectPeerPacketHandler extends PacketHandler {
+public class DisconnectPeerPacketHandler extends PacketHandler<DisconnectPeerPacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        DisconnectPeerPacket disconnectPeerPacket = (DisconnectPeerPacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, DisconnectPeerPacket packet) throws IllegalSideException {
         ServerManager manager = StartServer.manager;
 
         User client = manager.getClient((TcpServerHandler) ctx.handler());
-        User peer = disconnectPeerPacket.peer;
+        User peer = packet.peer;
 
 
         PeerChat chat = manager.getChat(client, peer);
         manager.removeChat(chat);
 
-        NetworkingUtility.sendPacket(disconnectPeerPacket, ctx);
+        NetworkingUtility.sendPacket(packet, ctx);
 
-        disconnectPeerPacket.peer = client;
+        packet.peer = client;
 
         TcpServerHandler peerHandler = manager.getPeerHandler(peer, (TcpServerHandler) ctx.handler());
         if(peerHandler != null) {
             Channel channel = manager.getConnection().getClientConnections().get(peerHandler);
-            NetworkingUtility.sendPacket(disconnectPeerPacket, channel, peerHandler.getEncryption());
+            NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
         }
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        DisconnectPeerPacket disconnectPeerPacket = (DisconnectPeerPacket) packet;
+    public void handleOnClient(ChannelHandlerContext ctx, DisconnectPeerPacket packet) throws IllegalSideException {
         ClientManager manager = StartClient.manager;
 
-        User peer = disconnectPeerPacket.peer;
+        User peer = packet.peer;
 
         ClientPeerChat chat = manager.getChat(peer);
         manager.removeChat(chat);

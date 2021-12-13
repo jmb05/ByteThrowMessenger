@@ -22,13 +22,26 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.jmbnetty.common.handler.TcpFileHandler;
+import net.jmb19905.jmbnetty.common.handler.event.HandlerEventContext;
+import net.jmb19905.jmbnetty.common.handler.event.StateChangeEvent;
+import net.jmb19905.jmbnetty.common.handler.event.StateChangeEventListener;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
+import net.jmb19905.jmbnetty.common.state.StateManager;
 import net.jmb19905.util.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class TcpServerHandler extends AbstractChannelHandler {
 
     private TcpFileHandler fileHandler = null;
+    private final StateManager stateManager = new StateManager();
+
+    public void addStateChangeListener(StateChangeEventListener listener) {
+        eventHandler.addEventListener(listener);
+    }
+
+    public void setStateChanged(String stateID, String stateType) {
+        eventHandler.performEvent(new StateChangeEvent(HandlerEventContext.create(this), stateID, stateType));
+    }
 
     @Override
     public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
@@ -46,5 +59,9 @@ public class TcpServerHandler extends AbstractChannelHandler {
 
     public TcpFileHandler getFileHandler() {
         return fileHandler;
+    }
+
+    public StateManager getStateManager() {
+        return stateManager;
     }
 }

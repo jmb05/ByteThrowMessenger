@@ -23,6 +23,7 @@ import java.util.UUID;
 public class GroupChat extends AbstractChat {
 
     private final String name;
+    private boolean isInitializing = true;
 
     public GroupChat(String name) {
         this.name = name;
@@ -33,9 +34,13 @@ public class GroupChat extends AbstractChat {
         this.name = name;
     }
 
+    public void finishInitialization() {
+        isInitializing = false;
+    }
+
     @Override
     public boolean isValid() {
-        return members.size() > 1 && name != null && uniqueId != null;
+        return isInitializing || (members.size() > 1 && name != null && uniqueId != null);
     }
 
     public String getName() {

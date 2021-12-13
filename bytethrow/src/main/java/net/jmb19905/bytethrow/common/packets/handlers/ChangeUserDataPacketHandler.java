@@ -33,32 +33,30 @@ import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.Optional;
 
-public class ChangeUserDataPacketHandler extends PacketHandler {
+public class ChangeUserDataPacketHandler extends PacketHandler<ChangeUserDataPacket> {
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, ChangeUserDataPacket packet) throws IllegalSideException {
         throw new IllegalSideException("ChangeUserDataPacket received on Client");
     }
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        ChangeUserDataPacket changeUserDataPacket = (ChangeUserDataPacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, ChangeUserDataPacket packet) {
         TcpServerHandler handler = (TcpServerHandler) ctx.handler();
         Encryption encryption = handler.getEncryption();
         ServerManager manager = StartServer.manager;
         TcpServerConnection connection = manager.getConnection();
         User user = manager.getClient(handler);
         String oldName = manager.getClient(handler).getUsername();
-        switch (changeUserDataPacket.type) {
+        switch (packet.type) {
             case "username":
-                String newUsername = changeUserDataPacket.value;
+                String newUsername = packet.value;
                 if (DatabaseManager.changeUsername(oldName, newUsername)) {
                     manager.changeName(user, newUsername);
                     ChannelFuture channelFuture = sendUsernameSuccessPacket(ctx.channel(), encryption);
@@ -84,7 +82,7 @@ public class ChangeUserDataPacketHandler extends PacketHandler {
                 }
                 break;
             case "password":
-                if (DatabaseManager.changePassword(oldName, changeUserDataPacket.value)) {
+                if (DatabaseManager.changePassword(oldName, packet.value)) {
                     sendPasswordSuccessPacket(ctx.channel(), encryption);
                 } else {
                     NetworkingUtility.sendFail(ctx, "change_password", "error_change_pw", "");

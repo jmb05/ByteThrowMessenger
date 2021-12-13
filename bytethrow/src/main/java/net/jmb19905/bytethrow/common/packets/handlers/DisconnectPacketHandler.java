@@ -25,19 +25,18 @@ import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.util.Logger;
 
-public class DisconnectPacketHandler extends PacketHandler {
+public class DisconnectPacketHandler extends PacketHandler<DisconnectPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, DisconnectPacket packet) throws IllegalSideException {
         throw new IllegalSideException("DisconnectPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) {
-        User peer = ((DisconnectPacket) packet).user;
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, DisconnectPacket packet) {
+        User peer = packet.user;
         ClientPeerChat chat = StartClient.manager.getChat(peer);
         if (chat != null) {
             chat.setActive(false);

@@ -22,7 +22,6 @@ import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.GroupChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.IChatProfile;
 import net.jmb19905.bytethrow.client.gui.chatprofiles.PeerChatProfile;
-import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
 
 import javax.swing.*;
@@ -31,13 +30,13 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class PeerList extends JList<IChatProfile<? extends Message>> {
+public class PeerList extends JList<IChatProfile> {
 
-    private final DefaultListModel<IChatProfile<? extends Message>> listModel;
+    private final DefaultListModel<IChatProfile> listModel;
 
     public PeerList() {
         super(new DefaultListModel<>());
-        listModel = (DefaultListModel<IChatProfile<? extends Message>>) getModel();
+        listModel = (DefaultListModel<IChatProfile>) getModel();
         setBorder(BorderFactory.createEmptyBorder());
         setUI(new PeerList.PeerListUI());
         setCellRenderer(new PeerList.PeerListRenderer());
@@ -47,7 +46,7 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         JMenuItem item = new JMenuItem("Leave");
         item.setForeground(Color.RED);
         item.addActionListener(l -> {
-            IChatProfile<? extends Message> value = getSelectedValue();
+            IChatProfile value = getSelectedValue();
             if(value instanceof PeerChatProfile){
                 StartClient.manager.disconnectFromPeer(((PeerChatProfile) value).getPeer());
             }else {
@@ -56,7 +55,7 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         });
         menu.add(item);
 
-        JList<IChatProfile<? extends Message>> instance = this;
+        JList<IChatProfile> instance = this;
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -99,7 +98,7 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         }
     }
 
-    public void removeChat(IChatProfile<? extends Message> profile) {
+    public void removeChat(IChatProfile profile) {
         listModel.removeElement(profile);
     }
 
@@ -119,18 +118,18 @@ public class PeerList extends JList<IChatProfile<? extends Message>> {
         }
     }
 
-    public void addChat(IChatProfile<? extends Message> profile) {
+    public void addChat(IChatProfile profile) {
         listModel.addElement(profile);
     }
 
-    private static class PeerListRenderer implements ListCellRenderer<IChatProfile<? extends Message>> {
+    private static class PeerListRenderer implements ListCellRenderer<IChatProfile> {
 
         private static final ImageIcon crossIcon = new ImageIcon(ResourceUtility.getImageResource("icons/x.png"));
         private static final ImageIcon tickIcon = new ImageIcon(ResourceUtility.getImageResource("icons/tick.png"));
         private static final ImageIcon warningIcon = new ImageIcon(ResourceUtility.getImageResource("icons/warning.png"));
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends IChatProfile<? extends Message>> list, IChatProfile<? extends Message> value, int index, boolean isSelected, boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList<? extends IChatProfile> list, IChatProfile value, int index, boolean isSelected, boolean cellHasFocus) {
             JLabel label = new JLabel(" " + value.getDisplayName());
             label.setHorizontalTextPosition(JLabel.LEFT);
 

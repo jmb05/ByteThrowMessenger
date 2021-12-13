@@ -16,15 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.gui.chatprofiles;
+package net.jmb19905.jmbnetty.common.handler.event;
 
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import org.jetbrains.annotations.NotNull;
 
-public class GroupChatProfile extends AbstractChatProfile{
+public class StateChangeEvent extends HandlerEvent{
 
-    public GroupChatProfile(ClientGroupChat chat) {
-        super(chat.getName(), chat.getUniqueId());
-        setMessages(chat.getMessages());
+    public static final String ID = "state_change";
+
+    private final String stateName;
+    private final String stateType;
+
+    public StateChangeEvent(@NotNull HandlerEventContext ctx, String stateName, String stateType) {
+        super(ctx, ID);
+        this.stateName = stateName;
+        this.stateType = stateType;
     }
 
+    public String getStateName() {
+        return stateName;
+    }
+
+    public String getStateTypeId() {
+        return stateType;
+    }
 }

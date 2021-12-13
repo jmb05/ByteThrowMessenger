@@ -29,26 +29,24 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
 import javax.swing.*;
 
-public class SuccessPacketHandler extends PacketHandler {
+public class SuccessPacketHandler extends PacketHandler<SuccessPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, SuccessPacket packet) throws IllegalSideException {
         throw new IllegalSideException("SuccessPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
-        SuccessPacket successPacket = (SuccessPacket) packet;
+    public void handleOnClient(ChannelHandlerContext ctx, SuccessPacket packet) {
         Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
-        switch (successPacket.type) {
+        switch (packet.type) {
             case LOGIN, REGISTER -> {
-                doOnLoginSuccess(successPacket, encryption, ctx.channel());
+                doOnLoginSuccess(packet, encryption, ctx.channel());
                 StartClient.guiManager.showLoading(false);
             }
             case CHANGE_NAME -> JOptionPane.showMessageDialog(null, "Username changed successfully");

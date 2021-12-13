@@ -49,7 +49,7 @@ public abstract class AbstractConnection implements IConnection, Runnable {
         this.thread.interrupt();
     }
 
-    public void addEventListener(EventListener<? extends Event<NetworkEventContext>> listener) {
+    public void addEventListener(EventListener<? extends Event<? extends NetworkEventContext>> listener) {
         eventHandler.addEventListener(listener);
     }
 

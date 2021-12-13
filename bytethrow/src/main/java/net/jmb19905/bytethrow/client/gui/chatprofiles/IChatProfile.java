@@ -23,8 +23,8 @@ import net.jmb19905.bytethrow.common.chat.Message;
 import java.util.List;
 import java.util.UUID;
 
-public interface IChatProfile<M extends Message> {
+public interface IChatProfile {
     UUID getUniqueID();
     String getDisplayName();
-    List<M> getMessages();
+    List<Message> getMessages();
 }

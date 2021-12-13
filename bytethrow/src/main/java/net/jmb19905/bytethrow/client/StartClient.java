@@ -59,6 +59,7 @@ public class StartClient {
             Logger.close();
         });
         RegistryManager.registerPackets();
+        RegistryManager.registerStates();
         ConfigManager.init();
         config = ConfigManager.loadClientConfig();
         Logger.info("Loaded configs from: " + ConfigManager.getConfigPath());

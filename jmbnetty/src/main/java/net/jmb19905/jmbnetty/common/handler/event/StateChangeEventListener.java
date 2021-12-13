@@ -16,15 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.gui.chatprofiles;
+package net.jmb19905.jmbnetty.common.handler.event;
 
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.util.events.EventListener;
 
-public class GroupChatProfile extends AbstractChatProfile{
-
-    public GroupChatProfile(ClientGroupChat chat) {
-        super(chat.getName(), chat.getUniqueId());
-        setMessages(chat.getMessages());
+public interface StateChangeEventListener extends EventListener<StateChangeEvent> {
+    @Override
+    default String getId() {
+        return StateChangeEvent.ID;
     }
-
 }

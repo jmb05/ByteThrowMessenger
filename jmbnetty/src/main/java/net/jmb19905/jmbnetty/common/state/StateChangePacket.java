@@ -16,15 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.jmb19905.bytethrow.client.gui.chatprofiles;
+package net.jmb19905.jmbnetty.common.state;
 
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
+import net.jmb19905.jmbnetty.common.packets.registry.Packet;
+import net.jmb19905.jmbnetty.common.packets.registry.PacketType;
 
-public class GroupChatProfile extends AbstractChatProfile{
+public abstract class StateChangePacket<S extends State> extends Packet {
 
-    public GroupChatProfile(ClientGroupChat chat) {
-        super(chat.getName(), chat.getUniqueId());
-        setMessages(chat.getMessages());
+    public S state;
+
+    public StateChangePacket(PacketType<? extends Packet> type) {
+        super(type);
     }
 
 }

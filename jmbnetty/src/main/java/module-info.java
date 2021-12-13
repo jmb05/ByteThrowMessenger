@@ -18,4 +18,6 @@ module net.jmb19905b.jmbnetty.main {
     exports net.jmb19905.jmbnetty.server.tcp;
     exports net.jmb19905.jmbnetty.common.connection.event;
     exports net.jmb19905.jmbnetty.common.connection;
+    exports net.jmb19905.jmbnetty.common.state;
+    exports net.jmb19905.jmbnetty.common.handler.event;
 }

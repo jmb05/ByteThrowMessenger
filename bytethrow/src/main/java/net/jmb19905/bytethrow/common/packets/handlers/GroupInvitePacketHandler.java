@@ -34,27 +34,25 @@ import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class GroupInvitePacketHandler extends PacketHandler {
+public class GroupInvitePacketHandler extends PacketHandler<GroupInvitePacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, GroupInvitePacket packet) throws IllegalSideException {
         ServerManager manager = StartServer.manager;
 
         User member = manager.getClient((TcpServerHandler) ctx.handler());
 
-        AbstractChat chat = manager.getGroup(groupInvitePacket.groupName);
+        AbstractChat chat = manager.getGroup(packet.groupName);
         chat.addClient(member);
         ChatSerial.write(chat);
 
         AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
-        addGroupMemberPacket.groupName = groupInvitePacket.groupName;
+        addGroupMemberPacket.groupName = packet.groupName;
         addGroupMemberPacket.member = member;
 
         chat.getMembers().stream().filter(u -> !u.equals(member)).forEach(u -> {
@@ -65,12 +63,11 @@ public class GroupInvitePacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        GroupInvitePacket groupInvitePacket = (GroupInvitePacket) packet;
+    public void handleOnClient(ChannelHandlerContext ctx, GroupInvitePacket packet) throws IllegalSideException {
         ClientManager manager = StartClient.manager;
 
-        ClientGroupChat chat = new ClientGroupChat(groupInvitePacket.groupName);
-        chat.setMembers(new ArrayList<>(Arrays.asList(groupInvitePacket.members)));
+        ClientGroupChat chat = new ClientGroupChat(packet.groupName);
+        chat.setMembers(new ArrayList<>(Arrays.asList(packet.members)));
 
         manager.addGroup(chat);
         Logger.debug("Adding Group (GroupInvitePacketHandler): " + chat.getName());

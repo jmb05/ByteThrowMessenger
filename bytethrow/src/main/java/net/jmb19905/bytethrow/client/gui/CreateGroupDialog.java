@@ -178,13 +178,12 @@ public class CreateGroupDialog extends JDialog {
     public record CreateGroupData(String groupName, User[] members, boolean cancel) {
     }
 
-    private static class MemberListRenderer extends JLabel implements ListCellRenderer<String> {
-        @SuppressWarnings("unchecked")
+    private static class MemberListRenderer extends JLabel implements ListCellRenderer<Object> {
         @Override
-        public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
-            DefaultListModel<? extends String> model = (DefaultListModel<? extends String>) list.getModel();
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            DefaultListModel<?> model = (DefaultListModel<?>) list.getModel();
 
-            setText(value);
+            setText((String) value);
             setEnabled(list.isEnabled());
             setOpaque(true);
 

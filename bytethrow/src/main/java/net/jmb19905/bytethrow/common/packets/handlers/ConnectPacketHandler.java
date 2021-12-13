@@ -22,8 +22,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
+import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
@@ -34,30 +34,28 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.crypto.EncryptionUtility;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.security.spec.InvalidKeySpecException;
 
-public class ConnectPacketHandler extends PacketHandler {
+public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        ConnectPacket connectPacket = (ConnectPacket) packet;
+    public void handleOnServer(ChannelHandlerContext ctx, ConnectPacket packet) {
         ServerManager manager = StartServer.manager;
         TcpServerHandler handler = ((TcpServerHandler) ctx.handler());
         User client = manager.getClient(handler);
         if (client != null) {
-            User peer = connectPacket.user;
+            User peer = packet.user;
             if (DatabaseManager.hasUser(peer.getUsername())) {
                 if (manager.isClientOnline(peer)) {
                     if (manager.getChat(peer, client) == null) {
-                        handleNewChatRequestServer(connectPacket, manager, handler, client, peer);
+                        handleNewChatRequestServer(packet, manager, handler, client, peer);
                     } else if (manager.getChat(peer, client) != null) {
-                        handleConnectToExistingChatRequestServer(connectPacket, ctx, client, peer);
+                        handleConnectToExistingChatRequestServer(packet, ctx, client, peer);
                     }
-                } else if (connectPacket.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
+                } else if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
                     NetworkingUtility.sendFail(ctx, "connect:" + peer.getUsername(), "not_online", peer.getUsername());
                 }
             } else {
@@ -112,16 +110,15 @@ public class ConnectPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
-        ConnectPacket connectPacket = (ConnectPacket) packet;
-        User peer = connectPacket.user;
-        byte[] encodedPeerKey = connectPacket.key;
+    public void handleOnClient(ChannelHandlerContext ctx, ConnectPacket packet) {
+        User peer = packet.user;
+        byte[] encodedPeerKey = packet.key;
 
         try {
             if (StartClient.manager.getChat(peer) == null) {
-                handleNewChatRequestClient(connectPacket, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
+                handleNewChatRequestClient(packet, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
             } else if (StartClient.manager.getChat(peer) != null) {
-                handleConnectToExistingChatRequestClient(connectPacket, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
+                handleConnectToExistingChatRequestClient(packet, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
             }
         } catch (InvalidKeySpecException e) {
             Logger.error(e);

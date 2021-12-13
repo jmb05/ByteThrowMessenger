@@ -28,14 +28,14 @@ import java.lang.reflect.InvocationTargetException;
 public class PacketType<P extends Packet> extends Type<P> {
 
     private final Class<P> packetClass;
-    private final PacketHandler handler;
+    private final PacketHandler<P> handler;
 
-    public PacketType(Class<P> packetClass, PacketHandler handler) {
+    public PacketType(Class<P> packetClass, PacketHandler<P> handler) {
         this.packetClass = packetClass;
         this.handler = handler;
     }
 
-    public PacketHandler handler() {
+    public PacketHandler<P> handler() {
         return handler;
     }
 

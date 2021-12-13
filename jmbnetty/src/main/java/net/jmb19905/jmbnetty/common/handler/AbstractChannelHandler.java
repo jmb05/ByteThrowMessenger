@@ -21,10 +21,8 @@ package net.jmb19905.jmbnetty.common.handler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
-import net.jmb19905.util.events.Event;
-import net.jmb19905.util.events.EventContext;
+import net.jmb19905.jmbnetty.common.handler.event.*;
 import net.jmb19905.util.events.EventHandler;
-import net.jmb19905.util.events.EventListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.PublicKey;
@@ -33,7 +31,7 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
 
     private final Encryption encryption;
 
-    private final EventHandler<HandlerEventContext> eventHandler;
+    protected final EventHandler<HandlerEventContext> eventHandler;
 
     public AbstractChannelHandler() {
         this.encryption = new Encryption();
@@ -84,75 +82,4 @@ public abstract class AbstractChannelHandler extends ChannelInboundHandlerAdapte
         eventHandler.addEventListener(listener);
     }
 
-    private static abstract class HandlerEvent extends Event<HandlerEventContext> {
-        public HandlerEvent(@NotNull HandlerEventContext ctx, String id) {
-            super(ctx, id);
-        }
-    }
-
-    public static class HandlerEventContext extends EventContext {
-        private final AbstractChannelHandler handler;
-
-        private HandlerEventContext(AbstractChannelHandler handler) {
-            super(handler);
-            this.handler = handler;
-        }
-
-        public AbstractChannelHandler getHandler() {
-            return handler;
-        }
-
-        public static HandlerEventContext create(AbstractChannelHandler handler) {
-            return new HandlerEventContext(handler);
-        }
-    }
-
-    public static class ActiveEvent extends HandlerEvent {
-        private static final String ID = "active";
-        public ActiveEvent(HandlerEventContext ctx) {
-            super(ctx, ID);
-        }
-    }
-
-    public interface ActiveEventListener extends EventListener<ActiveEvent> {
-        @Override
-        default String getId() {
-            return ActiveEvent.ID;
-        }
-    }
-
-    public static class InactiveEvent extends HandlerEvent {
-        private static final String ID = "inactive";
-        public InactiveEvent(HandlerEventContext ctx) {
-            super(ctx, ID);
-        }
-    }
-
-    public interface InactiveEventListener extends EventListener<InactiveEvent> {
-        @Override
-        default String getId() {
-            return InactiveEvent.ID;
-        }
-    }
-
-    public static class ExceptionEvent extends HandlerEvent {
-        private static final String ID = "exception";
-        private final Throwable throwable;
-
-        public ExceptionEvent(HandlerEventContext ctx, Throwable throwable) {
-            super(ctx, ID);
-            this.throwable = throwable;
-        }
-
-        public Throwable getCause() {
-            return throwable;
-        }
-    }
-
-    public interface ExceptionEventListener extends EventListener<ExceptionEvent> {
-        @Override
-        default String getId() {
-            return ExceptionEvent.ID;
-        }
-    }
 }

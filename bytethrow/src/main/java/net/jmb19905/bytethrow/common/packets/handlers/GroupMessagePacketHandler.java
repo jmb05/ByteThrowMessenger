@@ -31,16 +31,14 @@ import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
-public class GroupMessagePacketHandler extends PacketHandler {
+public class GroupMessagePacketHandler extends PacketHandler<GroupMessagePacket>{
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        GroupMessagePacket messagePacket = (GroupMessagePacket) packet;
-        GroupMessage message = messagePacket.message;
+    public void handleOnServer(ChannelHandlerContext ctx, GroupMessagePacket packet) throws IllegalSideException {
+        GroupMessage message = packet.message;
         ServerManager manager = StartServer.manager;
         TcpServerConnection connection = manager.getConnection();
         TcpServerHandler handler = (TcpServerHandler) ctx.handler();
@@ -64,9 +62,8 @@ public class GroupMessagePacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
-        GroupMessagePacket messagePacket = (GroupMessagePacket) packet;
-        GroupMessage message = messagePacket.message;
+    public void handleOnClient(ChannelHandlerContext ctx, GroupMessagePacket packet) throws IllegalSideException {
+        GroupMessage message = packet.message;
         String groupName = message.getGroupName();
         ClientGroupChat chat = StartClient.manager.getGroup(groupName);
         if (chat != null) {

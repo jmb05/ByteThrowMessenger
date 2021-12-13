@@ -32,24 +32,22 @@ import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.util.Logger;
 
-public class ChatsPacketHandler extends PacketHandler {
+public class ChatsPacketHandler extends PacketHandler<ChatsPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext ctx, ChatsPacket packet) throws IllegalSideException {
         throw new IllegalSideException("Chats received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
-        ChatsPacket chatsPacket = (ChatsPacket) packet;
+    public void handleOnClient(ChannelHandlerContext ctx, ChatsPacket packet) {
         ClientManager manager = StartClient.manager;
-        if (chatsPacket.update) {
+        if (packet.update) {
             manager.clearChats();
         }
-        for (ChatsPacket.ChatData chatData : chatsPacket.chatData) {
+        for (ChatsPacket.ChatData chatData : packet.chatData) {
             if (chatData.name().equals("null")) {
                 User peer = chatData.members().stream()
                         .filter(u -> !u.equals(manager.user))
@@ -65,7 +63,7 @@ public class ChatsPacketHandler extends PacketHandler {
 
                 chat.initClient();
 
-                if (!chatsPacket.update) {
+                if (!packet.update) {
                     ConnectPacket connectPacket = new ConnectPacket();
                     connectPacket.connectType = ConnectPacket.ConnectType.FIRST_RECONNECT;
                     connectPacket.user = peer;

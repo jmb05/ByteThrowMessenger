@@ -19,18 +19,17 @@
 package net.jmb19905.bytethrow.client.gui.chatprofiles;
 
 import net.jmb19905.bytethrow.common.chat.Message;
-import net.jmb19905.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public abstract class AbstractChatProfile<M extends Message> implements IChatProfile<M>{
+public abstract class AbstractChatProfile implements IChatProfile{
 
     private final UUID id;
     private String displayName;
-    private List<M> messages = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
 
     protected AbstractChatProfile(String displayName, UUID id) {
         this.displayName = displayName;
@@ -46,11 +45,12 @@ public abstract class AbstractChatProfile<M extends Message> implements IChatPro
         return displayName;
     }
 
-    public void setMessages(List<M> messages) {
-        this.messages = messages;
+    public void setMessages(List<? extends Message> messages) {
+        this.messages.clear();
+        this.messages.addAll(messages);
     }
 
-    public void addMessage(M message){
+    public void addMessage(Message message){
         if(!this.messages.contains(message)) {
             this.messages.add(message);
             if (messages.size() > 1) {
@@ -59,12 +59,12 @@ public abstract class AbstractChatProfile<M extends Message> implements IChatPro
         }
     }
 
-    public M getMessage(long timestamp){
+    protected Message getMessage(long timestamp){
         return messages.stream().filter(m -> m.getTimestamp() == timestamp).findFirst().orElse(null);
     }
 
     @Override
-    public List<M> getMessages() {
+    public List<Message> getMessages() {
         return messages;
     }
 

@@ -3,6 +3,7 @@ package net.jmb19905.demo.gui;
 import net.jmb19905.demo.gui.events.DemoGuiEvent;
 import net.jmb19905.demo.gui.events.DemoGuiEventContext;
 import net.jmb19905.demo.gui.events.MessageSendEvent;
+import net.jmb19905.demo.gui.events.MessageSendEventListener;
 import net.jmb19905.util.ShutdownManager;
 import net.jmb19905.util.events.EventHandler;
 import net.jmb19905.util.events.EventListener;
@@ -107,7 +108,11 @@ public class Window extends JFrame {
      * Adds an listener for a GUI Event
      * @param listener the listener for the GUI Event
      */
-    public void addEventListener(EventListener<? extends DemoGuiEvent> listener) {
+    public void addEventListener(EventListener<DemoGuiEvent> listener) {
+        eventHandler.addEventListener(listener);
+    }
+
+    public void addMessageEventListener(MessageSendEventListener listener) {
         eventHandler.addEventListener(listener);
     }
 

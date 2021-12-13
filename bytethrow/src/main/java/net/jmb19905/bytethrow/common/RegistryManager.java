@@ -21,6 +21,8 @@ package net.jmb19905.bytethrow.common;
 import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.common.packets.handlers.*;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.jmbnetty.common.state.StateUpdateSubscribePacket;
+import net.jmb19905.jmbnetty.common.state.StateUpdateSubscribePacketHandler;
 
 public class RegistryManager {
 
@@ -43,5 +45,11 @@ public class RegistryManager {
         PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
         PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, new ServerSettingsPacketHandler());
         PacketRegistry.getInstance().register("success", SuccessPacket.class, new SuccessPacketHandler());
+        PacketRegistry.getInstance().register("state_listener", StateUpdateSubscribePacket.class, new StateUpdateSubscribePacketHandler());
     }
+
+    public static void registerStates() {
+
+    }
+
 }

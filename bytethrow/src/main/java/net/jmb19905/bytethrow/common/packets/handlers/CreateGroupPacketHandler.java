@@ -28,13 +28,12 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 
-public class CreateGroupPacketHandler extends PacketHandler {
+public class CreateGroupPacketHandler extends PacketHandler<CreateGroupPacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        String groupName = ((CreateGroupPacket) packet).groupName;
+    public void handleOnServer(ChannelHandlerContext ctx, CreateGroupPacket packet) {
+        String groupName = packet.groupName;
         ServerManager manager = StartServer.manager;
 
         GroupChat chat = new GroupChat(groupName);
@@ -46,10 +45,10 @@ public class CreateGroupPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext ctx, Packet packet) {
+    public void handleOnClient(ChannelHandlerContext ctx, CreateGroupPacket packet) {
         ClientManager manager = StartClient.manager;
 
-        ClientGroupChat chat = new ClientGroupChat(((CreateGroupPacket) packet).groupName);
+        ClientGroupChat chat = new ClientGroupChat(packet.groupName);
         chat.addClient(manager.user);
 
         manager.addGroup(chat);

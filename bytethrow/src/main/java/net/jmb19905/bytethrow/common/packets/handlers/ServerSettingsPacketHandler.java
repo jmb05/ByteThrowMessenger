@@ -23,17 +23,16 @@ import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.ServerSettingsPacket;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 
-public class ServerSettingsPacketHandler extends PacketHandler {
+public class ServerSettingsPacketHandler extends PacketHandler<ServerSettingsPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnServer(ChannelHandlerContext channelHandlerContext, ServerSettingsPacket packet) throws IllegalSideException {
         throw new IllegalSideException("ServerSettingsPacket received on Server");
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) {
-        StartClient.manager.securePasswords = ((ServerSettingsPacket) packet).securePasswords;
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, ServerSettingsPacket packet) {
+        StartClient.manager.securePasswords = packet.securePasswords;
     }
 }

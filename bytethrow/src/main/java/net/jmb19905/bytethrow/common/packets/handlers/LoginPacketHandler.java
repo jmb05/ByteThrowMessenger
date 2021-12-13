@@ -29,25 +29,23 @@ import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
-public class LoginPacketHandler extends PacketHandler {
+public class LoginPacketHandler extends PacketHandler<LoginPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
-        LoginPacket loginPacket = (LoginPacket) packet;
-        User user = loginPacket.user;
+    public void handleOnServer(ChannelHandlerContext ctx, LoginPacket packet) {
+        User user = packet.user;
         DatabaseManager.UserData userData = DatabaseManager.getUserDataByName(user.getUsername());
         if (userData != null) {
             if (BCrypt.checkpw(user.getPassword(), userData.password())) {
                 user.removePassword();
-                if (!loginPacket.confirmIdentity) {
-                    handleSuccessfulLogin(ctx, loginPacket);
+                if (!packet.confirmIdentity) {
+                    handleSuccessfulLogin(ctx, packet);
                 } else {
-                    sendLoginSuccess(ctx, loginPacket);
+                    sendLoginSuccess(ctx, packet);
                 }
             } else {
                 NetworkingUtility.sendFail(ctx, "login", "wrong_pw", "");
@@ -98,7 +96,7 @@ public class LoginPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, LoginPacket packet) throws IllegalSideException {
         throw new IllegalSideException("LoginPacket received on Client");
     }
 }

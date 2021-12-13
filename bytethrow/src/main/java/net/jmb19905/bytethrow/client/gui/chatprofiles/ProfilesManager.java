@@ -18,8 +18,6 @@
 
 package net.jmb19905.bytethrow.client.gui.chatprofiles;
 
-import net.jmb19905.bytethrow.common.chat.Message;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,21 +25,21 @@ import java.util.stream.Collectors;
 
 public class ProfilesManager {
 
-    private static final List<IChatProfile<? extends Message>> profiles = new ArrayList<>();
+    private static final List<IChatProfile> profiles = new ArrayList<>();
 
-    public static void addProfile(IChatProfile<? extends Message> profile){
+    public static void addProfile(IChatProfile profile){
         profiles.add(profile);
     }
 
-    public static void removeProfile(IChatProfile<? extends Message> profile){
+    public static void removeProfile(IChatProfile profile){
         profiles.remove(profile);
     }
 
-    public static IChatProfile<? extends Message> getProfileByID(UUID id){
+    public static IChatProfile getProfileByID(UUID id){
         return profiles.stream().filter(p -> p.getUniqueID().equals(id)).findFirst().orElse(null);
     }
 
-    public static List<IChatProfile<? extends Message>> getProfilesByName(String name){
+    public static List<IChatProfile> getProfilesByName(String name){
         return profiles.stream().filter(p -> p.getDisplayName().equals(name)).collect(Collectors.toList());
     }
 

@@ -4,7 +4,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.demo.Demo;
 import net.jmb19905.demo.gui.Window;
-import net.jmb19905.demo.gui.events.MessageSendEventListener;
 import net.jmb19905.demo.packet.MessagePacket;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.server.Server;
@@ -41,7 +40,7 @@ public class ServerManager extends EndpointManager {
 
     protected void start() {
         this.window = new Window("Server");
-        window.addEventListener((MessageSendEventListener) evt ->
+        window.addMessageEventListener(evt ->
         server.getConnection().getClientConnections().keySet().stream().findFirst().ifPresentOrElse(serverHandler -> {
             Encryption encryption = serverHandler.getEncryption();
             SocketChannel channel = server.getConnection().getClientConnections().get(serverHandler);

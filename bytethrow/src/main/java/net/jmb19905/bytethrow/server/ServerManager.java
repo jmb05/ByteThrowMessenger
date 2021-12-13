@@ -60,13 +60,11 @@ public class ServerManager {
             TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
             SocketChannel channel = connection.getClientConnections().get(handler);
             Logger.info("Client: \"" + channel.remoteAddress() + "\" is now disconnected");
-            if (!connection.isClosed()) {
-                Optional<User> user = onlineClients.keySet()
-                        .stream()
-                        .filter(u -> onlineClients.get(u).equals(handler))
-                        .findFirst();
-                user.ifPresent(u -> notifyPeersOfDisconnect(u, connection, handler));
-            }
+            Optional<User> user = onlineClients.keySet()
+                    .stream()
+                    .filter(u -> onlineClients.get(u).equals(handler))
+                    .findFirst();
+            user.ifPresent(u -> notifyPeersOfDisconnect(u, connection, handler));
             server.removeServerHandler(handler);
         });
         server.addErrorEventListener(evt -> {
@@ -222,6 +220,7 @@ public class ServerManager {
     public void sendPacketToGroup(String groupName, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
         AbstractChat groupChat = getGroup(groupName);
         groupChat.getMembers().stream().filter(this::isClientOnline).forEach(peer -> {
+            System.out.println("Trying to send group message to: " + peer.getUsername());
             TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
             if (peerHandler != null) {
                 SocketChannel channel = connection.getClientConnections().get(peerHandler);

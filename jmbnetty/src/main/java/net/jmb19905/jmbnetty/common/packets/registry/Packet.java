@@ -43,8 +43,9 @@ public abstract class Packet {
         return type;
     }
 
-    public PacketHandler getHandler() {
-        return type.handler();
+    @SuppressWarnings("unchecked")
+    public <P extends Packet> PacketHandler<P> getHandler() {
+        return (PacketHandler<P>) type.handler();
     }
 
     public static class NullPacket extends Packet {

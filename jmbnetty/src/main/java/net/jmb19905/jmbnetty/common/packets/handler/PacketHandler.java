@@ -22,10 +22,10 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 
-public abstract class PacketHandler {
+public abstract class PacketHandler<P extends Packet> {
 
-    public abstract void handleOnServer(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException;
+    public abstract void handleOnServer(ChannelHandlerContext ctx, P packet) throws IllegalSideException;
 
-    public abstract void handleOnClient(ChannelHandlerContext ctx, Packet packet) throws IllegalSideException;
+    public abstract void handleOnClient(ChannelHandlerContext ctx, P packet) throws IllegalSideException;
 
 }

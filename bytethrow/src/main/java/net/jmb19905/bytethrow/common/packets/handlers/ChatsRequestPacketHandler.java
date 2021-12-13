@@ -22,21 +22,21 @@ import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
+import net.jmb19905.bytethrow.common.packets.ChatsRequestPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.List;
 
-public class ChatsRequestPacketHandler extends PacketHandler {
+public class ChatsRequestPacketHandler extends PacketHandler<ChatsRequestPacket> {
 
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, Packet packet) {
+    public void handleOnServer(ChannelHandlerContext ctx, ChatsRequestPacket packet) {
         ServerManager manager = StartServer.manager;
         User client = manager.getClient((TcpServerHandler) ctx.handler());
         ChatsPacket chatsPacket = new ChatsPacket();
@@ -51,7 +51,7 @@ public class ChatsRequestPacketHandler extends PacketHandler {
     }
 
     @Override
-    public void handleOnClient(ChannelHandlerContext channelHandlerContext, Packet packet) throws IllegalSideException {
+    public void handleOnClient(ChannelHandlerContext channelHandlerContext, ChatsRequestPacket packet) throws IllegalSideException {
         throw new IllegalSideException("ChatsRequestPacket received on Client");
     }
 }

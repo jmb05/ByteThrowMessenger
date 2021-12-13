@@ -19,10 +19,7 @@
 package net.jmb19905.util;
 
 import java.io.*;
-import java.nio.file.FileSystemException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class Logger {
@@ -233,7 +230,9 @@ public class Logger {
             }if (Files.exists(oldFile)) {
                 Files.move(oldFile, newFile);
             }
-        } catch (IOException e) {
+        } catch (NoSuchFileException e) {
+            System.out.println(ANSIColors.getYellow() + "Logger could not find logfile: file might have been changed by other client");
+        }catch (IOException e) {
             System.out.println(ANSIColors.getRed() + "Logger Error:");
             e.printStackTrace();
         }

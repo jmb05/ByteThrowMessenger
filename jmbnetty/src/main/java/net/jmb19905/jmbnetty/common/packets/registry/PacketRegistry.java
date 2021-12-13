@@ -26,8 +26,8 @@ public class PacketRegistry extends Registry {
 
     private static final PacketRegistry instance = new PacketRegistry();
 
-    public <P extends Packet> void register(String id, Class<P> packetClass, PacketHandler handler) {
-        register(id, new PacketType<>(packetClass, handler));
+    public <P extends Packet> void register(String id, Class<P> packetClass, PacketHandler<P> handler) {
+        super.register(id, new PacketType<>(packetClass, handler));
     }
 
     public PacketType<? extends Packet> getPacketType(String id) {
