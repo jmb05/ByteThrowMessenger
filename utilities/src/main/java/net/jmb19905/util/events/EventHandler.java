@@ -25,10 +25,8 @@ public class EventHandler<C extends EventContext> {
     }
 
     public void addEventListener(EventListener listener) {
-        System.out.println("Registering Listener: " + id + ":" + listener.getId());
         EventListenerList<C> listenerBatch = eventListeners.get(id + ":" + listener.getId());
         if (listenerBatch == null) {
-            System.out.println("Created new batch " + eventListeners);
             listenerBatch = new EventListenerList<>();
         }
         listenerBatch.addEvent(listener);
@@ -39,7 +37,6 @@ public class EventHandler<C extends EventContext> {
         if (isValid()) {
             Logger.info("Performing Event: " + id + ":" + evt.getId());
             EventListenerList<C> listenerBatch = eventListeners.get(id + ":" + evt.getId());
-            System.out.println("Listeners: " + listenerBatch.size());
             if (listenerBatch != null) {
                 for (EventListener listener : listenerBatch) {
                     listener.perform(evt);

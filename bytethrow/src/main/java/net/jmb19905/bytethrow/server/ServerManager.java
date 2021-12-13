@@ -220,7 +220,6 @@ public class ServerManager {
     public void sendPacketToGroup(String groupName, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
         AbstractChat groupChat = getGroup(groupName);
         groupChat.getMembers().stream().filter(this::isClientOnline).forEach(peer -> {
-            System.out.println("Trying to send group message to: " + peer.getUsername());
             TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
             if (peerHandler != null) {
                 SocketChannel channel = connection.getClientConnections().get(peerHandler);

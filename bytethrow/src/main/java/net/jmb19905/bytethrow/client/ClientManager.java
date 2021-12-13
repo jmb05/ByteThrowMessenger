@@ -39,7 +39,6 @@ import net.jmb19905.jmbnetty.client.tcp.TcpClientConnection;
 import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
 import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
-import net.jmb19905.jmbnetty.common.state.StateUpdateSubscribePacket;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
@@ -71,10 +70,6 @@ public class ClientManager {
             SocketChannel channel = clientConnection.getChannel();
 
             Logger.info("Server address is: " + channel.remoteAddress());
-
-            StateUpdateSubscribePacket stateSubscribePacket = new StateUpdateSubscribePacket();
-            stateSubscribePacket.stateId = "test";
-            NetworkingUtility.sendPacket(stateSubscribePacket, channel, null);
 
             HandshakePacket packet = new HandshakePacket();
             packet.version = StartClient.version.toString();
