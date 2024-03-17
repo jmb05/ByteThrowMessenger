@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/client" />
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/demo" />
+            <option value="$PROJECT_DIR$/jmb-net-annotation" />
             <option value="$PROJECT_DIR$/jmbnetty" />
             <option value="$PROJECT_DIR$/server" />
             <option value="$PROJECT_DIR$/service-test" />

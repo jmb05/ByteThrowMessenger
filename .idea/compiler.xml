@@ -4,6 +4,12 @@
     <bytecodeTargetLevel target="16">
       <module name="ByteThrow_Messenger.bytethrow.main" target="19" />
       <module name="ByteThrow_Messenger.bytethrow.test" target="19" />
+      <module name="ByteThrow_Messenger.demo.main" target="19" />
+      <module name="ByteThrow_Messenger.demo.test" target="19" />
+      <module name="ByteThrow_Messenger.jmb-net-annotation.main" target="19" />
+      <module name="ByteThrow_Messenger.jmb-net-annotation.test" target="19" />
+      <module name="ByteThrow_Messenger.jmbnetty.main" target="19" />
+      <module name="ByteThrow_Messenger.jmbnetty.test" target="19" />
       <module name="ByteThrow_Messenger.main" target="17" />
       <module name="ByteThrow_Messenger.test" target="17" />
       <module name="ByteThrow_Messenger.utilities.main" target="19" />
