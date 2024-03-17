@@ -18,26 +18,31 @@
 
 package net.jmb19905.bytethrow.common.util;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
-import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.utility.NetworkUtility;
+import net.jmb19905.net.NetThread;
+import net.jmb19905.net.event.ContextFuture;
+import net.jmb19905.net.event.NetworkEventContext;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.Packet;
 import net.jmb19905.util.Logger;
-import net.jmb19905.util.crypto.Encryption;
+
+import java.net.SocketAddress;
 
 public class NetworkingUtility {
 
-    public static ChannelFuture sendPacket(Packet packet, ChannelHandlerContext ctx) {
+    public static ContextFuture<NetworkEventContext> sendPacket(Packet packet, NetworkEventContext ctx) {
         Logger.debug("Sending: " + packet);
-        return NetworkUtility.sendTcp(ctx.channel(), packet, ((AbstractChannelHandler) ctx.handler()).getEncryption());
+        return ctx.send(packet);
     }
 
-    public static ChannelFuture sendPacket(Packet packet, Channel channel, Encryption encryption) {
+    public static ContextFuture<HandlingContext> sendPacket(Packet packet, HandlingContext ctx) {
         Logger.debug("Sending: " + packet);
-        return NetworkUtility.sendTcp(channel, packet, encryption);
+        return ctx.send(packet);
+    }
+
+    public static ContextFuture<NetThread> sendPacket(Packet packet, NetThread netThread, SocketAddress address) {
+        Logger.debug("Sending: " + packet);
+        return net.jmb19905.net.NetworkingUtility.send(netThread, address, packet);
     }
 
     /**
@@ -46,20 +51,28 @@ public class NetworkingUtility {
      * @param cause   the cause of the fail e.g. login or register
      * @param message the message displayed to the client
      */
-    public static ChannelFuture sendFail(ChannelHandlerContext ctx, String cause, String message, String extra) {
+    public static ContextFuture<NetworkEventContext> sendFail(NetworkEventContext ctx, String cause, String message, String extra) {
         FailPacket failPacket = new FailPacket();
         failPacket.cause = cause;
         failPacket.message = message;
         failPacket.extra = extra;
-        return NetworkingUtility.sendPacket(failPacket, ctx.channel(), ((AbstractChannelHandler) ctx.handler()).getEncryption());
+        return ctx.send(failPacket);
     }
 
-    public static ChannelFuture sendFail(Channel channel, String cause, String message, String extra, Encryption encryption) {
+    public static ContextFuture<HandlingContext> sendFail(HandlingContext ctx, String cause, String message, String extra) {
         FailPacket failPacket = new FailPacket();
         failPacket.cause = cause;
         failPacket.message = message;
         failPacket.extra = extra;
-        return NetworkingUtility.sendPacket(failPacket, channel, encryption);
+        return ctx.send(failPacket);
+    }
+
+    public static ContextFuture<NetThread> sendFail(NetThread thread, SocketAddress address, String cause, String message, String extra) {
+        FailPacket failPacket = new FailPacket();
+        failPacket.cause = cause;
+        failPacket.message = message;
+        failPacket.extra = extra;
+        return net.jmb19905.net.NetworkingUtility.send(thread, address, failPacket);
     }
 
 }

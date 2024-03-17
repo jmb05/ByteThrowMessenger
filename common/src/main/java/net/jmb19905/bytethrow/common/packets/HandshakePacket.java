@@ -18,12 +18,8 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-import net.jmb19905.util.SerializationUtility;
-
-import java.nio.charset.StandardCharsets;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 /**
  * Transfers Public-Keys over the network
@@ -35,18 +31,19 @@ public class HandshakePacket extends Packet {
     public String version = "null";
     public byte[] key;
 
-    public HandshakePacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         version = buffer.getString();
         key = buffer.getBytes();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(version);
         buffer.putBytes(key);
     }

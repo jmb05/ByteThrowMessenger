@@ -19,9 +19,8 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 /**
  * A Message from a client to his peer. Usually encrypted (E2EE).
@@ -32,17 +31,18 @@ public class PeerMessagePacket extends Packet {
 
     public PeerMessage message;
 
-    public PeerMessagePacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        message = buffer.get(PeerMessage.class);
+    public void construct(BufferWrapper buffer) {
+        message = buffer.get(PeerMessage.class).orElse(null);//TODO: check
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(message);
     }
 }

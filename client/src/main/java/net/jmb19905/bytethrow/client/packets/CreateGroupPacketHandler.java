@@ -18,17 +18,17 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.CreateGroupPacket;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class CreateGroupPacketHandler extends PacketHandler<CreateGroupPacket> {
+public class CreateGroupPacketHandler implements PacketHandler<CreateGroupPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, CreateGroupPacket packet) {
+    public void handle(HandlingContext ctx, CreateGroupPacket packet) {
         ClientManager manager = StartClient.manager;
 
         ClientGroupChat chat = new ClientGroupChat(packet.groupName);

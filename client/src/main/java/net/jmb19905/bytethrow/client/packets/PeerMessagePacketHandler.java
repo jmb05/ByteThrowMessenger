@@ -18,20 +18,20 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
 import net.jmb19905.bytethrow.common.chat.client.ChatHistorySerialisation;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.crypto.EncryptionUtility;
 
-public class PeerMessagePacketHandler extends PacketHandler<PeerMessagePacket> {
+public class PeerMessagePacketHandler implements PacketHandler<PeerMessagePacket> {
     @Override
-    public void handle(ChannelHandlerContext channelHandlerContext, PeerMessagePacket packet) {
+    public void handle(HandlingContext ctx, PeerMessagePacket packet) {
         PeerMessage message = packet.message;
         User sender = message.getSender();
         User receiver = message.getReceiver();

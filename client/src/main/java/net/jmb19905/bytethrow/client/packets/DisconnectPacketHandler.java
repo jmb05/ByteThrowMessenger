@@ -18,18 +18,18 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class DisconnectPacketHandler extends PacketHandler<DisconnectPacket> {
+public class DisconnectPacketHandler implements PacketHandler<DisconnectPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext channelHandlerContext, DisconnectPacket packet) {
+    public void handle(HandlingContext ctx, DisconnectPacket packet) {
         User peer = packet.user;
         ClientPeerChat chat = StartClient.manager.getChat(peer);
         if (chat != null) {

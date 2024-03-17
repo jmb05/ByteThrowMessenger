@@ -19,14 +19,15 @@ configurations {
 }
 
 dependencies {
-    provided(project(":jmbnetty"))
+    //provided(project(":jmbnetty"))
+    provided "net.jmb19905:jmb-net:$net_version"
     provided "net.jmb19905:jmb-utilities:$utilities_version"
     provided 'org.jetbrains:annotations:20.1.0'
     provided 'com.talanlabs:avatar-generator:1.1.0'
     provided "io.netty:netty-transport:$netty_version"
     provided 'com.formdev:flatlaf:1.6.5'
-    provided 'com.google.guava:guava:31.0.1-jre'
-    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
+    provided 'com.google.guava:guava:33.0.0-jre'
+    provided 'org.xerial:sqlite-jdbc:3.44.1.0'
     provided "com.fasterxml.jackson.core:jackson-core:$jackson_version"
     provided "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
     provided "com.fasterxml.jackson.core:jackson-databind:$jackson_version"

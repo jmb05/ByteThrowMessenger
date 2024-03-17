@@ -18,10 +18,6 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
@@ -30,30 +26,28 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.event.ContextFuture;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
-import net.jmb19905.util.crypto.Encryption;
 
+import java.net.SocketAddress;
 import java.util.Optional;
 
-public class ChangeUserDataPacketHandler extends PacketHandler<ChangeUserDataPacket> {
+public class ChangeUserDataPacketHandler implements PacketHandler<ChangeUserDataPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, ChangeUserDataPacket packet) {
-        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
-        Encryption encryption = handler.getEncryption();
+    public void handle(HandlingContext ctx, ChangeUserDataPacket packet) {
+        SocketAddress address = ctx.getRemote();
         ServerManager manager = StartServer.manager;
-        TcpServerConnection connection = manager.getConnection();
-        User user = manager.getClient(handler);
-        String oldName = manager.getClient(handler).getUsername();
+        User user = manager.getClient(address);
+        String oldName = user.getUsername();
         switch (packet.type) {
             case "username" -> {
                 String newUsername = packet.value;
                 if (DatabaseManager.changeUsername(oldName, newUsername)) {
                     manager.changeName(user, newUsername);
-                    ChannelFuture channelFuture = sendUsernameSuccessPacket(ctx.channel(), encryption);
+                    ContextFuture<HandlingContext> channelFuture = sendUsernameSuccessPacket(ctx);
                     channelFuture.addListener(l -> {
                         ChatsPacket chatsPacket = new ChatsPacket();
                         chatsPacket.update = true;
@@ -61,13 +55,13 @@ public class ChangeUserDataPacketHandler extends PacketHandler<ChangeUserDataPac
                         manager.getOnlineClients().keySet().forEach(client -> {
                             manager.getChats(client).forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
-                            Optional<TcpServerHandler> optionalServerHandler = connection.getClientConnections().keySet().stream().filter(serverHandler -> manager.getClient(serverHandler).equals(client)).findFirst();
-                            if (optionalServerHandler.isPresent()) {
-                                TcpServerHandler peerHandler = optionalServerHandler.get();
-                                SocketChannel peerChannel = connection.getClientConnections().get(peerHandler);
-
-                                Logger.trace("Sending packet " + packet + " to " + peerChannel.remoteAddress());
-                                NetworkingUtility.sendPacket(packet, peerChannel, peerHandler.getEncryption());
+                            Optional<SocketAddress> optionalAddress = manager.getNetThread().getConnectedClients().keySet().stream()
+                                    .filter(sAddress -> manager.getClient(sAddress).equals(client))
+                                    .findFirst();
+                            if (optionalAddress.isPresent()) {
+                                SocketAddress peerAddress = optionalAddress.get();
+                                Logger.trace("Sending packet " + packet + " to " + peerAddress);
+                                net.jmb19905.net.NetworkingUtility.send(manager.getNetThread(), peerAddress, packet);
                             }
                         });
                     });
@@ -77,15 +71,16 @@ public class ChangeUserDataPacketHandler extends PacketHandler<ChangeUserDataPac
             }
             case "password" -> {
                 if (DatabaseManager.changePassword(oldName, packet.value)) {
-                    sendPasswordSuccessPacket(ctx.channel(), encryption);
+                    sendPasswordSuccessPacket(ctx);
                 } else {
                     NetworkingUtility.sendFail(ctx, "change_password", "error_change_pw", "");
                 }
             }
             case "delete" -> {
                 if (DatabaseManager.deleteUser(oldName)) {
-                    sendDeleteSuccessPacket(ctx.channel(), encryption);
-                    connection.markClosed();
+                    sendDeleteSuccessPacket(ctx);
+                    //TODO: close connection
+                    //connection.markClosed();
                 } else {
                     NetworkingUtility.sendFail(ctx, "change_password", "error_change_pw", "");
                 }
@@ -93,24 +88,24 @@ public class ChangeUserDataPacketHandler extends PacketHandler<ChangeUserDataPac
         }
     }
 
-    private ChannelFuture sendUsernameSuccessPacket(Channel channel, Encryption encryption) {
+    private ContextFuture<HandlingContext> sendUsernameSuccessPacket(HandlingContext ctx) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = SuccessPacket.SuccessType.CHANGE_NAME;
 
-        return NetworkingUtility.sendPacket(successPacket, channel, encryption);
+        return NetworkingUtility.sendPacket(successPacket, ctx);
     }
 
-    private void sendPasswordSuccessPacket(Channel channel, Encryption encryption) {
+    private void sendPasswordSuccessPacket(HandlingContext ctx) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = SuccessPacket.SuccessType.CHANGE_PW;
 
-        NetworkingUtility.sendPacket(successPacket, channel, encryption);
+        NetworkingUtility.sendPacket(successPacket, ctx);
     }
 
-    private void sendDeleteSuccessPacket(Channel channel, Encryption encryption) {
+    private void sendDeleteSuccessPacket(HandlingContext ctx) {
         SuccessPacket successPacket = new SuccessPacket();
         successPacket.type = SuccessPacket.SuccessType.DELETE;
 
-        NetworkingUtility.sendPacket(successPacket, channel, encryption);
+        NetworkingUtility.sendPacket(successPacket, ctx);
     }
 }

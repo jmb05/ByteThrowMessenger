@@ -22,34 +22,31 @@ import net.jmb19905.bytethrow.common.packets.*;
 import net.jmb19905.bytethrow.server.commands.HelpCommand;
 import net.jmb19905.bytethrow.server.commands.StopCommand;
 import net.jmb19905.bytethrow.server.packets.*;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-import net.jmb19905.jmbnetty.common.state.StateUpdateSubscribePacket;
-import net.jmb19905.jmbnetty.common.state.StateUpdateSubscribePacketHandler;
+import net.jmb19905.net.packet.PacketRegistry;
 import net.jmb19905.util.commands.CommandRegistry;
 
 public class ServerRegistryManager {
 
     public static void registerPackets() {
-        PacketRegistry.getInstance().register("add_group_member", AddGroupMemberPacket.class, new AddGroupMemberPacketHandler());
-        PacketRegistry.getInstance().register("change_user_data", ChangeUserDataPacket.class, new ChangeUserDataPacketHandler());
-        PacketRegistry.getInstance().register("chats_request", ChatsRequestPacket.class, new ChatsRequestPacketHandler());
-        PacketRegistry.getInstance().register("create_group", CreateGroupPacket.class, new CreateGroupPacketHandler());
-        PacketRegistry.getInstance().register("connect", ConnectPacket.class, new ConnectPacketHandler());
-        PacketRegistry.getInstance().register("disconnect_peer", DisconnectPeerPacket.class, new DisconnectPeerPacketHandler());
-        PacketRegistry.getInstance().register("group_invite", GroupInvitePacket.class, new GroupInvitePacketHandler());
-        PacketRegistry.getInstance().register("handshake", HandshakePacket.class, new HandshakePacketHandler());
-        PacketRegistry.getInstance().register("leave_group", LeaveGroupPacket.class, new LeaveGroupPacketHandler());
-        PacketRegistry.getInstance().register("login", LoginPacket.class, new LoginPacketHandler());
-        PacketRegistry.getInstance().register("peer_message", PeerMessagePacket.class, new PeerMessagePacketHandler());
-        PacketRegistry.getInstance().register("group_message", GroupMessagePacket.class, new GroupMessagePacketHandler());
-        PacketRegistry.getInstance().register("register", RegisterPacket.class, new RegisterPacketHandler());
-        PacketRegistry.getInstance().register("state_listener", StateUpdateSubscribePacket.class, new StateUpdateSubscribePacketHandler());
+        PacketRegistry.getInstance().register(AddGroupMemberPacket.class, new AddGroupMemberPacketHandler());
+        PacketRegistry.getInstance().register(ChangeUserDataPacket.class, new ChangeUserDataPacketHandler());
+        PacketRegistry.getInstance().register(ChatsRequestPacket.class, new ChatsRequestPacketHandler());
+        PacketRegistry.getInstance().register(CreateGroupPacket.class, new CreateGroupPacketHandler());
+        PacketRegistry.getInstance().register(ConnectPacket.class, new ConnectPacketHandler());
+        PacketRegistry.getInstance().register(DisconnectPeerPacket.class, new DisconnectPeerPacketHandler());
+        PacketRegistry.getInstance().register(GroupInvitePacket.class, new GroupInvitePacketHandler());
+        PacketRegistry.getInstance().register(HandshakePacket.class, new HandshakePacketHandler());
+        PacketRegistry.getInstance().register(LeaveGroupPacket.class, new LeaveGroupPacketHandler());
+        PacketRegistry.getInstance().register(LoginPacket.class, new LoginPacketHandler());
+        PacketRegistry.getInstance().register(PeerMessagePacket.class, new PeerMessagePacketHandler());
+        PacketRegistry.getInstance().register(GroupMessagePacket.class, new GroupMessagePacketHandler());
+        PacketRegistry.getInstance().register(RegisterPacket.class, new RegisterPacketHandler());
 
-        PacketRegistry.getInstance().register("server_settings", ServerSettingsPacket.class, null);
-        PacketRegistry.getInstance().register("success", SuccessPacket.class, null);
-        PacketRegistry.getInstance().register("fail", FailPacket.class, null);
-        PacketRegistry.getInstance().register("disconnect", DisconnectPacket.class, null);
-        PacketRegistry.getInstance().register("chats", ChatsPacket.class, null);
+        PacketRegistry.getInstance().register(ServerSettingsPacket.class, null);
+        PacketRegistry.getInstance().register(SuccessPacket.class, null);
+        PacketRegistry.getInstance().register(FailPacket.class, null);
+        PacketRegistry.getInstance().register(DisconnectPacket.class, null);
+        PacketRegistry.getInstance().register(ChatsPacket.class, null);
     }
 
     public static void registerStates() {

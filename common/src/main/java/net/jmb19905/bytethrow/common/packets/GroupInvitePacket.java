@@ -19,9 +19,8 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class GroupInvitePacket extends Packet {
 
@@ -30,18 +29,19 @@ public class GroupInvitePacket extends Packet {
     public String groupName;
     public User[] members;
 
-    public GroupInvitePacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         groupName = buffer.getString();
-        members = buffer.getArray(User.class);
+        members = (User[]) buffer.getArray(User.class);
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(groupName);
         buffer.putArray(members);
     }

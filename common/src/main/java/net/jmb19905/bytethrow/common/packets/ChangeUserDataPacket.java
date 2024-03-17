@@ -18,9 +18,8 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class ChangeUserDataPacket extends Packet {
 
@@ -29,18 +28,19 @@ public class ChangeUserDataPacket extends Packet {
     public String type = "";
     public String value = "";
 
-    public ChangeUserDataPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         type = buffer.getString();
         value = buffer.getString();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(type);
         buffer.putString(value);
     }

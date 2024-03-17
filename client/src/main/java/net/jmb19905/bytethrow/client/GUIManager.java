@@ -27,6 +27,7 @@ import net.jmb19905.bytethrow.client.gui.chatprofiles.*;
 import net.jmb19905.bytethrow.client.gui.event.*;
 import net.jmb19905.bytethrow.client.gui.settings.AccountSettings;
 import net.jmb19905.bytethrow.client.gui.settings.SettingsWindow;
+import net.jmb19905.net.handler.HandlingContext;
 import net.jmb19905.util.Localisation;
 import net.jmb19905.bytethrow.common.chat.Message;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
@@ -190,12 +191,12 @@ public class GUIManager {
         });
     }
 
-    public void showLoginDialog(ChannelHandlerContext ctx) {
-        loginDialog.showDialog(handler, ctx);
+    public void showLoginDialog() {
+        loginDialog.showDialog(handler);
     }
 
-    public void showRegisterDialog(ChannelHandlerContext ctx) {
-        registerDialog.showDialog(handler, ctx);
+    public void showRegisterDialog() {
+        registerDialog.showDialog(handler);
     }
 
     public CreateGroupDialog.CreateGroupData showCreateGroup() {

@@ -18,10 +18,7 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-
-import java.nio.charset.StandardCharsets;
+import net.jmb19905.net.buffer.BufferWrapper;
 
 /**
  * Sent to the server to tell him the client's name. Sent from the server to the peer to tell him the client's name.
@@ -32,18 +29,19 @@ public class LoginPacket extends IdentificationPacket {
 
     public boolean confirmIdentity = false;
 
-    public LoginPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) throws ArrayIndexOutOfBoundsException {
+    public void construct(BufferWrapper buffer) throws ArrayIndexOutOfBoundsException {
         super.construct(buffer);
         confirmIdentity = buffer.getBoolean();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         super.deconstruct(buffer);
         buffer.putBoolean(confirmIdentity);
     }

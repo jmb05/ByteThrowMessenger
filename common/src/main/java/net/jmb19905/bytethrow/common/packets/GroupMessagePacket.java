@@ -19,9 +19,8 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class GroupMessagePacket extends Packet {
 
@@ -29,17 +28,18 @@ public class GroupMessagePacket extends Packet {
 
     public GroupMessage message;
 
-    public GroupMessagePacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        message = buffer.get(GroupMessage.class);
+    public void construct(BufferWrapper buffer) {
+        message = buffer.get(GroupMessage.class).orElse(null);//TODO: check
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(message);
     }
 }

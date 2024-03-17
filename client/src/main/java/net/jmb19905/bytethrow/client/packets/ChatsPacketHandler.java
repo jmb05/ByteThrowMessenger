@@ -18,7 +18,6 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
@@ -30,13 +29,14 @@ import net.jmb19905.bytethrow.common.chat.client.IClientChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class ChatsPacketHandler extends PacketHandler<ChatsPacket> {
+public class ChatsPacketHandler implements PacketHandler<ChatsPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, ChatsPacket packet) {
+    public void handle(HandlingContext ctx, ChatsPacket packet) {
         ClientManager manager = StartClient.manager;
         if (packet.update) {
             manager.clearChats();

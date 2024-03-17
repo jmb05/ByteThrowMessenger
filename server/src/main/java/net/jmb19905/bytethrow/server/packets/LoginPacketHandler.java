@@ -18,8 +18,6 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.packets.LoginPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
@@ -27,16 +25,17 @@ import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
-public class LoginPacketHandler extends PacketHandler<LoginPacket> {
+import java.net.SocketAddress;
+
+public class LoginPacketHandler implements PacketHandler<LoginPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, LoginPacket packet) {
+    public void handle(HandlingContext ctx, LoginPacket packet) {
         User user = packet.user;
         DatabaseManager.UserData userData = DatabaseManager.getUserDataByName(user.getUsername());
         if (userData != null) {
@@ -61,22 +60,21 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket> {
      *
      * @param packet the login packet containing the login packet of the client
      */
-    private void handleSuccessfulLogin(ChannelHandlerContext ctx, LoginPacket packet) {
+    private void handleSuccessfulLogin(HandlingContext ctx, LoginPacket packet) {
         ServerManager manager = StartServer.manager;
         if (manager.isClientOnline(packet.user)) {
-            for (TcpServerHandler otherHandler : manager.getConnection().getClientConnections().keySet()) {
-                User otherUser = manager.getClient(otherHandler);
+            for (SocketAddress otherAddress : manager.getNetThread().getConnectedClients().keySet()) {
+                User otherUser = manager.getClient(otherAddress);
                 if (otherUser != null && otherUser.equals(packet.user)) {
-                    SocketChannel otherSocketChannel = manager.getConnection().getClientConnections().get(otherHandler);
-                    NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler.getEncryption());
+                    NetworkingUtility.sendFail(manager.getNetThread(), otherAddress, "external_disconnect", "external_disconnect", "");
                     //ChannelFutureListener listener = future1 -> otherHandler.getConnection().markClosed();
                     //future.addListener(listener);
                 }
             }
         }
 
-        manager.addOnlineClient(packet.user, (TcpServerHandler) ctx.handler());
-        Logger.info("Client: " + ctx.channel().remoteAddress() + " now uses name: " + manager.getClient((TcpServerHandler) ctx.handler()));
+        manager.addOnlineClient(packet.user, ctx.getRemote());
+        Logger.info("Client: " + ctx.getRemote() + " now uses name: " + manager.getClient(ctx.getRemote()));
 
         sendLoginSuccess(ctx, packet); // confirms the login to the current client
     }
@@ -86,12 +84,12 @@ public class LoginPacketHandler extends PacketHandler<LoginPacket> {
      *
      * @param loginPacket the LoginPacket
      */
-    private void sendLoginSuccess(ChannelHandlerContext ctx, LoginPacket loginPacket) {
+    private void sendLoginSuccess(HandlingContext ctx, LoginPacket loginPacket) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = SuccessPacket.SuccessType.LOGIN;
         loginSuccessPacket.confirmIdentity = loginPacket.confirmIdentity;
 
-        Logger.trace("Sending packet " + loginSuccessPacket + " to " + ctx.channel().remoteAddress());
-        NetworkingUtility.sendPacket(loginSuccessPacket, ctx.channel(), ((TcpServerHandler) ctx.handler()).getEncryption());
+        Logger.trace("Sending packet " + loginSuccessPacket + " to " + ctx.getRemote());
+        ctx.send(loginSuccessPacket);
     }
 }

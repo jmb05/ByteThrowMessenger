@@ -19,8 +19,7 @@
 package net.jmb19905.bytethrow.common.chat;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.BufferSerializable;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
+import net.jmb19905.net.buffer.BufferWrapper;
 import net.jmb19905.util.crypto.Encryption;
 import net.jmb19905.util.crypto.EncryptionUtility;
 
@@ -75,15 +74,15 @@ public class PeerMessage extends Message {
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        sender = buffer.get(User.class);
-        receiver = buffer.get(User.class);
+    public void construct(BufferWrapper buffer) {
+        sender = buffer.get(User.class).orElse(null);
+        receiver = buffer.get(User.class).orElse(null);//TODO: check
         message = buffer.getString();
         timestamp = buffer.getLong();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(sender);
         buffer.put(receiver);
         buffer.putString(message);

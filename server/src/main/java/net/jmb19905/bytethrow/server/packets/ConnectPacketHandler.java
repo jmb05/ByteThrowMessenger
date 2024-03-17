@@ -18,7 +18,6 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
@@ -27,23 +26,25 @@ import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
 import net.jmb19905.bytethrow.server.util.ClientDataFilesManager;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
+import java.net.SocketAddress;
+
+public class ConnectPacketHandler implements PacketHandler<ConnectPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, ConnectPacket packet) {
+    public void handle(HandlingContext ctx, ConnectPacket packet) {
         ServerManager manager = StartServer.manager;
-        TcpServerHandler handler = ((TcpServerHandler) ctx.handler());
-        User client = manager.getClient(handler);
+        SocketAddress address = ctx.getRemote();
+        User client = manager.getClient(address);
         if (client != null) {
             User peer = packet.user;
             if (DatabaseManager.hasUser(peer.getUsername())) {
                 if (manager.isClientOnline(peer)) {
                     if (manager.getChat(peer, client) == null) {
-                        handleNewChatRequestServer(packet, manager, handler, client, peer);
+                        handleNewChatRequestServer(packet, manager, address, client, peer);
                     } else if (manager.getChat(peer, client) != null) {
                         handleConnectToExistingChatRequestServer(packet, ctx, client, peer);
                     }
@@ -58,7 +59,7 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
         }
     }
 
-    private void handleNewChatRequestServer(ConnectPacket packet, ServerManager manager, TcpServerHandler handler, User client, User peer) {
+    private void handleNewChatRequestServer(ConnectPacket packet, ServerManager manager, SocketAddress address, User client, User peer) {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             PeerChat chat = new PeerChat(client, peer);
             chat.setActive(true);
@@ -68,15 +69,15 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
             ClientDataFilesManager.writeChats(peer);
 
             packet.user = client;
-            manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
+            manager.sendPacketToPeer(peer, packet, address);
         } else {
             Logger.warn("What is this Client even doing with his life?");
         }
     }
 
-    private void handleConnectToExistingChatRequestServer(ConnectPacket packet, ChannelHandlerContext ctx, User client, User peer) {
+    private void handleConnectToExistingChatRequestServer(ConnectPacket packet, HandlingContext ctx, User client, User peer) {
         ServerManager manager = StartServer.manager;
-        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
+        SocketAddress address = ctx.getRemote();
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             NetworkingUtility.sendFail(ctx, "connect:" + peer.getUsername(), "chat_exists", peer.getUsername());
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_CONNECT) {
@@ -84,11 +85,11 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
             chat.setActive(true);
 
             packet.user = client;
-            manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
+            manager.sendPacketToPeer(peer, packet, address);
         } else if (packet.connectType == ConnectPacket.ConnectType.FIRST_RECONNECT) {
             if (manager.isClientOnline(peer)) {
                 packet.user = client;
-                manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
+                manager.sendPacketToPeer(peer, packet, address);
             }
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_RECONNECT) {
             if (manager.isClientOnline(peer)) {
@@ -96,7 +97,7 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
                 chat.setActive(true);
 
                 packet.user = client;
-                manager.sendPacketToPeer(peer, packet, manager.getConnection(), handler);
+                manager.sendPacketToPeer(peer, packet, address);
             }
         }
     }

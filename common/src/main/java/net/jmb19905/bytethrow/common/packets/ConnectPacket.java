@@ -19,9 +19,8 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class ConnectPacket extends Packet {
 
@@ -31,13 +30,14 @@ public class ConnectPacket extends Packet {
     public byte[] key;
     public ConnectType connectType;
 
-    public ConnectPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        user = buffer.get(User.class);
+    public void construct(BufferWrapper buffer) {
+        user = buffer.get(User.class).orElse(null);//TODO: check
         key = buffer.getBytes();
         int typeInt = buffer.getInt();
         if (typeInt == 0) {
@@ -52,7 +52,7 @@ public class ConnectPacket extends Packet {
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(user);
         buffer.putBytes(key);
         buffer.putInt(connectType.typeInt);

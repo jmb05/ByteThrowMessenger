@@ -19,25 +19,20 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketType;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public abstract class IdentificationPacket extends Packet {
 
     public User user;
 
-    protected IdentificationPacket(PacketType<? extends Packet> type) {
-        super(type);
+    @Override
+    public void construct(BufferWrapper buffer) {
+        user = buffer.get(User.class).orElse(null);
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        user = buffer.get(User.class);
-    }
-
-    @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(user);
     }
 }

@@ -18,8 +18,8 @@
 
 package net.jmb19905.bytethrow.common;
 
-import net.jmb19905.jmbnetty.common.buffer.BufferSerializable;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
+import net.jmb19905.net.buffer.BufferSerializable;
+import net.jmb19905.net.buffer.BufferWrapper;
 import org.jetbrains.annotations.Nullable;
 
 public class User implements Cloneable, BufferSerializable {
@@ -73,14 +73,14 @@ public class User implements Cloneable, BufferSerializable {
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         username = buffer.getString();
         password = buffer.getString();
         avatarSeed = buffer.getLong();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(username);
         buffer.putString(password);
         buffer.putLong(avatarSeed);

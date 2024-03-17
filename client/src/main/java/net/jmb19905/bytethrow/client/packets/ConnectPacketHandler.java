@@ -18,40 +18,37 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.ConnectPacket;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.crypto.Encryption;
 import net.jmb19905.util.crypto.EncryptionUtility;
 
 import java.security.spec.InvalidKeySpecException;
 
-public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
+public class ConnectPacketHandler implements PacketHandler<ConnectPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, ConnectPacket packet) {
+    public void handle(HandlingContext ctx, ConnectPacket packet) {
         User peer = packet.user;
         byte[] encodedPeerKey = packet.key;
 
         try {
             if (StartClient.manager.getChat(peer) == null) {
-                handleNewChatRequestClient(packet, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
+                handleNewChatRequestClient(packet, peer, encodedPeerKey);
             } else if (StartClient.manager.getChat(peer) != null) {
-                handleConnectToExistingChatRequestClient(packet, ctx.channel(), ((TcpClientHandler) ctx.handler()).getEncryption(), peer, encodedPeerKey);
+                handleConnectToExistingChatRequestClient(packet, peer, encodedPeerKey);
             }
         } catch (InvalidKeySpecException e) {
             Logger.error(e);
         }
     }
 
-    private void handleConnectToExistingChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
+    private void handleConnectToExistingChatRequestClient(ConnectPacket packet, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             Logger.warn("Peer tried create a Chat that already exists");
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_CONNECT) {
@@ -65,7 +62,7 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
             packet.key = chatEncryption.getPublicKey().getEncoded();
             packet.connectType = ConnectPacket.ConnectType.REPLY_RECONNECT;
 
-            NetworkingUtility.sendPacket(packet, channel, encryption);
+            StartClient.manager.send(packet);
         } else if (packet.connectType == ConnectPacket.ConnectType.REPLY_RECONNECT) {
             activateEncryption(peer, encodedPeerKey);
         }
@@ -79,7 +76,7 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
         chat.setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(encodedPeerKey));
     }
 
-    private void handleNewChatRequestClient(ConnectPacket packet, Channel channel, Encryption encryption, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
+    private void handleNewChatRequestClient(ConnectPacket packet, User peer, byte[] encodedPeerKey) throws InvalidKeySpecException {
         if (packet.connectType == ConnectPacket.ConnectType.FIRST_CONNECT) {
             ClientPeerChat chat = new ClientPeerChat(StartClient.manager.user, peer);
             chat.initClient();
@@ -98,7 +95,7 @@ public class ConnectPacketHandler extends PacketHandler<ConnectPacket> {
             replyPacket.connectType = ConnectPacket.ConnectType.REPLY_CONNECT;
             Logger.trace("Sending packet ConnectPacket to " + peer);
 
-            NetworkingUtility.sendPacket(replyPacket, channel, encryption);
+            StartClient.manager.send(replyPacket);
         } else {
             Logger.warn("What is this Client even doing with his life?");
         }

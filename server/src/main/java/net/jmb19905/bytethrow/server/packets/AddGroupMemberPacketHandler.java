@@ -18,34 +18,31 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
-import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class AddGroupMemberPacketHandler extends PacketHandler<AddGroupMemberPacket> {
+import java.net.SocketAddress;
+
+public class AddGroupMemberPacketHandler implements PacketHandler<AddGroupMemberPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, AddGroupMemberPacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, AddGroupMemberPacket packet) {
         ServerManager manager = StartServer.manager;
         GroupChat groupChat = manager.getGroup(packet.groupName);
 
-        TcpServerHandler memberHandler = manager.getClientHandler(packet.member);
-        if (memberHandler != null) {
+        SocketAddress memberAddress = manager.getClientAddress(packet.member);
+        if (memberAddress != null) {
             GroupInvitePacket groupInvitePacket = new GroupInvitePacket();
             groupInvitePacket.groupName = packet.groupName;
             groupInvitePacket.members = groupChat.getMembers().toArray(new User[0]);
 
-            SocketChannel channel = manager.getConnection().getClientConnections().get(memberHandler);
-            NetworkingUtility.sendPacket(groupInvitePacket, channel, memberHandler.getEncryption());
+            net.jmb19905.net.NetworkingUtility.send(manager.getNetThread(), memberAddress, groupInvitePacket);
             groupChat.finishInitialization();
         } else {
             NetworkingUtility.sendFail(ctx, "group_add:" + packet.groupName + ":" + packet.member, "not_online", packet.member.getUsername());

@@ -25,6 +25,7 @@ import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.gui.event.GuiEventContext;
 import net.jmb19905.bytethrow.client.gui.event.LoginEvent;
+import net.jmb19905.net.handler.HandlingContext;
 import net.jmb19905.util.Localisation;
 import net.jmb19905.util.AsynchronousInitializer;
 import net.jmb19905.util.events.EventHandler;
@@ -223,9 +224,9 @@ public class LoginDialog extends JDialog {
         return password;
     }
 
-    public void showDialog(EventHandler<GuiEventContext> eventHandler, ChannelHandlerContext ctx) {
+    public void showDialog(EventHandler<GuiEventContext> eventHandler) {
         LoginData data = showDialog();
-        eventHandler.performEvent(new LoginEvent(GuiEventContext.create(this), data, ctx));
+        eventHandler.performEvent(new LoginEvent(GuiEventContext.create(this), data));
     }
 
     private LoginData showDialog() {
