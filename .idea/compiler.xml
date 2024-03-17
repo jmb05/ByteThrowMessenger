@@ -2,8 +2,12 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="16">
+      <module name="ByteThrow_Messenger.bytethrow.main" target="19" />
+      <module name="ByteThrow_Messenger.bytethrow.test" target="19" />
       <module name="ByteThrow_Messenger.main" target="17" />
       <module name="ByteThrow_Messenger.test" target="17" />
+      <module name="ByteThrow_Messenger.utilities.main" target="19" />
+      <module name="ByteThrow_Messenger.utilities.test" target="19" />
     </bytecodeTargetLevel>
   </component>
 </project>

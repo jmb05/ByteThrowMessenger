@@ -1,8 +1,8 @@
-module net.jmb19905b.demo.main {
-    requires net.jmb19905b.utilities.main;
+module bytethrow.demo {
+    requires jmb.utilities;
     requires com.formdev.flatlaf;
     requires java.desktop;
-    requires net.jmb19905b.jmbnetty.main;
+    requires bytethrow.jmbnetty;
     requires io.netty.transport;
     requires org.jetbrains.annotations;
     requires jdk.unsupported;

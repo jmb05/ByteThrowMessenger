@@ -18,28 +18,26 @@
 
 package net.jmb19905.jmbnetty.common.packets.registry;
 
+import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
 import net.jmb19905.util.Logger;
-
-import java.nio.charset.StandardCharsets;
 
 public class PacketUtil {
 
-    public static Packet construct(byte[] data) throws IllegalStateException {
-        String dataAsString = new String(data, StandardCharsets.UTF_8);
-        String[] parts = dataAsString.split("\\|");
+    public static Packet construct(SimpleBuffer data) throws IllegalStateException {
+        String typeHeader = data.getString();
         PacketType<? extends Packet> packetType = null;
         try {
-            packetType = PacketRegistry.getInstance().getPacketType(parts[0]);
+            packetType = PacketRegistry.getInstance().getPacketType(typeHeader);
             Packet packet = packetType.newPacketInstance();
             if (packet != null) {
-                packet.construct(parts);
+                packet.construct(data);
             }
             return packet;
         } catch (NoSuchMethodException e) {
             Logger.error(e);
             return new Packet.NullPacket(packetType);
         } catch (NullPointerException e) {
-            Logger.error(e, "Packet has unknown type header: " + parts[0]);
+            Logger.error(e, "Packet has unknown type header: " + typeHeader);
             return new Packet.NullPacket(packetType);
         }
     }

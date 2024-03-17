@@ -18,11 +18,11 @@
 
 package net.jmb19905.jmbnetty.common.packets.registry;
 
+import net.jmb19905.jmbnetty.common.buffer.BufferSerializable;
+import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 
-import java.nio.charset.StandardCharsets;
-
-public abstract class Packet {
+public abstract class Packet implements BufferSerializable {
 
     private final PacketType<? extends Packet> type;
 
@@ -30,14 +30,9 @@ public abstract class Packet {
         this.type = type;
     }
 
-    public abstract void construct(String[] data);
+    public abstract void construct(SimpleBuffer buffer);
 
-    public abstract byte[] deconstruct();
-
-    @Override
-    public String toString() {
-        return new String(deconstruct(), StandardCharsets.UTF_8);
-    }
+    public abstract void deconstruct(SimpleBuffer buffer);
 
     public PacketType<? extends Packet> getType() {
         return type;
@@ -55,12 +50,9 @@ public abstract class Packet {
         }
 
         @Override
-        public void construct(String[] data) {
-        }
+        public void construct(SimpleBuffer buffer) {}
 
         @Override
-        public byte[] deconstruct() {
-            return new byte[0];
-        }
+        public void deconstruct(SimpleBuffer buffer) {}
     }
 }

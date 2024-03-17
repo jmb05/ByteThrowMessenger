@@ -20,8 +20,8 @@ package net.jmb19905.jmbnetty.common.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
 import net.jmb19905.jmbnetty.common.handler.event.*;
+import net.jmb19905.util.crypto.Encryption;
 import net.jmb19905.util.events.EventHandler;
 import org.jetbrains.annotations.NotNull;
 

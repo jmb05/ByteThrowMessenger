@@ -21,7 +21,7 @@ package net.jmb19905.jmbnetty.common.handler.event;
 import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.util.events.EventContext;
 
-public class HandlerEventContext extends EventContext {
+public class HandlerEventContext extends EventContext<AbstractChannelHandler> {
     private final AbstractChannelHandler handler;
 
     private HandlerEventContext(AbstractChannelHandler handler) {

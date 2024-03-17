@@ -26,7 +26,7 @@ public abstract class Endpoint {
 
     public Endpoint(int port) {
         this.port = port;
-        ShutdownManager.addCleanUp(this::stop);
+        ShutdownManager.addCleanupFirst(this::stop);
     }
 
     public abstract void start();

@@ -1,0 +1,105 @@
+import edu.sc.seis.launch4j.tasks.Launch4jLibraryTask
+
+plugins {
+    id 'java'
+    id 'application'
+    id 'edu.sc.seis.launch4j' version '2.5.1'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.bennettcraft.com/releases"
+    }
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+configurations {
+    provided
+    implementation.extendsFrom(provided)
+}
+
+dependencies {
+    provided(project(":common"))
+    provided(project(":jmbnetty"))
+    provided "net.jmb19905:jmb-utilities:$utilities_version"
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided 'com.talanlabs:avatar-generator:1.1.0'
+    provided "io.netty:netty-transport:$netty_version"
+    provided 'com.formdev:flatlaf:1.6.5'
+    provided "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    provided "com.github.bailuk:java-gtk:0.4.0"
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+task createVersionFile(dependsOn: processResources) {
+    doLast {
+        println(project.version.toString())
+        var file = new File("$buildDir/resources/main/version.properties")
+        file.parentFile.mkdirs()
+        file.createNewFile()
+        file.withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+task clientJar(type: Jar) {
+    duplicatesStrategy = 'exclude'
+    archiveFileName = "ByteThrowMessenger-${project.version}-Client.jar"
+    archiveBaseName = "ByteThrowMessenger-${project.version}-Client"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.client.ClientMain'
+        attributes 'Implementation-Version': project.version
+    }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/bytethrow/server**'
+        exclude 'net/jmb19905/jmbnetty/server**'
+        exclude 'version.properties'
+        zipTree(it)
+    }
+    with jar
+}
+
+//Don't create the default jar
+jar.onlyIf { false }
+
+application {
+    mainModule = 'net.jmb19905.bytethrow'
+    mainClass = 'net.jmb19905.bytethrow.client.ClientMain'
+}
+
+launch4j {
+    outfile "ByteThrowMessenger-${project.version}-Client.exe"
+    mainClassName "net.jmb19905.bytethrow.client.ClientMain"
+    icon "${buildDir}/resources/main/icons/btm.ico"
+    productName "ByteThrowMessenger"
+    jarTask clientJar
+}
+
+task createJreBundledExe(type: Launch4jLibraryTask) {
+    outfile "ByteThrowMessenger-${project.version}-Client-b.exe"
+    fileDescription "The BytethrowMessenger whith bundled jre"
+    bundledJre64Bit true
+    bundledJrePath 'runtime/java-17-jre/'
+}
+
+task createExecutableFiles {
+    dependsOn clientJar
+    dependsOn createAllExecutables
+}
+build.finalizedBy(createExecutableFiles)
+
+classes {
+    dependsOn createVersionFile
+}
+
+test {
+    useJUnitPlatform()
+}

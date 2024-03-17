@@ -39,6 +39,10 @@ public class PacketRegistry extends Registry {
         }
     }
 
+    public String getId(PacketType<? extends Packet> type) {
+        return getAllIds().stream().filter(id -> getRegistry(id) == type).findFirst().orElse("null");
+    }
+
     public static PacketRegistry getInstance() {
         return instance;
     }

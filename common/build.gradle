@@ -1,0 +1,40 @@
+//file:noinspection GroovyAssignabilityCheck
+//file:noinspection ConfigurationAvoidance
+
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.bennettcraft.com/releases"
+    }
+}
+
+configurations {
+    provided
+    implementation.extendsFrom(provided)
+}
+
+dependencies {
+    provided(project(":jmbnetty"))
+    provided "net.jmb19905:jmb-utilities:$utilities_version"
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided 'com.talanlabs:avatar-generator:1.1.0'
+    provided "io.netty:netty-transport:$netty_version"
+    provided 'com.formdev:flatlaf:1.6.5'
+    provided 'com.google.guava:guava:31.0.1-jre'
+    provided 'org.xerial:sqlite-jdbc:3.36.0.2'
+    provided "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    provided "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    provided "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}

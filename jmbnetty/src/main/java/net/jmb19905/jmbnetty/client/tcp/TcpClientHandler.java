@@ -34,7 +34,7 @@ public class TcpClientHandler extends AbstractChannelHandler {
     public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) {
         try {
             Packet packet = (Packet) msg;
-            packet.getHandler().handleOnClient(ctx, packet);
+            packet.getHandler().handle(ctx, packet);
         } catch (IllegalSideException e) {
             Logger.warn(e);
         }

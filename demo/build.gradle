@@ -2,15 +2,16 @@
 plugins {
     id 'java'
     id 'application'
-    id"de.jjohannes.extra-java-module-info" version "0.6"
     id 'edu.sc.seis.launch4j' version '2.5.1'
 }
 
-group 'net.jmb19905'
 version '1.0.0'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://repo.bennettcraft.com/releases"
+    }
 }
 
 configurations {
@@ -19,28 +20,15 @@ configurations {
 }
 
 dependencies {
-    provided project(":utilities")
     provided project(":jmbnetty")
+    provided "net.jmb19905:jmb-utilities:$utilities_version"
     provided 'org.jetbrains:annotations:20.1.0'
-    provided 'io.netty:netty-transport:4.1.71.Final'
+    provided "io.netty:netty-transport:$netty_version"
     provided 'com.formdev:flatlaf:1.6.5'
     provided 'org.mindrot:jbcrypt:0.4'
     provided 'com.google.guava:guava:31.0.1-jre'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-}
-
-extraJavaModuleInfo {
-    module("flatlaf-1.6.5.jar", "com.formdev.flatlaf", "1.6.5") {
-        exports("com.formdev.flatlaf")
-    }
-    module("jbcrypt-0.4.jar", "org.mindrot", "0.4") {
-        exports("org.mindrot.jbcrypt")
-    }
-    module("failureaccess-1.0.1.jar", "com.google.guava", "1.0.1")
-    module("listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar", "com.google.guava", "")
-    module("jsr305-3.0.2.jar", "com.google.code.findbugs", "")
-    module("j2objc-annotations-1.3.jar", "com.google.j2objc", "1.3")
 }
 
 application {
@@ -50,8 +38,8 @@ application {
 
 jar {
     duplicatesStrategy = 'exclude'
-    archiveName "JMBNetty-Demo-${project.version}.jar"
-    baseName "JMBNetty-Demo-${project.version}"
+    archiveFileName = "JMBNetty-Demo-${project.version}.jar"
+    archiveBaseName = "JMBNetty-Demo-${project.version}"
     manifest {
         attributes 'Main-Class': 'net.jmb19905.demo.Demo'
         attributes 'Implementation-Version': project.version

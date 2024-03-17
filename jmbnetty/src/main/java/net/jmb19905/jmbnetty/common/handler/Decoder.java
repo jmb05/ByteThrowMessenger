@@ -21,13 +21,13 @@ package net.jmb19905.jmbnetty.common.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketUtil;
 import net.jmb19905.util.Logger;
+import net.jmb19905.util.crypto.Encryption;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Decoder extends ByteToMessageDecoder {
@@ -36,10 +36,8 @@ public class Decoder extends ByteToMessageDecoder {
 
     public Decoder(Encryption encryption) {
         addTask(in -> {
-            if (encryption == null || !encryption.isUsable()) {
-                return in;
-            }
-            return encryption.decrypt(in);
+            in.decrypt(encryption);
+            return in;
         });
     }
 
@@ -49,42 +47,17 @@ public class Decoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-        try {
-            byte[] rawData = new byte[in.readableBytes()];
-            in.readBytes(rawData);
-
-            byte[] data;
-            int lastEnd = 0;
-            for (int i = 0; i < rawData.length; i++) {
-                if (rawData[i] == '%') {
-                    data = Arrays.copyOfRange(rawData, lastEnd, i);
-                    lastEnd = i + 1;
-
-                    for (DecoderTask task : tasks) {
-                        data = task.decode(data);
-                    }
-
-                    if (data == null || data.length < 1) {
-                        Logger.warn("Ignoring faulty Packet");
-                        return;
-                    }
-
-                    Packet packet = PacketUtil.construct(data);
-                    Logger.trace("Decoded Packet: " + packet);
-                    out.add(packet);
-                }
-            }
-
-            if (out.isEmpty()) {
-                throw new IllegalStateException("Error decoding: Could not find End of Packet");
-            }
-        } catch (IllegalStateException e) {
-            Logger.warn(e);
+        SimpleBuffer buffer = new SimpleBuffer(in);
+        for (DecoderTask task : tasks) {
+            buffer = task.decode(buffer);
         }
+        Packet packet = PacketUtil.construct(buffer);
+        if (packet != null) out.add(packet);
+        Logger.trace("Decoded Packet: " + packet);
     }
 
     public interface DecoderTask {
-        byte[] decode(byte[] in);
+        SimpleBuffer decode(SimpleBuffer in);
     }
 
 }

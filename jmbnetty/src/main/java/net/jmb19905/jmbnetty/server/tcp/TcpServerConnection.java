@@ -39,6 +39,8 @@ import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 public class TcpServerConnection extends ServerConnection {
 
     private final EventLoopGroup bossGroup;
@@ -105,7 +107,7 @@ public class TcpServerConnection extends ServerConnection {
         super.stop();
     }
 
-    public BiMap<TcpServerHandler, SocketChannel> getClientConnections() {
+    public Map<TcpServerHandler, SocketChannel> getClientConnections() {
         return clientConnections;
     }
 

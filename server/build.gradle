@@ -1,0 +1,79 @@
+//file:noinspection ConfigurationAvoidance
+plugins {
+    id 'java'
+    id 'com.bmuschko.docker-java-application' version '9.3.1'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.bennettcraft.com/releases"
+    }
+}
+
+configurations {
+    provided
+    implementation.extendsFrom(provided)
+}
+
+dependencies {
+    provided(project(":common"))
+    provided(project(":jmbnetty"))
+    provided "net.jmb19905:jmb-utilities:$utilities_version"
+    provided 'org.jetbrains:annotations:20.1.0'
+    provided "io.netty:netty-transport:$netty_version"
+    provided 'org.mindrot:jbcrypt:0.4'
+    provided "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+task createVersionFile(dependsOn: processResources) {
+    doLast {
+        var file = new File("$buildDir/resources/main/version.properties")
+        file.parentFile.mkdirs()
+        file.createNewFile()
+        file.withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+task serverJar(type: Jar) {
+    //noinspection GroovyAssignabilityCheck
+    duplicatesStrategy = 'exclude'
+    archiveFileName = "ByteThrowMessenger-${project.version}-Server.jar"
+    archiveBaseName = "ByteThrowMessenger-${project.version}-Server"
+    manifest {
+        attributes 'Main-Class': 'net.jmb19905.bytethrow.server.StartServer'
+        attributes 'Implementation-Version': project.version
+    }
+    from configurations.provided.asFileTree.files.collect {
+        exclude 'net/jmb19905/bytethrow/client**'
+        exclude 'net/jmb19905/jmbnetty/client**'
+        exclude 'version.properties'
+        zipTree(it)
+    }
+    with jar
+}
+
+docker {
+    javaApplication {
+        baseImage = 'eclipse-temurin:19-jre-jammy'
+        maintainer = 'Jared M. Bennett "jmb05@web.de"'
+        ports = [10101]
+        mainClassName = 'net.jmb19905.bytethrow.server.StartServer'
+        args = ["dev-deploy"]
+    }
+}
+
+classes {
+    dependsOn createVersionFile
+}
+
+test {
+    useJUnitPlatform()
+}

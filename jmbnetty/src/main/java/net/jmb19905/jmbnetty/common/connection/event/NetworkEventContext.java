@@ -23,7 +23,7 @@ import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
 import net.jmb19905.util.events.EventContext;
 import org.jetbrains.annotations.Nullable;
 
-public class NetworkEventContext extends EventContext {
+public class NetworkEventContext extends EventContext<AbstractConnection> {
 
     private final AbstractConnection connection;
     private final AbstractChannelHandler handler;

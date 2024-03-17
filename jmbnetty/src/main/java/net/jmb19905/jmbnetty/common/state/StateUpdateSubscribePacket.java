@@ -18,6 +18,7 @@
 
 package net.jmb19905.jmbnetty.common.state;
 
+import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
 import net.jmb19905.jmbnetty.common.packets.registry.Packet;
 import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
@@ -36,14 +37,16 @@ public class StateUpdateSubscribePacket extends Packet {
     }
 
     @Override
-    public void construct(String[] data) {
-        stateId = data[1];
-        stateName = data[2];
-        register = Boolean.parseBoolean(data[3]);
+    public void construct(SimpleBuffer buffer) {
+        stateId = buffer.getString();
+        stateName = buffer.getString();
+        register = buffer.getBoolean();
     }
 
     @Override
-    public byte[] deconstruct() {
-        return (ID + "|" + stateId + "|" + stateName + "|" + register).getBytes(StandardCharsets.UTF_8);
+    public void deconstruct(SimpleBuffer buffer) {
+        buffer.putString(stateId);
+        buffer.putString(stateName);
+        buffer.putBoolean(register);
     }
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<interface>
+    <requires lib="gtk" version="4.0"/>
+    <requires lib="libadwaita" version="1.0"/>
+    <object class="AdwApplicationWindow" id="window">
+        <property name="title" translatable="yes">ByteThrow Messenger</property>
+        <property name="default-width">480</property>
+        <property name="default-height">400</property>
+        <child>
+            <object class="AdwHeaderBar">
+                <child type="end">
+                    <object class="GtkButton" id="title_button">
+                        <property name="label">Button</property>
+                    </object>title
+                </child>
+            </object>
+        </child>
+        <child>
+            <object class="GtkBox" id="h_box">
+                <property name="orientation">horizontal</property>
+                <child>
+                    <object class="GtkListView" id="chat_list">
+
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="v_box">
+                        <property name="orientation">vertical</property>
+                        <child>
+                            <object class="GtkScrolledWindow" id="scrolled_window">
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <child>
+                                    <object class="GtkTextView" id="text_view">
+                                        <property name="editable">False</property>
+                                        <property name="cursor-visible">False</property>
+                                        <property name="left-margin">10</property>
+                                        <property name="top-margin">10</property>
+                                        <property name="wrap-mode">GTK_WRAP_WORD</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkEntry" id="input_field"/>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="action_bar">
+                        <property name="orientation">vertical</property>
+                        <style>
+                            <class name="action_bar"/>
+                        </style>
+                        <child>
+                            <object class="GtkButton" id="button">
+                                <property name="label">⋮</property>
+                                <property name="width-request">30</property>
+                                <property name="height-request">30</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+</interface>

@@ -18,7 +18,7 @@
 
 package net.jmb19905.jmbnetty.common.handler;
 
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
+import net.jmb19905.util.crypto.Encryption;
 
 public interface IEncryptedHandler {
     Encryption getEncryption();

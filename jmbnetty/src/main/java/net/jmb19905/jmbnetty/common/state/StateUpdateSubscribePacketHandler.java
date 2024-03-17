@@ -19,15 +19,14 @@
 package net.jmb19905.jmbnetty.common.state;
 
 import io.netty.channel.ChannelHandlerContext;
-import net.jmb19905.jmbnetty.common.crypto.Encryption;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
 import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
 import net.jmb19905.jmbnetty.utility.NetworkUtility;
+import net.jmb19905.util.crypto.Encryption;
 
 public class StateUpdateSubscribePacketHandler extends PacketHandler<StateUpdateSubscribePacket> {
     @Override
-    public void handleOnServer(ChannelHandlerContext ctx, StateUpdateSubscribePacket packet) throws IllegalSideException {
+    public void handle(ChannelHandlerContext ctx, StateUpdateSubscribePacket packet) {
         TcpServerHandler serverHandler = (TcpServerHandler) ctx.handler();
         if(packet.register) {
             serverHandler.addStateChangeListener(evt -> {
@@ -48,10 +47,5 @@ public class StateUpdateSubscribePacketHandler extends PacketHandler<StateUpdate
         StateChangePacket<? extends State> stateChangePacket = stateType.newStateChangePacket();
         stateChangePacket.state = ((TcpServerHandler) ctx.handler()).getStateManager().getState(stateName);
         NetworkUtility.sendTcp(ctx, stateChangePacket, encryption);
-    }
-
-    @Override
-    public void handleOnClient(ChannelHandlerContext ctx, StateUpdateSubscribePacket packet) throws IllegalSideException {
-        throw new IllegalSideException("StateSubscriberPacket received on Client");
     }
 }
