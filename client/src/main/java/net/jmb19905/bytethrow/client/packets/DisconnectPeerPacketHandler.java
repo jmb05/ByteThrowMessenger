@@ -18,19 +18,18 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPeerPacket;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class DisconnectPeerPacketHandler extends PacketHandler<DisconnectPeerPacket> {
+public class DisconnectPeerPacketHandler implements PacketHandler<DisconnectPeerPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, DisconnectPeerPacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, DisconnectPeerPacket packet) {
         ClientManager manager = StartClient.manager;
 
         User peer = packet.peer;

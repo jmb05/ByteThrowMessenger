@@ -18,11 +18,9 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
 
-import java.nio.charset.StandardCharsets;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class CreateGroupPacket extends Packet {
 
@@ -30,17 +28,18 @@ public class CreateGroupPacket extends Packet {
 
     public String groupName;
 
-    public CreateGroupPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         groupName = buffer.getString();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(groupName);
     }
 

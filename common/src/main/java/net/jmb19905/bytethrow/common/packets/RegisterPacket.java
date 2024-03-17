@@ -18,11 +18,6 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-
-import java.nio.charset.StandardCharsets;
-
 /**
  * Sent to the server to tell him the client's name. Sent from the server to the peer to tell him the client's name.
  */
@@ -30,7 +25,8 @@ public class RegisterPacket extends IdentificationPacket {
 
     private static final String ID = "register";
 
-    public RegisterPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 }

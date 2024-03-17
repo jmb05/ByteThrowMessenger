@@ -18,26 +18,24 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.packets.AddGroupMemberPacket;
 import net.jmb19905.bytethrow.common.packets.GroupInvitePacket;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class GroupInvitePacketHandler extends PacketHandler<GroupInvitePacket> {
+import java.net.SocketAddress;
+
+public class GroupInvitePacketHandler implements PacketHandler<GroupInvitePacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, GroupInvitePacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, GroupInvitePacket packet) {
         ServerManager manager = StartServer.manager;
 
-        User member = manager.getClient((TcpServerHandler) ctx.handler());
+        User member = manager.getClient(ctx.getRemote());
 
         AbstractChat chat = manager.getGroup(packet.groupName);
         chat.addClient(member);
@@ -48,9 +46,8 @@ public class GroupInvitePacketHandler extends PacketHandler<GroupInvitePacket> {
         addGroupMemberPacket.member = member;
 
         chat.getMembers().stream().filter(u -> !u.equals(member)).forEach(u -> {
-            TcpServerHandler otherHandler = manager.getClientHandler(u);
-            SocketChannel channel = manager.getConnection().getClientConnections().get(otherHandler);
-            NetworkingUtility.sendPacket(addGroupMemberPacket, channel, otherHandler.getEncryption());
+            SocketAddress otherAddress = manager.getClientAddress(u);
+            net.jmb19905.net.NetworkingUtility.send(manager.getNetThread(), otherAddress, addGroupMemberPacket);
         });
     }
 }

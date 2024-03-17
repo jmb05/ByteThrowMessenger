@@ -25,6 +25,7 @@ import net.jmb19905.bytethrow.client.gui.components.HintPasswordField;
 import net.jmb19905.bytethrow.client.gui.components.HintTextField;
 import net.jmb19905.bytethrow.client.gui.event.GuiEventContext;
 import net.jmb19905.bytethrow.client.gui.event.RegisterEvent;
+import net.jmb19905.net.handler.HandlingContext;
 import net.jmb19905.util.Localisation;
 import net.jmb19905.bytethrow.common.util.Util;
 import net.jmb19905.util.AsynchronousInitializer;
@@ -209,9 +210,9 @@ public class RegisterDialog extends JDialog {
         return password;
     }
 
-    public void showDialog(EventHandler<GuiEventContext> eventHandler, ChannelHandlerContext ctx) {
+    public void showDialog(EventHandler<GuiEventContext> eventHandler) {
         RegisterData data = showDialog();
-        eventHandler.performEvent(new RegisterEvent(GuiEventContext.create(this), data, ctx));
+        eventHandler.performEvent(new RegisterEvent(GuiEventContext.create(this), data));
     }
 
     private RegisterData showDialog() {

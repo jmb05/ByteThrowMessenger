@@ -18,22 +18,23 @@
 
 package net.jmb19905.bytethrow.server;
 
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPacket;
-import net.jmb19905.bytethrow.common.packets.FailPacket;
 import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.server.Server;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.Server;
+import net.jmb19905.net.event.ActiveEventListener;
+import net.jmb19905.net.event.ExceptionEventListener;
+import net.jmb19905.net.event.InactiveEventListener;
+import net.jmb19905.net.packet.Packet;
+import net.jmb19905.net.tcp.ServerTcpThread;
 import net.jmb19905.util.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,39 +45,29 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ServerManager {
 
     private final Server server;
+    private final ServerTcpThread netThread;
     private List<AbstractChat> chats = new ArrayList<>();
-    private final Map<User, TcpServerHandler> onlineClients = new HashMap<>();
+    private final Map<User, SocketAddress> onlineClients = new HashMap<>();
 
     public ServerManager(int port) {
-        this.server = new Server(port);
-        server.addConnectedEventListener(evt -> {
-            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
-            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
-            SocketChannel channel = connection.getClientConnections().get(handler);
-            Logger.info("Client: \"" + channel.remoteAddress() + "\" is now connected");
+        this.server = new Server();
+        this.netThread = (ServerTcpThread) server.addTcp(port);
+
+        this.netThread.addDefaultEventListener((ActiveEventListener) evt -> {
+            Logger.info("Client: \"" + evt.getContext().remoteAddress() + "\" is now connected");
         });
-        server.addDisconnectedEventListener(evt -> {
-            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
-            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
-            SocketChannel channel = connection.getClientConnections().get(handler);
-            Logger.info("Client: \"" + channel.remoteAddress() + "\" is now disconnected");
+
+        this.netThread.addDefaultEventListener((InactiveEventListener) evt -> {
+            Logger.info("Client: \"" + evt.getContext().remoteAddress() + "\" is now disconnected");
             Optional<User> user = onlineClients.keySet()
                     .stream()
-                    .filter(u -> onlineClients.get(u).equals(handler))
+                    .filter(u -> onlineClients.get(u).equals(evt.getContext().remoteAddress()))
                     .findFirst();
-            user.ifPresent(u -> notifyPeersOfDisconnect(u, connection, handler));
-            server.removeServerHandler(handler);
+            user.ifPresent(u -> notifyPeersOfDisconnect(u, evt.getContext().remoteAddress()));
         });
-        server.addErrorEventListener(evt -> {
-            TcpServerConnection connection = (TcpServerConnection) evt.getContext().getConnection();
-            TcpServerHandler handler = (TcpServerHandler) evt.getContext().getHandler();
-            SocketChannel channel = connection.getClientConnections().get(handler);
 
-            FailPacket failPacket = new FailPacket();
-            failPacket.cause = "internal";
-            failPacket.message = "internal_error";
-            failPacket.extra = "";
-            NetworkingUtility.sendPacket(failPacket, channel, handler.getEncryption());
+        this.netThread.addDefaultEventListener((ExceptionEventListener) evt -> {
+            NetworkingUtility.sendFail(evt.getContext(), "internal", "internal_error", "");
         });
     }
 
@@ -84,8 +75,8 @@ public class ServerManager {
         this.server.start();
     }
 
-    public void addOnlineClient(User client, TcpServerHandler handler) {
-        onlineClients.put(client, handler);
+    public void addOnlineClient(User client, SocketAddress addr) {
+        onlineClients.put(client, addr);
     }
 
     public void removeOnlineClient(User client) {
@@ -154,7 +145,7 @@ public class ServerManager {
         return b.get();
     }
 
-    public Map<User, TcpServerHandler> getOnlineClients() {
+    public Map<User, SocketAddress> getOnlineClients() {
         return onlineClients;
     }
 
@@ -186,7 +177,7 @@ public class ServerManager {
     /**
      * Tell all online peers that the client has now disconnected
      */
-    private void notifyPeersOfDisconnect(User disconnectedClient, TcpServerConnection connection, TcpServerHandler serverHandler) {
+    private void notifyPeersOfDisconnect(User disconnectedClient, SocketAddress ownAddress) {
         for (AbstractChat chat : getChats(disconnectedClient)) {
             List<User> notifiedClients = new ArrayList<>();
             notifiedClients.add(disconnectedClient);
@@ -194,7 +185,7 @@ public class ServerManager {
                 if (!notifiedClients.contains(client)) {
                     DisconnectPacket disconnectPacket = new DisconnectPacket();
                     disconnectPacket.user = disconnectedClient;
-                    sendPacketToPeer(client, disconnectPacket, connection, serverHandler);
+                    sendPacketToPeer(client, disconnectPacket, ownAddress);
                     notifiedClients.add(client);
                 }
             }
@@ -206,25 +197,23 @@ public class ServerManager {
      *
      * @param packet the packet to be sent
      */
-    public void sendPacketToPeer(User peer, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
-        TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
-        if (peerHandler != null) {
-            SocketChannel channel = connection.getClientConnections().get(peerHandler);
-            Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
-            NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+    public void sendPacketToPeer(User peer, Packet packet, SocketAddress ownAddress) {
+        SocketAddress peerAddress = getPeerAddress(peer, ownAddress);
+        if (peerAddress != null) {
+            Logger.trace("Sending packet " + packet + " to " + peerAddress);
+            net.jmb19905.net.NetworkingUtility.send(netThread, peerAddress, packet);
         } else {
             Logger.warn("Peer: " + peer.getUsername() + " not online");
         }
     }
 
-    public void sendPacketToGroup(String groupName, Packet packet, TcpServerConnection connection, TcpServerHandler serverHandler) {
+    public void sendPacketToGroup(String groupName, Packet packet, SocketAddress ownAddress) {
         AbstractChat groupChat = getGroup(groupName);
         groupChat.getMembers().stream().filter(this::isClientOnline).forEach(peer -> {
-            TcpServerHandler peerHandler = getPeerHandler(peer, serverHandler);
-            if (peerHandler != null) {
-                SocketChannel channel = connection.getClientConnections().get(peerHandler);
-                Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
-                NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+            SocketAddress peerAddress = getPeerAddress(peer, ownAddress);
+            if (peerAddress != null) {
+                Logger.trace("Sending packet " + packet + " to " + peerAddress);
+                net.jmb19905.net.NetworkingUtility.send(netThread, peerAddress, packet);
             }
         });
     }
@@ -232,12 +221,12 @@ public class ServerManager {
     /**
      * @return the ServerHandler of the current peer
      */
-    public TcpServerHandler getPeerHandler(User peer, TcpServerHandler ownHandler) {
-        for (TcpServerHandler peerHandler : getConnection().getClientConnections().keySet()) {
-            if (peerHandler != ownHandler) {
-                User currentPeer = getClient(peerHandler);
+    public SocketAddress getPeerAddress(User peer, SocketAddress ownAddress) {
+        for (SocketAddress address : netThread.getConnectedClients().keySet()) {
+            if (address != ownAddress) {
+                User currentPeer = getClient(address);
                 if (peer.equals(currentPeer) && peer != null) {
-                    return peerHandler;
+                    return address;
                 }
             }
         }
@@ -245,23 +234,26 @@ public class ServerManager {
     }
 
     @Nullable
-    public User getClient(TcpServerHandler handler) {
+    public User getClient(SocketAddress address) {
         Optional<User> clientName = onlineClients.keySet()
                 .stream()
-                .filter(u -> onlineClients.get(u).equals(handler))
+                .filter(u -> onlineClients.get(u).equals(address))
                 .findFirst();
         return clientName.orElse(null);
     }
 
-    public TcpServerConnection getConnection() {
-        return server.getConnection();
+    public ServerTcpThread getNetThread() {
+        return netThread;
     }
 
-    public TcpServerHandler getClientHandler(User user) {
-        AtomicReference<TcpServerHandler> handler = new AtomicReference<>();
+    public SocketAddress getClientAddress(User user) {
+        AtomicReference<SocketAddress> address = new AtomicReference<>();
         String username = user.getUsername();
-        onlineClients.keySet().stream().filter(u -> u.getUsername().equals(username)).findFirst().ifPresent(us -> handler.set(onlineClients.get(us)));
-        return handler.get();
+        onlineClients.keySet().stream()
+                .filter(u -> u.getUsername().equals(username))
+                .findFirst()
+                .ifPresent(us -> address.set(onlineClients.get(us)));
+        return address.get();
     }
 
 }

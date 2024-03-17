@@ -18,9 +18,7 @@
 
 package net.jmb19905.bytethrow.client;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.client.gui.CreateGroupDialog;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
@@ -32,18 +30,22 @@ import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.chat.client.IClientChat;
 import net.jmb19905.bytethrow.common.packets.*;
-import net.jmb19905.util.config.ConfigManager;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.jmbnetty.client.Client;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientConnection;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
-import net.jmb19905.jmbnetty.common.handler.AbstractChannelHandler;
+import net.jmb19905.net.Client;
+import net.jmb19905.net.event.ActiveEventListener;
+import net.jmb19905.net.event.ExceptionEventListener;
+import net.jmb19905.net.event.InactiveEventListener;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.Packet;
+import net.jmb19905.net.tcp.ClientTcpThread;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
+import net.jmb19905.util.config.ConfigManager;
 import net.jmb19905.util.crypto.Encryption;
 
 import javax.swing.*;
 import java.io.File;
+import java.net.SocketAddress;
 import java.util.Timer;
 import java.util.*;
 
@@ -53,6 +55,8 @@ import java.util.*;
 public class ClientManager {
 
     private final Client client;
+    private final ClientTcpThread netThread;
+    private SocketAddress serverAddress = null;
 
     public User user = new User("");
 
@@ -64,62 +68,60 @@ public class ClientManager {
     public boolean loggedIn = false;
 
     public ClientManager(String host, int port) {
-        this.client = new Client(port, host);
-        this.client.addConnectedEventListener(evt -> {
-            TcpClientConnection clientConnection = (TcpClientConnection) evt.getSource();
-            SocketChannel channel = clientConnection.getChannel();
+        this.client = new Client(host);
+        this.netThread = (ClientTcpThread) client.addTcp(port);
 
-            Logger.info("Server address is: " + channel.remoteAddress());
+        this.netThread.addEventListener((ActiveEventListener) evt -> {
+            serverAddress = evt.getContext().remoteAddress();
+            Logger.info("Server address is: " + evt.getContext().remoteAddress());
+
+            Encryption encryption = new Encryption();
+            netThread.setEncryption(encryption);
 
             HandshakePacket packet = new HandshakePacket();
             packet.version = StartClient.version.toString();
-            packet.key = clientConnection.getClientHandler().getEncryption().getPublicKey().getEncoded();
+            packet.key = encryption.getPublicKey().getEncoded();
 
             Logger.trace("Sending packet: " + packet);
-            NetworkingUtility.sendPacket(packet, channel, null);
+            NetworkingUtility.sendPacket(packet, evt.getContext());
         });
-        this.client.addDisconnectedEventListener(evt -> ShutdownManager.shutdown(0));
-        this.client.addErrorEventListener(evt -> {
-            TcpClientConnection clientConnection = (TcpClientConnection) evt.getSource();
-            SocketChannel channel = clientConnection.getChannel();
 
+        this.netThread.addEventListener((InactiveEventListener) evt -> ShutdownManager.shutdown(0));
+
+        this.netThread.addEventListener((ExceptionEventListener) evt -> {
             Logger.error(evt.getCause());
-            channel.close();
         });
-        this.client.addConnectionRefusedHandler(() -> StartClient.guiManager.showLocalisedError("no_internet"));
+
+        //this.client.addConnectionRefusedHandler(() -> StartClient.guiManager.showLocalisedError("no_internet"));
     }
 
     public void initGuiListeners() {
         StartClient.guiManager.addLoginEventListener(evt -> {
-            ChannelHandlerContext ctx = evt.getChannelCtx();
             LoginDialog.LoginData data = evt.getData();
             if(data.resultType() == GUIManager.ResultType.CONFIRM) {
                 if (data != null) {
-                    Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
                     UserDataUtility.writeUserFile(data.username(), data.password(), new File("userdata/user.dat"));
-                    sendLoginPacket(ctx.channel(), encryption, data.username(), data.password());
+                    sendLoginPacket(data.username(), data.password());
                 }
                 ConfigManager.saveConfigFile(StartClient.config);
             }else if(data.resultType() == GUIManager.ResultType.CANCEL) {
                 ShutdownManager.shutdown(0);
             }else {
-                register(ctx);
+                register();
             }
         });
         StartClient.guiManager.addRegisterEventListener(evt -> {
-            ChannelHandlerContext ctx = evt.getChannelCtx();
             RegisterDialog.RegisterData data = evt.getData();
             if(data.resultType() == GUIManager.ResultType.CONFIRM) {
                 if (data != null) {
-                    Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
                     UserDataUtility.writeUserFile(data.username(), data.password(), new File("userdata/user.dat"));
-                    sendRegisterData(ctx.channel(), encryption, data.username(), data.password());
+                    sendRegisterData(data.username(), data.password());
                 }
                 ConfigManager.saveConfigFile(StartClient.config);
             }else if(data.resultType() == GUIManager.ResultType.CANCEL) {
                 ShutdownManager.shutdown(0);
             }else {
-                login(ctx);
+                login();
             }
         });
         StartClient.guiManager.addSendPeerMessageEventListener(evt -> {
@@ -158,7 +160,7 @@ public class ClientManager {
         connectPacket.key = chat.getEncryption().getPublicKey().getEncoded();
         connectPacket.connectType = ConnectPacket.ConnectType.FIRST_CONNECT;
 
-        client.send(connectPacket);
+        send(connectPacket);
         Logger.trace("Connecting with peer: " + peer.getUsername());
     }
 
@@ -230,7 +232,7 @@ public class ClientManager {
         ClientPeerChat chat = getChat(message.getReceiver());
         if (chat != null) {
             packet.message = PeerMessage.encrypt(message, chat.getEncryption());
-            client.send(packet);
+            send(packet);
             Logger.trace("Sent Message: " + plainMessage + " as: " + StartClient.manager.user);
 
             //Save the Packet to History as plain text
@@ -255,7 +257,7 @@ public class ClientManager {
         if (chat != null) {
             packet.message = message;
             chat.addMessage(packet.message);
-            client.send(packet);
+            send(packet);
             Logger.trace("Sent Message: " + message.getMessage());
             ChatHistorySerialisation.saveChat(user, chat);
             return true;
@@ -288,42 +290,40 @@ public class ClientManager {
     /**
      * Sends a LoginPacket tagged as register with the client's name to the server
      */
-    public void register(ChannelHandlerContext ctx) {
-        StartClient.guiManager.showRegisterDialog(ctx);
+    public void register() {
+        StartClient.guiManager.showRegisterDialog();
     }
 
-    private void sendRegisterData(Channel channel, Encryption encryption, String username, String password) {
+    private void sendRegisterData(String username, String password) {
         user.setUsername(username);
         StartClient.guiManager.setUsername(user.getUsername());
 
         RegisterPacket registerPacket = new RegisterPacket();
         registerPacket.user = new User(username, password);
 
-        NetworkingUtility.sendPacket(registerPacket, channel, encryption);
+        send(registerPacket);
     }
 
     /**
      * Sends a LoginPacket with the client's name to the server
      */
-    public void login(ChannelHandlerContext ctx) {
-        Encryption encryption = ((AbstractChannelHandler) ctx.handler()).getEncryption();
-
+    public void login() {
         if (StartClient.config.autoLogin) {
             String[] data = UserDataUtility.readUserFile(new File("userdata/user.dat"));
             if (data.length == 2) {
-                sendLoginPacket(ctx.channel(), encryption, data[0], data[1]);
+                sendLoginPacket(data[0], data[1]);
                 return;
             }
         }
 
-        relogin(ctx);
+        relogin();
     }
 
-    public void relogin(ChannelHandlerContext ctx) {
-        StartClient.guiManager.showLoginDialog(ctx);
+    public void relogin() {
+        StartClient.guiManager.showLoginDialog();
     }
 
-    private void sendLoginPacket(Channel channel, Encryption encryption, String username, String password) {
+    private void sendLoginPacket(String username, String password) {
         user.setUsername(username);
         StartClient.guiManager.setUsername(user.getUsername());
 
@@ -331,7 +331,7 @@ public class ClientManager {
         loginPacket.user = new User(username, password);
         loginPacket.user.setAvatarSeed(user.getAvatarSeed());
 
-        NetworkingUtility.sendPacket(loginPacket, channel, encryption);
+        send(loginPacket);
     }
 
     public void createGroup() {
@@ -340,13 +340,13 @@ public class ClientManager {
             if (data != null) {
                 CreateGroupPacket createGroupPacket = new CreateGroupPacket();
                 createGroupPacket.groupName = data.groupName();
-                client.send(createGroupPacket);
+                send(createGroupPacket);
 
                 Arrays.stream(data.members()).filter(Objects::nonNull).filter(member -> !member.equals(user)).forEach(member -> {
                     AddGroupMemberPacket addGroupMemberPacket = new AddGroupMemberPacket();
                     addGroupMemberPacket.groupName = data.groupName();
                     addGroupMemberPacket.member = member;
-                    client.send(addGroupMemberPacket);
+                    send(addGroupMemberPacket);
                 });
             }
         });
@@ -356,14 +356,18 @@ public class ClientManager {
     public void disconnectFromPeer(User peer){
         DisconnectPeerPacket packet = new DisconnectPeerPacket();
         packet.peer = peer;
-        client.send(packet);
+        send(packet);
     }
 
     public void leaveGroup(String groupName){
         LeaveGroupPacket packet = new LeaveGroupPacket();
         packet.client = user;
         packet.groupName = groupName;
-        client.send(packet);
+        send(packet);
+    }
+
+    public void send(Packet packet) {
+        NetworkingUtility.sendPacket(packet, netThread, serverAddress);
     }
 
     public boolean isIdentityConfirmed() {
@@ -372,5 +376,9 @@ public class ClientManager {
 
     public Client getClient() {
         return client;
+    }
+
+    public ClientTcpThread getNetThread() {
+        return netThread;
     }
 }

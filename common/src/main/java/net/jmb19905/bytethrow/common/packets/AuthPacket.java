@@ -1,8 +1,7 @@
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class AuthPacket extends Packet {
 
@@ -10,17 +9,18 @@ public class AuthPacket extends Packet {
 
     public byte[] authSequence;
 
-    protected AuthPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        authSequence = buffer.getBytes();
+    public void deconstruct(BufferWrapper bufferWrapper) {
+        authSequence = bufferWrapper.getBytes();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
-        buffer.putBytes(authSequence);
+    public void construct(BufferWrapper bufferWrapper) {
+        bufferWrapper.putBytes(authSequence);
     }
 }

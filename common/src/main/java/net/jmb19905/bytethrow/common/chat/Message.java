@@ -19,7 +19,7 @@
 package net.jmb19905.bytethrow.common.chat;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.BufferSerializable;
+import net.jmb19905.net.buffer.BufferSerializable;
 
 public abstract class Message implements Comparable<Message>, BufferSerializable {
 

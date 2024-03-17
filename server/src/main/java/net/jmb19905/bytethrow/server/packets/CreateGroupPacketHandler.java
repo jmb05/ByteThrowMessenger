@@ -18,26 +18,24 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.packets.CreateGroupPacket;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class CreateGroupPacketHandler extends PacketHandler<CreateGroupPacket> {
+public class CreateGroupPacketHandler implements PacketHandler<CreateGroupPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, CreateGroupPacket packet) {
+    public void handle(HandlingContext ctx, CreateGroupPacket packet) {
         String groupName = packet.groupName;
         ServerManager manager = StartServer.manager;
 
         GroupChat chat = new GroupChat(groupName);
-        chat.addClient(manager.getClient((TcpServerHandler) ctx.handler()));
+        chat.addClient(manager.getClient(ctx.getRemote()));
 
         manager.addChat(chat);
 
-        NetworkingUtility.sendPacket(packet, ctx.channel(), ((TcpServerHandler) ctx.handler()).getEncryption());
+        ctx.send(packet);
     }
 }

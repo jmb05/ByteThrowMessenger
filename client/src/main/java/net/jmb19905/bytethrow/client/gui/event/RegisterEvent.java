@@ -18,7 +18,6 @@
 
 package net.jmb19905.bytethrow.client.gui.event;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.gui.RegisterDialog;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,19 +26,13 @@ public class RegisterEvent extends GuiEvent{
     public static final String ID = "register";
 
     private final RegisterDialog.RegisterData data;
-    private final ChannelHandlerContext channelCtx;
 
-    public RegisterEvent(@NotNull GuiEventContext ctx, RegisterDialog.RegisterData data, ChannelHandlerContext channelCtx) {
+    public RegisterEvent(@NotNull GuiEventContext ctx, RegisterDialog.RegisterData data) {
         super(ctx, ID);
         this.data = data;
-        this.channelCtx = channelCtx;
     }
 
     public RegisterDialog.RegisterData getData() {
         return data;
-    }
-
-    public ChannelHandlerContext getChannelCtx() {
-        return channelCtx;
     }
 }

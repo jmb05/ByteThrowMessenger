@@ -18,30 +18,26 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import net.jmb19905.bytethrow.common.packets.RegisterPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
 import net.jmb19905.bytethrow.server.database.DatabaseManager;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class RegisterPacketHandler extends PacketHandler<RegisterPacket> {
-    @Override
-    public void handle(ChannelHandlerContext ctx, RegisterPacket packet) {
-        Logger.trace("Client is trying to registering");
+import java.net.SocketAddress;
 
-        ServerManager manager = StartServer.manager;
+public class RegisterPacketHandler implements PacketHandler<RegisterPacket> {
+    @Override
+    public void handle(HandlingContext ctx, RegisterPacket packet) {
+        Logger.trace("Client is trying to registering");
 
         if (DatabaseManager.createUser(packet.user)) {
             packet.user.removePassword();
-            handleSuccessfulRegister(ctx, packet, manager.getConnection());
+            handleSuccessfulRegister(ctx, packet);
         } else {
             NetworkingUtility.sendFail(ctx, "register", "register_fail", "");
         }
@@ -53,32 +49,31 @@ public class RegisterPacketHandler extends PacketHandler<RegisterPacket> {
      *
      * @param packet the login packet containing the login packet of the client
      */
-    private void handleSuccessfulRegister(ChannelHandlerContext ctx, RegisterPacket packet, TcpServerConnection connection) {
+    private void handleSuccessfulRegister(HandlingContext ctx, RegisterPacket packet) {
         ServerManager manager = StartServer.manager;
         if (manager.isClientOnline(packet.user)) {
-            for (TcpServerHandler otherHandler : connection.getClientConnections().keySet()) {
-                if (manager.getClient(otherHandler).equals(packet.user)) {
-                    SocketChannel otherSocketChannel = connection.getClientConnections().get(otherHandler);
-                    NetworkingUtility.sendFail(otherSocketChannel, "external_disconnect", "external_disconnect", "", otherHandler.getEncryption());
+            for (SocketAddress otherAddress : manager.getNetThread().getConnectedClients().keySet()) {
+                if (manager.getClient(otherAddress).equals(packet.user)) {
+                    NetworkingUtility.sendFail(manager.getNetThread(), otherAddress, "external_disconnect", "external_disconnect", "");
                     //future.addListener(future1 -> otherHandler.markClosed());
                 }
             }
         }
-        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
-        manager.addOnlineClient(packet.user, handler);
-        Logger.info("Client: " + ctx.channel().remoteAddress() + " now uses name: " + manager.getClient(handler));
+        SocketAddress address = ctx.getRemote();
+        manager.addOnlineClient(packet.user, address);
+        Logger.info("Client: " + address + " now uses name: " + manager.getClient(address));
 
-        sendRegisterSuccess(ctx.channel(), handler); // confirms the register to the current client
+        sendRegisterSuccess(ctx); // confirms the register to the current client
     }
 
     /**
      * Sends LoginPacket to client to confirm login
      */
-    private void sendRegisterSuccess(Channel channel, TcpServerHandler handler) {
+    private void sendRegisterSuccess(HandlingContext ctx) {
         SuccessPacket loginSuccessPacket = new SuccessPacket();
         loginSuccessPacket.type = SuccessPacket.SuccessType.REGISTER;
 
-        Logger.trace("Sending packet " + loginSuccessPacket + " to " + channel.remoteAddress());
-        NetworkingUtility.sendPacket(loginSuccessPacket, channel, handler.getEncryption());
+        Logger.trace("Sending packet " + loginSuccessPacket + " to " + ctx.getRemote());
+        ctx.send(loginSuccessPacket);
     }
 }

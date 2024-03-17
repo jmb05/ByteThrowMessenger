@@ -18,26 +18,24 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.AbstractChat;
 import net.jmb19905.bytethrow.common.packets.ChatsPacket;
 import net.jmb19905.bytethrow.common.packets.ChatsRequestPacket;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
 import java.util.List;
 
-public class ChatsRequestPacketHandler extends PacketHandler<ChatsRequestPacket> {
+public class ChatsRequestPacketHandler implements PacketHandler<ChatsRequestPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, ChatsRequestPacket packet) {
+    public void handle(HandlingContext ctx, ChatsRequestPacket packet) {
         ServerManager manager = StartServer.manager;
-        User client = manager.getClient((TcpServerHandler) ctx.handler());
+        User client = manager.getClient(ctx.getRemote());
         ChatsPacket chatsPacket = new ChatsPacket();
 
         List<AbstractChat> chats = manager.getChats();
@@ -45,7 +43,7 @@ public class ChatsRequestPacketHandler extends PacketHandler<ChatsRequestPacket>
                 .filter(chat -> chat.hasClient(client))
                 .forEach(chat -> chatsPacket.chatData.add(new ChatsPacket.ChatData(chat)));
 
-        Logger.trace("Sending packet " + chatsPacket + " to " + ctx.channel().remoteAddress());
-        NetworkingUtility.sendPacket(chatsPacket, ctx.channel(), ((TcpServerHandler) ctx.handler()).getEncryption());
+        Logger.trace("Sending packet " + chatsPacket + " to " + ctx.getRemote());
+        net.jmb19905.net.NetworkingUtility.send(manager.getNetThread(), ctx.getRemote(), chatsPacket);
     }
 }

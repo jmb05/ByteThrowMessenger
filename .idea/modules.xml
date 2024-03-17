@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ByteThrow Messenger.iml" filepath="$PROJECT_DIR$/.idea/ByteThrow Messenger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ByteThrow_Messenger.iml" filepath="$PROJECT_DIR$/.idea/modules/ByteThrow_Messenger.iml" />
     </modules>
   </component>
 </project>

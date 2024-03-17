@@ -22,10 +22,11 @@ import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.client.gui.ConfirmIdentityDialog;
 import net.jmb19905.bytethrow.client.gui.Window;
-import net.jmb19905.util.Localisation;
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.bytethrow.common.packets.PacketManager;
+import net.jmb19905.bytethrow.common.packets.ChangeUserDataPacket;
+import net.jmb19905.bytethrow.common.packets.LoginPacket;
 import net.jmb19905.bytethrow.common.util.ResourceUtility;
+import net.jmb19905.util.Localisation;
 import net.jmb19905.util.Logger;
 
 import javax.swing.*;
@@ -175,18 +176,28 @@ public class AccountSettings extends JDialog {
             manager.user.setUsername(user.getUsername());
             setUsername(user.getUsername());
 
-            PacketManager.confirmIdentity(user, manager.getClient());
+            LoginPacket loginPacket = new LoginPacket();
+            loginPacket.user = user;
+            loginPacket.confirmIdentity = true;
+
+            manager.send(loginPacket);
         } catch (NullPointerException ignored) {
         }
     }
 
     private void changeUsername(String username) {
-        PacketManager.sendChangeUsername(username, manager.getClient());
+        ChangeUserDataPacket packet = new ChangeUserDataPacket();
+        packet.type = "username";
+        packet.value = username;
+        manager.send(packet);
     }
 
     private void changePassword(String password) {
         try {
-            PacketManager.sendChangePassword(password, manager.getClient());
+            ChangeUserDataPacket packet = new ChangeUserDataPacket();
+            packet.type = "password";
+            packet.value = password;
+            manager.send(packet);
         } catch (NullPointerException ignored) {
         }
     }

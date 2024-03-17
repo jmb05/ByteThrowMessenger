@@ -18,11 +18,8 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-
-import java.nio.charset.StandardCharsets;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 public class FailPacket extends Packet {
 
@@ -32,22 +29,20 @@ public class FailPacket extends Packet {
     public String message;
     public String extra;
 
-    /**
-     * A Packet that is sent to a client to inform him that something went wrong
-     */
-    public FailPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         cause = buffer.getString();
         message = buffer.getString();
         extra = buffer.getString();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putString(cause);
         buffer.putString(message);
         buffer.putString(extra);

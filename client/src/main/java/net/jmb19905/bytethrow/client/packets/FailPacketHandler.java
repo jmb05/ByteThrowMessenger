@@ -18,22 +18,22 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Localisation;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.chat.client.ClientPeerChat;
 import net.jmb19905.bytethrow.common.packets.FailPacket;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
 
-public class FailPacketHandler extends PacketHandler<FailPacket> {
+public class FailPacketHandler implements PacketHandler<FailPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, FailPacket packet) {
+    public void handle(HandlingContext ctx, FailPacket packet) {
         ClientManager manager = StartClient.manager;
         String cause = packet.cause;
         String message = Localisation.get(packet.message);
@@ -42,8 +42,8 @@ public class FailPacketHandler extends PacketHandler<FailPacket> {
         }
         StartClient.guiManager.showError(message);
         switch (cause.split(":")[0]) {
-            case "login" -> manager.relogin(ctx);
-            case "register" -> manager.register(ctx);
+            case "login" -> manager.relogin();
+            case "register" -> manager.register();
             case "version" -> {
                 Logger.fatal("Version mismatch: " + Localisation.get(packet.message));
                 ShutdownManager.shutdown(-1);

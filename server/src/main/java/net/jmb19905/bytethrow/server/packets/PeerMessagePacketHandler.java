@@ -18,7 +18,6 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.chat.PeerMessage;
@@ -26,24 +25,24 @@ import net.jmb19905.bytethrow.common.packets.PeerMessagePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class PeerMessagePacketHandler extends PacketHandler<PeerMessagePacket> {
+public class PeerMessagePacketHandler implements PacketHandler<PeerMessagePacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, PeerMessagePacket packet) {
+    public void handle(HandlingContext ctx, PeerMessagePacket packet) {
         PeerMessage message = packet.message;
         ServerManager manager = StartServer.manager;
-        User user = manager.getClient((TcpServerHandler) ctx.handler());
+        User user = manager.getClient(ctx.getRemote());
         if (user.equals(message.getSender())) {
             if (user != null) {
                 User peer = message.getReceiver();
                 PeerChat chat = manager.getChat(user, peer);
                 if (chat != null) {
                     if (chat.isActive()) {
-                        manager.sendPacketToPeer(peer, packet, manager.getConnection(), (TcpServerHandler) ctx.handler());
+                        manager.sendPacketToPeer(peer, packet, ctx.getRemote());
                         Logger.trace("Sent message to recipient: " + peer.getUsername());
                     } else {
                         NetworkingUtility.sendFail(ctx, "message", "peer_offline", peer.getUsername());

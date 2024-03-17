@@ -27,16 +27,17 @@ import net.jmb19905.bytethrow.common.serial.ChatSerial;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class LeaveGroupPacketHandler extends PacketHandler<LeaveGroupPacket> {
+import java.net.SocketAddress;
+
+public class LeaveGroupPacketHandler implements PacketHandler<LeaveGroupPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, LeaveGroupPacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, LeaveGroupPacket packet) {
         ServerManager manager = StartServer.manager;
-        User client = manager.getClient((TcpServerHandler) ctx.handler());
+        User client = manager.getClient(ctx.getRemote());
         if(!client.equals(packet.client)) {
             Logger.warn("Invalid LeaveGroupPacket");
             return;
@@ -46,22 +47,15 @@ public class LeaveGroupPacketHandler extends PacketHandler<LeaveGroupPacket> {
         if(groupChat != null) {
             groupChat.removeClient(client);
             ChatSerial.write(groupChat);
-            notifyPeers((TcpServerHandler) ctx.handler(), groupChat, packet);
+            notifyPeers(ctx.getRemote(), groupChat, packet);
         }
         NetworkingUtility.sendPacket(packet, ctx);
     }
 
-    private void notifyPeers(TcpServerHandler serverHandler, GroupChat chat, LeaveGroupPacket packet) {
+    private void notifyPeers(SocketAddress address, GroupChat chat, LeaveGroupPacket packet) {
         ServerManager manager = StartServer.manager;
         for (User peer : chat.getMembers()) {
-            TcpServerHandler peerHandler = manager.getPeerHandler(peer, serverHandler);
-            if (peerHandler != null) {
-                SocketChannel channel = manager.getConnection().getClientConnections().get(peerHandler);
-                Logger.trace("Sending packet " + packet + " to " + channel.remoteAddress());
-                NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
-            } else {
-                Logger.warn("Peer: " + peer.getUsername() + " not online");
-            }
+            manager.sendPacketToPeer(peer, packet, address);
         }
     }
 }

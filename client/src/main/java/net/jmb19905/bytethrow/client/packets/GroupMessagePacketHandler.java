@@ -18,20 +18,19 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
 import net.jmb19905.bytethrow.common.chat.client.ChatHistorySerialisation;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.GroupMessagePacket;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class GroupMessagePacketHandler extends PacketHandler<GroupMessagePacket>{
+public class GroupMessagePacketHandler implements PacketHandler<GroupMessagePacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, GroupMessagePacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, GroupMessagePacket packet) {
         GroupMessage message = packet.message;
         String groupName = message.getGroupName();
         ClientGroupChat chat = StartClient.manager.getGroup(groupName);

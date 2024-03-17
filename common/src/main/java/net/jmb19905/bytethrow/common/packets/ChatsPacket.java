@@ -21,10 +21,9 @@ package net.jmb19905.bytethrow.common.packets;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.IChat;
-import net.jmb19905.jmbnetty.common.buffer.BufferSerializable;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferSerializable;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 import java.util.*;
 
@@ -35,27 +34,25 @@ public class ChatsPacket extends Packet {
     public boolean update = false;
     public List<ChatData> chatData = new ArrayList<>();
 
-    /**
-     * Contains all the names of the peers of a client
-     */
-    public ChatsPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         update = buffer.getBoolean();
         chatData.clear();
 
         int length = buffer.getInt();
         for (int i=0;i<length;i++) {
-            ChatData data = buffer.get(ChatData.class);
+            ChatData data = buffer.get(ChatData.class).orElse(null);//TODO: check
             chatData.add(data);
         }
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.putBoolean(update);
         buffer.putInt(chatData.size());
         for (ChatData data : chatData) {
@@ -83,16 +80,18 @@ public class ChatsPacket extends Packet {
             }
 
             @Override
-            public void construct(SimpleBuffer buffer) {
+            public void construct(BufferWrapper buffer) {
                 name = buffer.getString();
-                User[] array = buffer.getArray(User.class);
+                BufferSerializable[] array = buffer.getArray(User.class);
                 members.clear();
-                members.addAll(Arrays.stream(array).toList());
+                for (BufferSerializable user : array) {
+                    members.add((User) user);
+                }
                 id = buffer.getUUID();
             }
 
             @Override
-            public void deconstruct(SimpleBuffer buffer) {
+            public void deconstruct(BufferWrapper buffer) {
                 buffer.putString(name);
                 buffer.putArray(members.toArray(new User[0]));
                 buffer.putUUID(id);

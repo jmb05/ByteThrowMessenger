@@ -19,11 +19,8 @@
 package net.jmb19905.bytethrow.common.packets;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
-
-import java.nio.charset.StandardCharsets;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 /**
  * Sent from to the Server to a Client to tell him that his peer disconnected
@@ -34,17 +31,18 @@ public class DisconnectPacket extends Packet {
 
     public User user;
 
-    public DisconnectPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        user = buffer.get(User.class);
+    public void construct(BufferWrapper buffer) {
+        user = buffer.get(User.class).orElse(null);//TODO: check
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(user);
     }
 }

@@ -20,6 +20,7 @@ package net.jmb19905.bytethrow.client.gui.event;
 
 import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.gui.LoginDialog;
+import net.jmb19905.net.handler.HandlingContext;
 import org.jetbrains.annotations.NotNull;
 
 public class LoginEvent extends GuiEvent{
@@ -27,19 +28,13 @@ public class LoginEvent extends GuiEvent{
     public static final String ID = "login";
 
     private final LoginDialog.LoginData data;
-    private final ChannelHandlerContext channelCtx;
 
-    public LoginEvent(@NotNull GuiEventContext ctx, LoginDialog.LoginData data, ChannelHandlerContext channelCtx) {
+    public LoginEvent(@NotNull GuiEventContext ctx, LoginDialog.LoginData data) {
         super(ctx, ID);
         this.data = data;
-        this.channelCtx = channelCtx;
     }
 
     public LoginDialog.LoginData getData() {
         return data;
-    }
-
-    public ChannelHandlerContext getChannelCtx() {
-        return channelCtx;
     }
 }

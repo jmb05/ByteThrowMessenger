@@ -18,7 +18,6 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.GroupChat;
 import net.jmb19905.bytethrow.common.chat.GroupMessage;
@@ -26,26 +25,25 @@ import net.jmb19905.bytethrow.common.packets.GroupMessagePacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerConnection;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 
-public class GroupMessagePacketHandler extends PacketHandler<GroupMessagePacket>{
+import java.net.SocketAddress;
+
+public class GroupMessagePacketHandler implements PacketHandler<GroupMessagePacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, GroupMessagePacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, GroupMessagePacket packet) {
         GroupMessage message = packet.message;
         ServerManager manager = StartServer.manager;
-        TcpServerConnection connection = manager.getConnection();
-        TcpServerHandler handler = (TcpServerHandler) ctx.handler();
-        User user = manager.getClient(handler);
+        SocketAddress address = ctx.getRemote();
+        User user = manager.getClient(address);
         if (user.equals(message.getSender())) {
             if (user != null) {
                 String groupName = message.getGroupName();
                 GroupChat chat = manager.getGroup(groupName);
                 if (chat != null) {
-                    manager.sendPacketToGroup(groupName, packet, connection, handler);
+                    manager.sendPacketToGroup(groupName, packet, address);
                     Logger.trace("Sent message to group: " + groupName);
                 } else {
                     NetworkingUtility.sendFail(ctx, "message", "no_such_chat", groupName);

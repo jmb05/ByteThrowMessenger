@@ -18,16 +18,16 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.chat.client.ClientGroupChat;
 import net.jmb19905.bytethrow.common.packets.LeaveGroupPacket;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class LeaveGroupPacketHandler extends PacketHandler<LeaveGroupPacket> {
+public class LeaveGroupPacketHandler implements PacketHandler<LeaveGroupPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, LeaveGroupPacket packet) {
+    public void handle(HandlingContext ctx, LeaveGroupPacket packet) {
         ClientManager manager = StartClient.manager;
         ClientGroupChat groupChat = manager.getGroup(packet.groupName);
         if(!manager.user.equals(packet.client)){

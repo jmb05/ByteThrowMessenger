@@ -19,7 +19,7 @@
 package net.jmb19905.bytethrow.common.chat;
 
 import net.jmb19905.bytethrow.common.User;
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
+import net.jmb19905.net.buffer.BufferWrapper;
 
 public class GroupMessage extends Message {
 
@@ -57,15 +57,15 @@ public class GroupMessage extends Message {
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
-        sender = buffer.get(User.class);
+    public void construct(BufferWrapper buffer) {
+        sender = buffer.get(User.class).orElse(null);//TODO: check
         groupName = buffer.getString();
         message = buffer.getString();
         timestamp = buffer.getLong();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         buffer.put(sender);
         buffer.putString(groupName);
         buffer.putString(message);

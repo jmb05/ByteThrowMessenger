@@ -18,29 +18,24 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.ChatsRequestPacket;
 import net.jmb19905.bytethrow.common.packets.SuccessPacket;
-import net.jmb19905.bytethrow.common.util.NetworkingUtility;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.Logger;
 import net.jmb19905.util.ShutdownManager;
-import net.jmb19905.util.crypto.Encryption;
 
 import javax.swing.*;
 
-public class SuccessPacketHandler extends PacketHandler<SuccessPacket> {
+public class SuccessPacketHandler implements PacketHandler<SuccessPacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, SuccessPacket packet) {
-        Encryption encryption = ((TcpClientHandler) ctx.handler()).getEncryption();
+    public void handle(HandlingContext ctx, SuccessPacket packet) {
         switch (packet.type) {
             case LOGIN, REGISTER -> {
-                doOnLoginSuccess(packet, encryption, ctx.channel());
+                doOnLoginSuccess(packet);
                 StartClient.guiManager.showLoading(false);
             }
             case CHANGE_NAME -> JOptionPane.showMessageDialog(null, "Username changed successfully");
@@ -52,13 +47,13 @@ public class SuccessPacketHandler extends PacketHandler<SuccessPacket> {
         }
     }
 
-    private void doOnLoginSuccess(SuccessPacket packet, Encryption encryption, Channel channel) {
+    private void doOnLoginSuccess(SuccessPacket packet) {
         ClientManager manager = StartClient.manager;
         if (!packet.confirmIdentity) {
             if (!manager.loggedIn) {
                 manager.loggedIn = true;
                 ChatsRequestPacket chatsRequestPacket = new ChatsRequestPacket();
-                NetworkingUtility.sendPacket(chatsRequestPacket, channel, encryption);
+                manager.send(chatsRequestPacket);
             } else {
                 Logger.warn("Already logged in");
             }

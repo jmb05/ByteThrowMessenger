@@ -18,24 +18,23 @@
 
 package net.jmb19905.bytethrow.server.packets;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.common.User;
 import net.jmb19905.bytethrow.common.chat.PeerChat;
 import net.jmb19905.bytethrow.common.packets.DisconnectPeerPacket;
 import net.jmb19905.bytethrow.common.util.NetworkingUtility;
 import net.jmb19905.bytethrow.server.ServerManager;
 import net.jmb19905.bytethrow.server.StartServer;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
-import net.jmb19905.jmbnetty.server.tcp.TcpServerHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class DisconnectPeerPacketHandler extends PacketHandler<DisconnectPeerPacket> {
+import java.net.SocketAddress;
+
+public class DisconnectPeerPacketHandler implements PacketHandler<DisconnectPeerPacket> {
     @Override
-    public void handle(ChannelHandlerContext ctx, DisconnectPeerPacket packet) throws IllegalSideException {
+    public void handle(HandlingContext ctx, DisconnectPeerPacket packet) {
         ServerManager manager = StartServer.manager;
 
-        User client = manager.getClient((TcpServerHandler) ctx.handler());
+        User client = manager.getClient(ctx.getRemote());
         User peer = packet.peer;
 
 
@@ -46,10 +45,9 @@ public class DisconnectPeerPacketHandler extends PacketHandler<DisconnectPeerPac
 
         packet.peer = client;
 
-        TcpServerHandler peerHandler = manager.getPeerHandler(peer, (TcpServerHandler) ctx.handler());
-        if(peerHandler != null) {
-            Channel channel = manager.getConnection().getClientConnections().get(peerHandler);
-            NetworkingUtility.sendPacket(packet, channel, peerHandler.getEncryption());
+        SocketAddress peerAddress = manager.getPeerAddress(peer, ctx.getRemote());
+        if(peerAddress != null) {
+            net.jmb19905.net.NetworkingUtility.send(manager.getNetThread(), peerAddress, packet);
         }
     }
 }

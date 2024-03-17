@@ -18,9 +18,8 @@
 
 package net.jmb19905.bytethrow.common.packets;
 
-import net.jmb19905.jmbnetty.common.buffer.SimpleBuffer;
-import net.jmb19905.jmbnetty.common.packets.registry.Packet;
-import net.jmb19905.jmbnetty.common.packets.registry.PacketRegistry;
+import net.jmb19905.net.buffer.BufferWrapper;
+import net.jmb19905.net.packet.Packet;
 
 /**
  * Sent to the client when an action is successful
@@ -32,18 +31,19 @@ public class SuccessPacket extends Packet {
     public SuccessType type;
     public boolean confirmIdentity = false;
 
-    public SuccessPacket() {
-        super(PacketRegistry.getInstance().getPacketType(ID));
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    public void construct(SimpleBuffer buffer) {
+    public void construct(BufferWrapper buffer) {
         type = SuccessType.construct(buffer);
         confirmIdentity = buffer.getBoolean();
     }
 
     @Override
-    public void deconstruct(SimpleBuffer buffer) {
+    public void deconstruct(BufferWrapper buffer) {
         type.deconstruct(buffer);
         buffer.putBoolean(confirmIdentity);
     }
@@ -57,7 +57,7 @@ public class SuccessPacket extends Packet {
             this.id = id;
         }
 
-        public static SuccessType construct(SimpleBuffer buffer) {
+        public static SuccessType construct(BufferWrapper buffer) {
             var s = buffer.getString();
             return switch (s) {
                 case "register" -> REGISTER;
@@ -68,7 +68,7 @@ public class SuccessPacket extends Packet {
             };
         }
 
-        public void deconstruct(SimpleBuffer buffer) {
+        public void deconstruct(BufferWrapper buffer) {
             buffer.putString(this.id);
         }
     }

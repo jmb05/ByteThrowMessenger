@@ -18,26 +18,25 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.ClientManager;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.HandshakePacket;
-import net.jmb19905.jmbnetty.client.tcp.TcpClientHandler;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 import net.jmb19905.util.bootstrapping.Version;
 import net.jmb19905.util.crypto.EncryptionUtility;
 
-public class HandshakePacketHandler extends PacketHandler<HandshakePacket> {
+public class HandshakePacketHandler implements PacketHandler<HandshakePacket> {
 
     @Override
-    public void handle(ChannelHandlerContext ctx, HandshakePacket packet) {
+    public void handle(HandlingContext ctx, HandshakePacket packet) {
         ClientManager manager = StartClient.manager;
         Version packetVersion = new Version(packet.version);
         if (packetVersion.isIncompatible(StartClient.version)) {
             StartClient.guiManager.showError("Client is outdated!");
             return;
         }
-        ((TcpClientHandler) ctx.handler()).setPublicKey(EncryptionUtility.createPublicKeyFromData(packet.key));
-        manager.login(ctx);
+        manager.getNetThread().getEncryption().setReceiverPublicKey(EncryptionUtility.createPublicKeyFromData(packet.key));
+        manager.login();
     }
 }

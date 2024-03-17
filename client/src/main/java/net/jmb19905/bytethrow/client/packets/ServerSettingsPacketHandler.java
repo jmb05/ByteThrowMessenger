@@ -18,15 +18,14 @@
 
 package net.jmb19905.bytethrow.client.packets;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.jmb19905.bytethrow.client.StartClient;
 import net.jmb19905.bytethrow.common.packets.ServerSettingsPacket;
-import net.jmb19905.jmbnetty.common.exception.IllegalSideException;
-import net.jmb19905.jmbnetty.common.packets.handler.PacketHandler;
+import net.jmb19905.net.handler.HandlingContext;
+import net.jmb19905.net.packet.PacketHandler;
 
-public class ServerSettingsPacketHandler extends PacketHandler<ServerSettingsPacket> {
+public class ServerSettingsPacketHandler implements PacketHandler<ServerSettingsPacket> {
     @Override
-    public void handle(ChannelHandlerContext channelHandlerContext, ServerSettingsPacket packet) {
+    public void handle(HandlingContext ctx, ServerSettingsPacket packet) {
         StartClient.manager.securePasswords = packet.securePasswords;
     }
 }

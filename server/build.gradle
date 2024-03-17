@@ -18,7 +18,7 @@ configurations {
 
 dependencies {
     provided(project(":common"))
-    provided(project(":jmbnetty"))
+    provided "net.jmb19905:jmb-net:$net_version"
     provided "net.jmb19905:jmb-utilities:$utilities_version"
     provided 'org.jetbrains:annotations:20.1.0'
     provided "io.netty:netty-transport:$netty_version"

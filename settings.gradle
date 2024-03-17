@@ -8,4 +8,5 @@ include 'client'
 include 'common'
 include 'web-backend'
 include 'service-test'
+include 'jmb-net-annotation'
 
